@@ -1,0 +1,59 @@
+RM=/usr/bin/rm
+
+# with optimization
+CFLAGS = -fullwarn -Ofast -TENV:align_aggregate=1
+FFLAGS = -Ofast -fullwarn -TENV:align_aggregate=1
+LFLAGS =  -lm -IPA -fullwarn
+
+# debug mode
+CFLAGS = -fullwarn -g
+FFLAGS = -fullwarn -TENV:align_aggregate=1  -TARG:madd=off
+LFLAGS = -lm -g -fullwarn
+
+# OpenMP
+OMP = -mp
+
+all: blurf blurc thresc thresf blurfmp thresfmp
+
+clean:
+	-$(RM) *.o blurc blurf blurfmp thresc thresf
+
+IOOBJ = ppmio.o gaussw.o blurmain.o
+
+ioobj: $(IOOBJ) Makefile.sgi
+
+blurc: ioobj blurfilter.o
+	cc -o $@ $(IOOBJ) blurfilter.o $(LFLAGS) 
+
+blurfilter_dbg.o: blurfilter.c
+	cc -c -DDBG $(CFLAGS) blurfilter.c -o blurfilter_dbg.o
+
+blurcdbg: ioobj blurfilter_dbg.o
+	cc -o $@ $(IOOBJ) blurfilter_dbg.o $(LFLAGS) 
+
+blurfilter_f.o:blurfilter_f.f90
+	f90 -c $(FFLAGS) blurfilter_f.f90
+
+blurf: ioobj blurfilter_f.o blur_fproxy.o
+	cc -o $@ $(IOOBJ) blurfilter_f.o blur_fproxy.o -lftn -lfortran $(LFLAGS)
+
+blurfilter_fmp.o:blurfilter_fmp.f90
+	f90 $(OMP) -c $(FFLAGS) blurfilter_fmp.f90 
+
+blurfmp: ioobj blurfilter_fmp.o blur_fproxy.o
+	cc -o $@ $(IOOBJ) blurfilter_fmp.o blur_fproxy.o -lftn -lfortran $(LFLAGS) $(OMP)
+
+thresc: thresmain.o ppmio.o thresfilter.o
+	cc -o $@ thresmain.o ppmio.o thresfilter.o $(LFLAGS)
+
+thresf: thresmain.o ppmio.o thres_fproxy.o thresfilter_f.o
+	cc -o $@ thresmain.o ppmio.o thres_fproxy.o thresfilter_f.o  $(LFLAGS)
+
+thresfilter_fmp.o:thresfilter_fmp.f90
+	f90 $(OMP) -c $(FFLAGS) thresfilter_fmp.f90
+
+thresfmp: thresmain.o ppmio.o thres_fproxy.o thresfilter_fmp.o
+	cc -o $@ thresmain.o ppmio.o thres_fproxy.o thresfilter_fmp.o  $(LFLAGS) $(OMP)
+
+arc:
+	tar cf - *.c *.h *.f90 Makefile Makefile.sgi|gzip - > filters.tar.gz

@@ -1,0 +1,115 @@
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "ppmio.h"
+
+
+typedef struct _pixel {
+  unsigned char r,g,b;
+} pixel;
+
+int main( int argc, char *argv[] )
+{
+  if(argc<1)
+    {
+      printf("invalid number of args");
+      return;
+    }
+  int radius = 1000;
+  int xpix, ypix, me, np;
+  int maxpix;
+  pixel* picture;
+  pixel * recvbuff;
+  picture = (pixel *)malloc((MAX_PIXELS*3)*sizeof(pixel*)); 
+ 
+
+  MPI_Comm com = MPI_COMM_WORLD;
+  MPI_Init( &argc, &argv );
+  MPI_Comm_size( com, &np );
+  MPI_Comm_rank( com, &me );
+  int scounts[np];
+  int displs[np];
+  int workload;
+  int work2;
+  int i;
+
+  if(me==0)
+    {
+	
+      read_ppm(argv[1], &xpix, &ypix, &maxpix, (char*)picture);
+    
+      workload = (ypix/np)*xpix;
+      work2= ypix%np;
+      int offset = 0;
+      for(i=0; i<np; i++)
+	{
+	  displs[i]=offset;
+	  if(i<work2)
+	    {
+	      scounts[i] = workload+xpix;	
+	    }
+	  else{
+	    scounts[i] = workload;
+	  }
+	  offset += scounts[i];
+
+	  //get overlap above area
+	  if(displs[i]-(xpix*radius)<=0)
+	    {
+	      scounts[i]+= displs[i];
+	      displs[i]=0;
+	    }else{
+	    scounts[i]+=(xpix*radius);
+	    displs[i]-=xpix*radius;
+	  }
+	  //get overlap for lower area.
+	  if(displs[i]+(xpix*radius)+scounts[i] > xpix*ypix)
+	    {
+	      scounts[i]=xpix*ypix-displs[i];
+	    }
+	  else{
+	    scounts[i]+=xpix*radius;
+	  }
+	  //TODO NEXT:: Find overlapping sizes and scatter them.
+
+	}
+
+	  int recvcount = scounts[me];
+
+
+	  MPI_Bcast(scounts, np, MPI_INT, 0, com);
+	  MPI_Bcast(displs, np, MPI_INT, 0, com);
+	  recvbuff = (pixel *)malloc((scounts[me])*sizeof(pixel)); 
+	  printf("0: %d 1: %d 2: %d 3: %d\n", displs[0], displs[1],displs[2], displs[3]);
+  
+    
+
+	  MPI_Scatterv( picture, scounts, displs, MPI_CHAR, recvbuff, 400000, MPI_CHAR, 0, com); 
+
+	  printf("p %d got pixel %d, %d, %d\n", me, recvbuff[0].r,recvbuff[0].g,recvbuff[0].b);
+  
+	  MPI_Finalize();
+	  free(picture);
+	  free(recvbuff);
+	  //picture is now scattered to all processors. Blur it!
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  return 0;
+
+
+	}

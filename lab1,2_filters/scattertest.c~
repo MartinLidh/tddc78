@@ -1,0 +1,38 @@
+#include <mpi.h>
+#include <stdio.h>
+#include "ppmio.h"
+
+
+void main (){
+MPI_Comm comm; 
+    int gsize,recvarray[100][150],*rptr; 
+    int root, *sendbuf, myrank, bufsize, *stride; 
+    MPI_Datatype rtype; 
+    int i, *displs, *scounts, offset; 
+    ... 
+    MPI_Comm_size( comm, &gsize); 
+    MPI_Comm_rank( comm, &myrank ); 
+
+ 
+stride = (int *)malloc(gsize*sizeof(int)); 
+    ... 
+    /* stride[i] for i = 0 to gsize-1 is set somehow 
+     * sendbuf comes from elsewhere 
+     */ 
+    ... 
+    displs = (int *)malloc(gsize*sizeof(int)); 
+    scounts = (int *)malloc(gsize*sizeof(int)); 
+    offset = 0; 
+    for (i=0; i<gsize; ++i) { 
+        displs[i] = offset; 
+        offset += stride[i]; 
+        scounts[i] = 100 - i; 
+    } 
+    /* Create datatype for the column we are receiving 
+     */ 
+    MPI_Type_vector( 100-myrank, 1, 150, MPI_INT, &rtype); 
+    MPI_Type_commit( &rtype ); 
+    rptr = &recvarray[0][myrank]; 
+    MPI_Scatterv( sendbuf, scounts, displs, MPI_INT, rptr, 1, rtype, 
+                                                            root, comm); 
+}
