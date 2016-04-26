@@ -4,9 +4,10 @@
   Declaration of get_gauss_weights function.
 
  */
-
 #ifndef _GAUSSW_H_
+
 #define _GAUSSW_H_
+#include <math.h>
 
 /* Generate an array of weights for the gaussian filter. */
 /* Input: n - number of weights to generate              */

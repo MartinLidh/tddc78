@@ -193,6 +193,7 @@ int main( int argc, char *argv[] )
 
 
   MPI_Gatherv(recvbuff, scounts[me], MPI_PIXEL , picture, scounts, displs, MPI_PIXEL, 0, com);
+
   printf("p %d got pixel %d, %d, %d\n", me, recvbuff[xpix*radius].r,recvbuff[xpix*radius].g,recvbuff[xpix*radius].b);
   
   
