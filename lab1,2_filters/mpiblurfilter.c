@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "ppmio.h"
 #include "blurfilter2.h"
+#include <string.h>
 
 
 #define MAX_RAD 1000
@@ -20,6 +21,10 @@ void get_gauss_weights(int n, double* weights_out) {
   }
 }
 
+int min(int x, int y)
+{
+  return y ^ ((x ^ y) & -(x < y));
+}
 
 int main( int argc, char *argv[] )
 {
@@ -28,7 +33,7 @@ int main( int argc, char *argv[] )
       printf("invalid number of args");
       return;
     }
-  int radius = 200;
+  int radius = 100;
   int xpix, ypix, me, np;
   int maxpix;
   pixel* picture;
@@ -91,10 +96,22 @@ int main( int argc, char *argv[] )
   MPI_Bcast(displs, np, MPI_INT, 0, com);
 
 
+  int over, under;
+
+  over = min(displs[me]/xpix, radius)*-1;
+  under = min((xpix*ypix-displs[me]-scounts[me])/xpix, radius);
+
+
   recvbuff = (pixel *)malloc((scounts[me]+(radius*xpix*2))*sizeof(pixel)); 
   printf("0: %d 1: %d 2: %d 3: %d\n", scounts[0], scounts[1],scounts[2], scounts[3]);  
 
-  MPI_Scatterv( picture, scounts, displs, MPI_PIXEL, &recvbuff[xpix*radius], scounts[me], MPI_PIXEL, 0, com); 
+  MPI_Scatterv( picture, scounts, displs, MPI_PIXEL, &recvbuff[xpix*radius], scounts[me], MPI_PIXEL, 0, com);  
+  double w[MAX_RAD];
+  get_gauss_weights(radius, w);
+  blurfilterX(xpix, scounts[me]/xpix, &recvbuff[xpix*radius], radius, w );
+ 
+
+ 
   printf("xpix %d, ypix %d \n", xpix, ypix);
   
   pixel * buf = (pixel *)malloc((np*scounts[0]*2)*sizeof(pixel));
@@ -175,35 +192,59 @@ int main( int argc, char *argv[] )
 	  needed-=needed;	    
 	}
 	else{
-	  printf("Proc with id %d is sending to %d and number of pixs is:%d \n",me,me-i, needed);
+	  printf("Proc with id %d is sending to %d and number of pixs is:%d \n",me,me+i, needed);
 
 	  MPI_Recv(&recvbuff[radius*xpix*2+scounts[me]-needed], scounts[me+i],MPI_PIXEL, me+i ,MPI_ANY_TAG,com,MPI_STATUS_IGNORE);
 	  needed-=scounts[me+i];
 	}
       }else break;
   }
-  //  MPI_Waitall(np,sendReqs, sendStats);
+
+
+
   //blur pixels
+  
 
-   double w[MAX_RAD];
-  get_gauss_weights(radius, w);
-
-  blurfilter(xpix, scounts[me]/xpix, &recvbuff[radius*xpix], radius, w  );
-
+  blurfilterY(xpix, scounts[me]/xpix, &recvbuff[xpix*radius], radius, w ,over, under);
+  printf("0: %d 1: %d 2: %d 3: %d\n", displs[0], displs[1],displs[2], displs[3]);  
 
 
-  MPI_Gatherv(recvbuff, scounts[me], MPI_PIXEL , picture, scounts, displs, MPI_PIXEL, 0, com);
-  printf("p %d got pixel %d, %d, %d\n", me, recvbuff[xpix*radius].r,recvbuff[xpix*radius].g,recvbuff[xpix*radius].b);
+  MPI_Gatherv(&recvbuff[radius*xpix], scounts[me], MPI_PIXEL , picture, scounts, displs, MPI_PIXEL, 0, com);
+  /*
+  if(me == 1){
+    MPI_Send(&recvbuff[xpix*radius], scounts[me], MPI_PIXEL, 0, 1337,com);
+  }
+  if(me == 0){
+    MPI_Recv(&picture[scounts[me]], scounts[me],MPI_PIXEL, 1 ,MPI_ANY_TAG,com,MPI_STATUS_IGNORE);
+    memcpy(picture, &recvbuff[xpix*radius], scounts[me]*sizeof(pixel));
+    printf("pixelsize:  %lu \n", sizeof(pixel));
+    }
+  */
+  //printf("p %d got pixel %d, %d, %d\n", me, recvbuff[xpix*radius].r,recvbuff[xpix*radius].g,recvbuff[xpix*radius].b);
   
   
   if(me==0)
+    { 
+      write_ppm (argv[2], xpix, ypix, (char *)picture);
+      //  write_ppm("../img_node_0.ppm", xpix, (scounts[me]+xpix*radius)/xpix, (char *)recvbuff);
+    }
+  /*
+  if(me==np)
     {
-      printf("root had pitcure with pixel %d\n", picture[5].r);
+      char filename [30];
+      sprintf(filename, "../img_node_%d.ppm", me);
+      write_ppm(filename, xpix, (scounts[me]+xpix*radius)/xpix, (char *)recvbuff);
+      }
+  
+  */
+  if(1)
+    {
+      char filename [30];
+      sprintf(filename, "../img_node2_%d.ppm", me);
+      write_ppm(filename, xpix, (scounts[me]+xpix*radius*2)/xpix, (char *)recvbuff);
     }
 
-
   
- 
   MPI_Finalize();
   free(picture);
   free(recvbuff);
