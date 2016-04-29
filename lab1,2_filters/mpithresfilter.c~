@@ -1,0 +1,41 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include "ppmio.h"
+#include "thresfilter.h"
+
+int main (int argc, char ** argv) {
+    int xsize, ysize, colmax;
+    pixel src[MAX_PIXELS];
+    struct timespec stime, etime;
+
+    /* Take care of the arguments */
+
+    if (argc != 3) {
+	fprintf(stderr, "Usage: %s infile outfile\n", argv[0]);
+	exit(1);
+    }
+
+    /* read file */
+    if(read_ppm (argv[1], &xsize, &ysize, &colmax, (char *) src) != 0)
+        exit(1);
+
+    if (colmax > 255) {
+	fprintf(stderr, "Too large maximum color-component value\n");
+	exit(1);
+    }
+
+    printf("Has read the image, calling filter\n");
+
+
+
+
+
+
+
+
+
+
+
+}
