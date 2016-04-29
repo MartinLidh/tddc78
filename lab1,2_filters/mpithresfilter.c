@@ -129,6 +129,7 @@ int main (int argc, char ** argv) {
   thresfilter(xsize, scounts[me]/xsize, recvbuff, globalsum);
   
   MPI_Gatherv(recvbuff, scounts[me], MPI_PIXEL , src, scounts, displs, MPI_PIXEL, 0, com);
+  clock_gettime(CLOCK_REALTIME, &etime);
 
 
   if(me == 0){
@@ -137,7 +138,6 @@ int main (int argc, char ** argv) {
 	   1e-9*(rootetime.tv_nsec  - rootstime.tv_nsec)) ;
   }
 
-  clock_gettime(CLOCK_REALTIME, &etime);
 
   
   printf("Filtering for process %d took: %2g secs\n", me ,(etime.tv_sec  - stime.tv_sec) +
