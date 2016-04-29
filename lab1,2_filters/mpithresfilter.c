@@ -32,7 +32,7 @@ int main (int argc, char ** argv) {
   int xsize, ysize, colmax, workload, work2, i, offset, np, me;
   pixel src[MAX_PIXELS], recvbuff[MAX_PIXELS];
 
-  struct timespec stime, etime;
+  struct timespec stime, etime, rootstime, rootetime;
 
   /* Take care of the arguments */
 
@@ -59,6 +59,7 @@ int main (int argc, char ** argv) {
 
 
 
+  clock_gettime(CLOCK_REALTIME, &rootstime);
 
   if(me==0)
     {		      
@@ -85,12 +86,18 @@ int main (int argc, char ** argv) {
 
     }
 
+  clock_gettime(CLOCK_REALTIME, &rootetime);
+
+  clock_gettime(CLOCK_REALTIME, &stime);
+
   MPI_Bcast(&ysize, 1, MPI_INT, 0, com);
   MPI_Bcast(&xsize, 1, MPI_INT, 0, com);
   MPI_Bcast(scounts, np, MPI_INT, 0, com);
   MPI_Bcast(displs, np, MPI_INT, 0, com);
   // printf("Processor %d has scounts: %d and displs %d \n", me, scounts[me], displs[me]);
 
+
+  
   MPI_Scatterv( src, scounts, displs, MPI_PIXEL, recvbuff, scounts[me], MPI_PIXEL, 0, com);  
 
   
@@ -126,7 +133,16 @@ int main (int argc, char ** argv) {
 
   if(me == 0){
     write_ppm (argv[2], xsize, ysize, (char *)src);
+    printf("Root reading and calculating work took: %2g secs\n", (etime.tv_sec  - stime.tv_sec) +
+	   1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
   }
+
+  clock_gettime(CLOCK_REALTIME, &etime);
+
+  
+  printf("Filtering for process %d took: %2g secs\n", me ,(etime.tv_sec  - stime.tv_sec) +
+	 1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
+
 
   MPI_Finalize();
   
