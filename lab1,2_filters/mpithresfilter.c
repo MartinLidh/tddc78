@@ -133,8 +133,8 @@ int main (int argc, char ** argv) {
 
   if(me == 0){
     write_ppm (argv[2], xsize, ysize, (char *)src);
-    printf("Root reading and calculating work took: %2g secs\n", (etime.tv_sec  - stime.tv_sec) +
-	   1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
+    printf("Root reading and calculating work took: %2g secs\n", (rootetime.tv_sec  - rootstime.tv_sec) +
+	   1e-9*(rootetime.tv_nsec  - rootstime.tv_nsec)) ;
   }
 
   clock_gettime(CLOCK_REALTIME, &etime);
