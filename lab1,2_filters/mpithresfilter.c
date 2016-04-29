@@ -59,10 +59,11 @@ int main (int argc, char ** argv) {
 
 
 
-  clock_gettime(CLOCK_REALTIME, &rootstime);
 
   if(me==0)
     {		      
+      clock_gettime(CLOCK_REALTIME, &rootstime);
+
       read_ppm(argv[1], &xsize, &ysize, &colmax, (char*)src);
       workload = (ysize/np)*xsize;
       work2= ysize%np;
