@@ -8,7 +8,7 @@
 #define _PPMIO_H_
 
 /* maximum number of pixels in a picture */
-#define MAX_PIXELS (1000*1000)
+#define MAX_PIXELS (3000*3000)
 
 /* Function: read_ppm - reads data from an image file in PPM format.
    Input: fname - name of an image file in PPM format to read.

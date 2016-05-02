@@ -1,8 +1,10 @@
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "ppmio.h"
-#include "blurfilter2.h"
+#include "blurfilter3.h"
 #include <string.h>
 
 
@@ -27,33 +29,39 @@ int min(int x, int y)
 
 
 typedef struct{
-  const int xsize,ysize, radius, over, under;
-  pixel* src,*dst;
-  const double *w;
+  int xsize,ysize, radius, over, under;
+  pixel* src,*dst, *tmp;
+  double *w;
 }thread_param;
 
-void startblur(void *params_struct){
+void* startblur(void *params_struct){
   thread_param *params = (thread_param*) params_struct;
-  void blurfilter(params->xsize, params->ysize, pixel* src, const int radius, const double *w, const int over,const int under);
+  blurfilter(params->xsize, params->ysize, params->src, params->radius, 
+      params->w, params->over, params->under, params->dst,
+      params->tmp);
+  return NULL;
 }
 
 int main( int argc, char *argv[] )
 {
-  if(argc!=4)
+  if(argc!=5)
     {
       printf("invalid number of args");
-      return;
+      return 1;
     }
-    
+
+  struct timespec stime, etime;
   int xpix, ypix, me, np, maxpix, workload, work2, i, recvcount, bufsize,radius,nthreads;
   pixel* picture,* blurredpic;
 
   sscanf(argv[3], "%d", &radius);
   sscanf(argv[4], "%d", &nthreads);
-  
+
+  thread_param params[nthreads];
+  pixel *tmps[nthreads];
 
   int over[nthreads], under[nthreads],scounts[nthreads], displs[nthreads];
-  
+
   pthread_t threads[nthreads];
 
   picture = (pixel *)malloc((MAX_PIXELS*3)*sizeof(pixel*)); 
@@ -64,7 +72,7 @@ int main( int argc, char *argv[] )
 
 	
   read_ppm(argv[1], &xpix, &ypix, &maxpix, (char*)picture);
-    
+
   workload = (ypix/nthreads)*xpix;
   work2= ypix%nthreads;
   int offset = 0;
@@ -81,40 +89,48 @@ int main( int argc, char *argv[] )
       offset += scounts[i];
     }
 
+  clock_gettime(CLOCK_REALTIME, &stime);
 
   for(i = 0; i<nthreads; i++)
     {
       over[i] = min(displs[i]/xpix, radius)*-1;
       under[i] = min((xpix*ypix-displs[i]-scounts[i])/xpix, radius);
-      thread_param params = { .xsize = xpix, .ysize= scounts[i]/xpix, .src = &picture[displs[i]], .radius=radius,
-			      .w=w, .over=over[i], .under=under[i], .dst=blurredpic}
-
-      
-      
-      
+      tmps[i] = (pixel *)malloc(scounts[i]*sizeof(pixel));
+      params[i].xsize = xpix;
+      params[i].ysize= scounts[i]/xpix;
+      params[i].src = &picture[displs[i]];
+      params[i].radius=radius;
+      params[i].w=w;
+      params[i].over=over[i];
+      params[i].under=under[i];
+      params[i].dst=&blurredpic[displs[i]];
+      params[i].tmp=tmps[i];
+      if(pthread_create(&threads[i], NULL, startblur, &params[i]))
+      {
+	fprintf(stderr, "Error creating thread %d.\n", i);
+	return 1;
+      }
     }
 
-  //blur pixels
-    
-  
-  if(me==0)
-    { 
-      write_ppm (argv[2], xpix, ypix, (char *)picture);
-     
+  for(i = 0; i<nthreads; i++)
+  {
+    if(pthread_join(threads[i], NULL))
+    {
+      fprintf(stderr, "Error joining thread %d.\n", i);
+      return 2;
     }
-  
+    free(tmps[i]);
+  }
 
-#ifdef DEBUG
-  char filename [30];
-  sprintf(filename, "../img_node2_%d.ppm", me);
-  write_ppm(filename, xpix, (scounts[me]+xpix*radius*2)/xpix, (char *)recvbuff);
-#endif
+  write_ppm (argv[2], xpix, ypix, (char *)blurredpic);
+  clock_gettime(CLOCK_REALTIME, &etime);
+  printf("Filtering took: %2g secs\n", (etime.tv_sec  - stime.tv_sec) +
+	 1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
 
-  MPI_Finalize();
   free(picture);
-  free(recvbuff);
+  free(blurredpic);
 
- 
+
   return 0;
 
 
