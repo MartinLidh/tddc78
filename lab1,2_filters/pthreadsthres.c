@@ -20,7 +20,6 @@ void thresfilter(const uint xsize, const uint ysize, pixel* src, uint average){
 
   uint  i, psum, nump;
   nump = xsize * ysize;
-
   for(i = 0; i < nump; i++) {
     psum = (uint)src[i].r + (uint)src[i].g + (uint)src[i].b;
     if(average > psum) {
@@ -32,14 +31,8 @@ void thresfilter(const uint xsize, const uint ysize, pixel* src, uint average){
   }
 }
 
-int min(int x, int y)
-{
-  return y ^ ((x ^ y) & -(x < y));
-}
-
-
 typedef struct{
-  uint xsize, ysize, *localsum, *globalavg;
+  uint xsize, ysize, *localsum, *globalsum;
   pixel* src;
   pthread_rwlock_t *lock;
   pthread_barrier_t *barrier;
@@ -49,13 +42,14 @@ void* startthres(void *params_struct){
   thread_param *params = (thread_param*) params_struct;
   uint size = params->xsize*params->ysize;
   uint avg;
-  for(i = 0, params->localsum = 0; i < size; i++) {
-    params->localsum += (uint)params->src[i].r + (uint)params->src[i].g + (uint)params->src[i].b;
+  int i;
+  for(i = 0, *(params->localsum) = 0; i < size; i++) {
+    *(params->localsum) += (uint)params->src[i].r + (uint)params->src[i].g + (uint)params->src[i].b;
   }
-
+  //*(params->localsum)/=size;
   pthread_barrier_wait(params->barrier);
   pthread_rwlock_rdlock(params->lock);
-  thresfilter(params->xsize, params->ysize, params->src, *globalsum);
+  thresfilter(params->xsize, params->ysize, params->src, *(params->globalsum));
   pthread_rwlock_unlock(params->lock);
 
   return NULL;
@@ -63,38 +57,31 @@ void* startthres(void *params_struct){
 
 int main( int argc, char *argv[] )
 {
-  if(argc!=5)
+  if(argc!=4)
     {
       printf("invalid number of args");
       return 1;
     }
 
   struct timespec stime, etime;
-  int xpix, ypix, me, np, maxpix, workload, work2, i, nthreads, globalsum;
+  uint xpix, ypix, maxpix, workload, work2, i, nthreads, globalsum;
   pixel* picture,* blurredpic;
   pthread_rwlock_t lock;
   pthread_rwlock_init(&lock, NULL);
   pthread_rwlock_wrlock(&lock);
 
   pthread_barrier_t barrier;
-  pthread_barrier_init(&barrier, nthreads+1);
 
-  sscanf(argv[3], "%d", &radius);
-  sscanf(argv[4], "%d", &nthreads);
+  sscanf(argv[3], "%d", &nthreads);
+
+  pthread_barrier_init(&barrier, NULL, nthreads+1);
 
   thread_param params[nthreads];
-  int localsums[nthreads];
-
-  int over[nthreads], under[nthreads],scounts[nthreads], displs[nthreads];
+  int scounts[nthreads], displs[nthreads], localsums[nthreads];
 
   pthread_t threads[nthreads];
 
   picture = (pixel *)malloc((MAX_PIXELS*3)*sizeof(pixel*)); 
-  blurredpic = (pixel *)malloc((MAX_PIXELS*3)*sizeof(pixel*)); 
-
-  double w[MAX_RAD];
-  get_gauss_weights(radius, w);
-
 	
   read_ppm(argv[1], &xpix, &ypix, &maxpix, (char*)picture);
 
@@ -118,8 +105,6 @@ int main( int argc, char *argv[] )
 
   for(i = 0; i<nthreads; i++)
     {
-      over[i] = min(displs[i]/xpix, radius)*-1;
-      under[i] = min((xpix*ypix-displs[i]-scounts[i])/xpix, radius);
       params[i].xsize = xpix;
       params[i].ysize= scounts[i]/xpix;
       params[i].src = &picture[displs[i]];
@@ -127,7 +112,7 @@ int main( int argc, char *argv[] )
       params[i].globalsum = &globalsum;
       params[i].lock = &lock;
       params[i].barrier = &barrier;
-      if(pthread_create(&threads[i], NULL, startblur, &params[i]))
+      if(pthread_create(&threads[i], NULL, startthres, &params[i]))
       {
 	fprintf(stderr, "Error creating thread %d.\n", i);
 	return 1;
@@ -140,7 +125,8 @@ int main( int argc, char *argv[] )
     globalsum += localsums[i];
   }
 
-  globalsum /= maxpix;
+  
+  globalsum = globalsum/ (xpix*ypix) ;
   pthread_rwlock_unlock(&lock);
 
   for(i = 0; i<nthreads; i++)
@@ -152,14 +138,12 @@ int main( int argc, char *argv[] )
     }
   }
 
-  write_ppm (argv[2], xpix, ypix, (char *)blurredpic);
+  write_ppm (argv[2], xpix, ypix, (char *)picture);
   clock_gettime(CLOCK_REALTIME, &etime);
   printf("Filtering took: %2g secs\n", (etime.tv_sec  - stime.tv_sec) +
 	 1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
 
   free(picture);
-  free(blurredpic);
-
 
   return 0;
 
