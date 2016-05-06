@@ -1,0 +1,47 @@
+This README explains the Objected Oriented ( OO ) nature of the code, 
+i.e. naming convention of the subroutine names and variables.
+
+1, Since the code is written in pure ANSI C, so encapulation cannot be done
+   by language feature. In order to write a class object in C, some explicit
+   convention in naming the object and its associated methods is used.
+
+2, All the objects are either Pointers to a struct, a struct or 
+   primitive types.  For instance,
+        SLOG      is (SLOG_STREAM *),
+        SLOG_Bbuf is (SLOG_intvlrec_blist_t *),
+	SLOG_Irec is (SLOG_intvlrec_t *), 
+        SLOG_Varg is (SLOG_vtrarg_t *),
+	....
+        SLOG_bebit is SLOG_bebit_t.
+   
+3, And the naming convention of the object's associated methods is as follows:
+   The name of the object will be the first part of the subroutine name.  
+   And the secord part of the subroutine name is the description of the method.
+   And the object type is either the returned type of the subroutine
+   or the type of the first dummy argument.  For instance,
+
+   the constructor for SLOG_Irec is "SLOG_intvlrec_t *SLOG_Irec_Create( void )"
+   the destructor for SLOG_Irec is "SLOG_Irec_Free( SLOG_intvlrec_t *irec )"
+
+4, Not every type has constructor and destructor.  If there is a constructor,
+   there must be a destructor like SLOG_Irec_Create() and
+   SLOG_Irec_Free() pair.
+
+5, When there is interaction between 2 objects in a subroutine, the routine
+   will be listed as method to the object whose internal is exposed
+   the most inside the routine.  In order word, the object which is
+   encapsulated the most from the method will be listed as the subject
+   of the operation.   For example,
+
+   int SLOG_Irec_AddVtrArgs(       SLOG_intvlrec_t *irec,
+                             const SLOG_vtrarg_t   *varg );
+
+   the method, SLOG_Irec_AddVtrArgs(), is method for object, SLOG_Irec
+   which is also (SLOG_intvlrec_t *).   And irec's internal components
+   are exposed inside SLOG_Irec_AddVtrArgs(), and varg's internals
+   should be much less exposed ( or unexposed ) than irec inside 
+   SLOG_Irec_AddVtrArgs(), hence varg is considered subject of the method.
+
+6, In the code, SLOG_xxxx() are higher level supporting routine than 
+   SLOG_STM_xxxx(), where xxxx does NOT contain "_".  Both of them are
+   methods for object SLOG, (SLOG_STREAM *).

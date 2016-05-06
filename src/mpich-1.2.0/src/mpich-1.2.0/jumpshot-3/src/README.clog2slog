@@ -1,0 +1,96 @@
+
+A.Chan, 4/20/99
+
+Since the original Jumpshot has extremely poor documentation on
+the variables and data structures used in the GUI.  This note is to 
+document what has been done to allow ProgramCanvas to have non-zero 
+initial starttime of the frame, i.e. for SLOG, and what is the current 
+understanding of the data structures/variables used in ProgramCanvas.java 
+and MyImage.java.  In the following notes, assume that the x-axis of user 
+coordinates is measured in time.  And that of plot coordinates is measured
+in pixel.
+
+1, all the double variables in ProgramCanvas.java refer to time in
+   user coordinates.
+
+2, all plot coordinates are in pixels.  They include
+   panePosX:  viewport origin relative to the 3 canvas images measured in pixel.
+   sbPos:     Scroll bar position relative to the current canvas images,
+              currImg.img, in pixel.  
+   maxT:      the time difference between the frame beginning time and
+              frame ending time.  It is measured in double.
+              In slog, maxT = FrameEndTime - FrameBegTime.
+
+
+
+Diagram for the main data structures used in the GUI code
+---------------------------------------------------------
+
+                    currImg.begT              currImg.endT
+                           :       <  maxT >       :
+                           :                       :
+   |      img[prevH]       :        currImg        :       img[nextH]      |
+   +-----------------------+-------*********-------+-----------------------+
+   |                       |       *       *       |                       |
+   |                       |       * vport *       |                       |
+   |                       |       *       *       |                       |
+   |                       |       *       *       |                       |
+   |                       |       *       *       |                       |
+   +-----------------------+-------*********-------+-----------------------+
+   ^                       ^       ^ _xPix ^        
+   !<------- _xPix ------->|       !<----->!       
+   !                       |       !   3            
+   !                       |       !                
+   !                       +-sbPos-+
+   !                               !
+   !                               !
+   !<-------- panePosX ----------->!
+
+
+
+3, In ProgramCanvas.paintComponent(), the images are drawn in the order 
+   of img[prevH], currImg, img[nextH].  And each of them is of _xPix 
+   pixels in width.   Since the viewport should be in currImg, so 
+   panePosX = _xPix + time2pixel( BegTimeOfViewport - currImg.begTime ),
+   where the initial constant, _xPix, accounts for the 1st image in the
+   3 images canvas, i.e. img[prevH] = "previous image".
+
+4, The range of JScrollbar is between 0 and canvas.maxH in ClogDisplay, where
+   canvas.maxH = time2pixel( maxT ) = time2pixel( FrameEndTime - FrameBegTime ) 
+   In ClogDisplay.setHoriz(), the JScrollBar, hbar, has called its 
+   setVisibleAmount() with 1/3 of a image length, i.e. 1/3 of _xPix pixels.  
+   Here maxT in user coordinates is mapped to the "1/3 of _xPix pixels"
+   in plot coordinates.
+
+5, JViewport, vport, calls its setViewPosition() method with argument
+   panePosX as its x-coordinate argument.  This is called in various locations 
+   in ClogDisplay.java and ProgramCanvas.java.  Together with point 3 mentioned
+   above, the viewport is set to be within the current image pointed to
+   by currImg in ProgramCanvas.java.   As sbPos is updated, hence
+   the hbar.setValue(), so the vport will be moved along the 3 images canvas.
+
+6, sbPos can be bigger than _xPix during zoom operations.  But when it is
+   bigger than _xPix, the pointer to current image, currImg will be updated
+   through getCurrGridH().
+
+7, The original Jumpshot written by Omer to handle CLOG basically 
+   assumed the starttime for all logfiles is zero.  So the original code
+   has zero time hardwired inside the code, expecially, ProgramCanvas.java.
+   So to modify the GUI code for SLOG, one needs to generalize the original
+   GUI code to allow non-zero starttime of the frame data.  In the code,
+   maxT is endtime of the frame when the begintime is zero.  So one can 
+   simply extend maxT to be the lenT, i.e. lenT = FrameEndTime - FrameBegTime.
+   Also each viewport is NOT identified by begTime & endTime, instead the code
+   carried begTime and maxT as identifiers to specify the time range of the
+   viewport.  One needs to put in the FrameBegTime in all the lines that
+   assume zero beginning Frame time.  In order to do that, one needs to 
+   locate all the functions that convert the time variablaes in double 
+   to pixel variables.  There are 3 functions, getW(), getEvtXCord()
+   and getTime.   getW() is TimePair2PixelDistance() and getEvtXCord() 
+   is time2pixel().  And getTime() is basically pixel2time().  And observe 
+   all lines in ProgramCanvas.java that involve the three functions mentioned
+   above.  For the time or pixel variable involed is used as a standalone 
+   time, it implies the variable may have been assumed zero time.  Add
+   or substract FrameBegTime in the appropriate places depending on the 
+   context. 
+

@@ -1,0 +1,26 @@
+#! /bin/sh
+#
+JAVA_HOME=@JAVA_HOME@
+JUMPSHOT_HOME=@JUMPSHOT_HOME@
+# Jumpshot Logfile Analyzer 1.1 98/08/27
+#
+echo "*********************************************************"
+echo "This script will only for Java 1.2. For Java 1.1 use"
+echo "other script"
+echo "*********************************************************"
+echo "Jumpshot directory is located at " $JUMPSHOT_HOME
+echo "This program requires a Java Virtual Machine to run (jre)"
+echo "JVM 1.2 or higher specified in JAVA_HOME will be used."
+echo "*********************************************************"
+
+# We explicitly do not want the environment's CLASSPATH and JAVA_HOME.
+if [ -z "${JAVA_HOME}" ] ; then
+	echo "JAVA_HOME environment variable not set. Exiting"
+	exit 1
+else
+	echo "JAVA_HOME is set. Using JVM in JAVA_HOME" $JAVA_HOME
+fi
+
+CMD="${JAVA_HOME}/bin/java -mx500m -classpath ${JUMPSHOT_HOME}/lib/js_classes.jar jumpshot $@"
+echo "Running jumpshot:" ${CMD}
+${CMD}

@@ -1,0 +1,115 @@
+#!/bin/csh
+set jobid = 5555  # default
+set arch = ('' '' '' '' '' '' '' '' '' '' '' '')
+set host = ('' '' '' '' '' '' '' '' '' '' '' '')
+set pgm  = ('' '' '' '' '' '' '' '' '' '' '' '')
+set numprocs = ('' '' '' '' '' '' '' '' '' '' '' '')
+set repeat = ('' '' '' '' '' '' '' '' '' '' '' '')
+set logname = ('' '' '' '' '' '' '' '' '' '' '' '')
+set comm = ('' '' '' '' '' '' '' '' '' '' '' '')
+set args = ('' '' '' '' '' '' '' '' '' '' '' '')
+set remoteinfo = ('' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' \
+		     '' '' '' '' '' '' '' '' '' '' '' '' '' '' )
+
+@ j = 1
+@ line = 0
+while ($j <= $#argv)
+    set arg = "$argv[$j]"
+    switch ("$arg")
+      case -jobid=*:
+        set jobid = `echo $arg | sed 's/-jobid=//'`
+        breaksw
+      case -arch=*:
+        @ line += 1
+        @ repeat[$line]	  = 1              # default
+        @ numprocs[$line] = 1              # default
+        set arch[$line] = `echo $arg | sed 's/-arch=//'`
+        echo -arch not yet implemented
+        breaksw
+      case -host=*:
+        @ line += 1
+        @ repeat[$line]	  = 1              # default
+        @ numprocs[$line] = 1              # default
+        set host[$line] = `echo $arg | sed 's/-host=//'`
+        breaksw
+      case -pgm=*:
+        set pgm[$line] = `echo $arg | sed 's/-pgm=//'`
+        breaksw
+      case -numprocs=*:
+        set numprocs[$line] = `echo $arg | sed 's/-numprocs=//'`
+        breaksw
+      case -repeat=*:
+        set repeat[$line] = `echo $arg | sed 's/-repeat=//'`
+        breaksw
+      case -logname=*:
+        set logname[$line] = `echo $arg | sed 's/-logname=//'`
+        breaksw
+      case -comm=*:
+        set comm[$line] = `echo $arg | sed 's/-comm=//'`
+        breaksw
+      case -args=*:
+        set args[$line] = "`echo $arg | sed 's/-args=//'`"
+        breaksw
+      case -arg=*:
+        set args[$line] = "$args[$line] `echo $arg | sed 's/-arg=//'`"
+        breaksw
+      case *:
+        echo invalid argument $arg  argument should be one of
+        echo '-host=<host> -arch=<arch> numprocs repeat logname comm args'
+    endsw
+    @ j++
+end
+
+# Count number of processes (nodes) to be started.  This includes
+# multiple nodes on a single host, if requested.
+@ numnodes = 0
+@ i = 1
+while ( $i <= $line )
+    @ numnodes = $numnodes + $repeat[$i]
+    @ i++
+end
+
+# Compute remoteinfo
+# @ i = 2
+# while ( $i <= $line )
+    # set remoteinfo = " $host[$i] $i $numprocs[$i] $pgm[$i] "
+# end
+
+# Start the processes.
+@ nodenum = 1
+@ i = 1
+while ( $i <= $line )
+    @ j = 1   
+    while ( $j <= $repeat[$i] )
+        @ nodenum  = $i - 1
+	set remotecmd = " $pgm[$i] "
+	set remotecmd = " $remotecmd -execer_id PDQS "
+        set remotecmd = " $remotecmd -master_host $host[1] "
+        set remotecmd = " $remotecmd -my_hostname $host[$i] "
+        set remotecmd = " $remotecmd -my_nodenum $nodenum "
+        set remotecmd = " $remotecmd -my_numprocs $numprocs[$i] "
+	set remotecmd = " $remotecmd -total_numnodes $numnodes "
+	set remotecmd = " $remotecmd -job_id $jobid "
+
+	if ( $i == 1 ) then
+	    set remotecmd = " $remotecmd -remote_info "
+	    @ k = 2
+	    while ( $k <= $line )
+		set remotecmd = " $remotecmd $host[$k] "
+		@ n = $k - 1
+		set remotecmd = " $remotecmd $n $numprocs[$k] $pgm[$k] "
+		@ k++
+	    end
+	endif
+
+	set remotecmd = " $remotecmd $args[$i] "
+
+        rsh $host[$i] $remotecmd &
+        endif
+	echo ""
+
+	@ nodenum++
+        @ j++
+    end   
+    @ i++
+end

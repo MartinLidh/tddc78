@@ -1,0 +1,10 @@
+#
+/home/MPI/mpich/mpid/ch_tcp/p3/execer -jobid=5556 \
+    -host=godzilla.mcs.anl.gov \
+	-pgm=/home/MPI/mpich/examples/test/pt2pt/sendrecv \
+	-numprocs=1    \
+	-args='-p3dbg 99 -mpitrace f.%d' \
+    -host=donner.mcs.anl.gov \
+	-pgm=/home/MPI/mpich/examples/test/pt2pt/sendrecv \
+	-numprocs=1 \
+	-args='-p3dbg 99'

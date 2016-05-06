@@ -1,0 +1,89 @@
+
+Graph_Pane
+
+Definitions:
+
+1> Data Set : consists of an array of values of a single variable. Each data 
+	set has a label associated with it. The values are plotted against
+	the Y-axis.
+
+Assumptions:
+
+1> All data sets are of equal length. 
+
+2> All data set values  are a function of time intervals.
+
+3> The beginning time is never less than zero.
+
+Components:
+	
+1)Menu Bar: 	
+
+a> File Menu 
+	
+	"View Statistics" := runs the UTEStatsViewer.Main program, for viewing
+		"foo.tsv" files as graphs.
+	"Close"           := calls the function ClosePreview of the abstract
+		class TimeInterface which is an eventlistener on Graph_Pane for
+		its container object. 
+	
+b> Graph Menu
+	i>  Type SubMenu
+		
+		"Bar"   := displays a bar graph 
+		"Line"  := displays a line graph
+			
+	ii> ReScale
+		"On"    := allows the y-axis to be rescaled whenever the 
+			maximum plotted value changes.  
+		"Off"   := retains the current scale of the y-axis.
+
+c> Data Sets
+	"All"   := displays all the data sets.
+	"None"  := clears the graph of all data.
+
+d> Zoom
+	"In"    := increases the width of the graph area by a factor of two 
+		depending on the current size. The limit is a width of
+		(2 ^ 14) pixels.
+	"Out:   := decreases the width of the graph area by a factor of two.
+		The minimum width is 512 pixels.
+	"Reset" := resets the graph to the minimum display width of 512 
+	 	pixels.
+
+e> Legend
+	"Display" := shows the dialog with a list of labels for each data set.
+	"Hide"    := hides the dialog.
+
+2) Title Pane 
+	shows the title of the graph. Also has a time textfield which displays
+	the time corresponding to the position of the mouse on the graph.
+
+3) Graph
+	A mouse click on the graph fixes that point as the display marker. 
+	When a zooming in operation is done the point remains fixed while the 
+	graph expands. when a zooming out operation is done the point remains
+	visible but not necessarily fixed.
+
+4) Legend Dialog
+	Allows user to select data values for display on the graph. Allows for 
+	multiple list elements to be selected or deselected. Clicking on a 
+	list element or several (using the cntrl/shift keys) only allows one
+	to select that element for an operation.
+	
+a) Buttons
+	"Select" := the selected list element (data set) is not 
+		displayed on the graph if it was already in the selected 
+		state or vice versa.
+	"All"    := all data sets are selected for display on the graph.
+	"None"   := the data sets are removed from the graph.
+	"Change Color"  := allows one to change the color of the data set.
+
+			 
+	
+		
+	
+
+
+
+

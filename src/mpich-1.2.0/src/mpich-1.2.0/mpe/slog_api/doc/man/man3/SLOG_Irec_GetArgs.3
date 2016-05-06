@@ -1,0 +1,60 @@
+.TH SLOG_Irec_GetArgs 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_GetArgs \-  Retrieve the argument array of the interval record. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_GetArgs(       SLOG_intvlrec_t  *intvlrec,
+                       const SLOG_N_args_t     size_args,
+                             SLOG_arg_t       *args )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B size_args 
+- Number of elements available for the input array.
+.PD 1
+
+.SH MODIFIED INTPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal interval record to be retrieved.
+The internal pointer to Vector Argument will be updated.
+.PD 1
+.PD 0
+.TP
+.B args 
+- argument array, array of call arguments of the specified 
+interval record.  It is assumed the input array, args[], is 
+big enough to hold the argument array of the interval record.
+.PD 1
+
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- N_args : Number of elements in the argument array
+returned.  If the input size, size_args, is smaller
+than the actual number of elements of the argument
+array, the return value will be SLOG_EOF and only the
+first size_args elements will be returned.  When there
+is no more argument array in the interval record,
+a zero will be returned.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The subroutine retrieves argument array(s) of the specified Internal
+Interval Record.  This subroutine is meant to be called at least once
+for each interval record extracted from the slogfile.
+If the return value, N_args, is equal to zero.  It means there is
+no argument array.   That suggests that the subroutine needs to be
+called as long as it returns positive integer ( > 0 ).
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+
+
+.SH LOCATION
+../src/slog_irec_read.c

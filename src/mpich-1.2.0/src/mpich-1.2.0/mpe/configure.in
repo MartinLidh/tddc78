@@ -1,0 +1,1154 @@
+dnl
+dnl Caching is usually WRONG for systems with cross-mounted file systems
+dnl (the cache file may correspond to a different system).  Since configure
+dnl is not on a performance-critical path, go for robustness over speed.
+dnl
+define([AC_CACHE_LOAD], )dnl
+define([AC_CACHE_SAVE], )dnl
+dnl
+dnl
+AC_INIT()
+AC_CONFIG_HEADER(mpeconf.h)
+#
+# print_error is used by some of our macros.
+print_error() {
+    echo "*# $*" 2>&1 ;
+    }
+#
+echo "Configuring MPE with $ac_configure_args"
+#
+# Find the home directory if not specified
+if test "X$srcdir" != "X." -a -s $srcdir/contrib/life/Makefile.in ; then 
+    MPE_TRIAL=$srcdir
+else
+    PAC_GETWD(MPE_TRIAL,contrib/life/Makefile.in)
+fi
+MPE_HOME=$MPE_TRIAL
+#
+AC_ARG_ENABLE(echo, [--enable-echo                      - Turn on strong echoing.  The default is enable=no.] ,set -x)
+#
+AC_ARG_ENABLE(mpe_graphics, [--enable-mpe_graphics              - MPE make will build MPE graphics routines.  If disabled then the MPE routines that make use of X11 graphics will NOT be built; this is appropriate for systems that either do not have the X11 include files or that do not support X11 graphics.  The default value is enable=yes.], ,enable_mpe_graphics=yes)
+#
+AC_ARG_ENABLE(mpedbg, [--with-mpedbg                            - Enable the -mpedbg command-line argument (e.g., errors can start an xterm running a debugger).  Only works with some workstation systems .], enable_mpedbg=yes) 
+#
+if test "$enable_mpedbg" = "yes" ; then
+    MPEDBG=1
+else
+    MPEDBG=0
+fi
+#
+AC_ARG_ENABLE(f77, [--enable-f77                       - This option will allow the compilation of routines that require a Fortran compiler.  If configuring with MPICH, the configure in the top-level MPICH directory will choose the appropriate value for you.  The default is enable=yes.], ,enable_f77=yes)
+#
+if test "$enable_f77" = "yes" ; then 
+    NOF77=0
+else
+    NOF77=1
+fi
+#
+AC_ARG_ENABLE(debug, [--enable-debug                     -- This option turns on the debugging & diagnostic messages flags in MPE & SLOG-API code, The default is enable=no.], ,enable_debug=no)
+#
+AC_ARG_ENABLE(jumpshot, [--enable-jumpshot                  - This option allows the configuration of the graphical tool "JUMPSHOT".  The default for this option is enable=yes.  If this option is enabled and you are not configuring with MPICH, then you will also need to supply the directory path where "JUMPSHOT" is located.  Type 'configure --help' for further details. ], ,enable_jumpshot=yes)
+#
+if test "$enable_jumpshot" = "yes" ; then
+    NO_JUMPSHOT=0 
+else
+    NO_JUMPSHOT=1
+fi
+#
+AC_ARG_ENABLE(buildingmpi, [--enable-buildingmpi               - This option indicates that MPE is being built as part of a larger build of MPICH.  This turns off tests for the existance of MPI libraries], ,mpi_is_building="yes")
+
+# The eval allows us to perform the substitution of the value of any variable
+# for the value in libdir before assigning the value to LIBDIR
+# (Default LIBDIR value)
+eval LIBDIR=$libdir
+LIBDIR=$libdir 
+
+# top_srcdir is the top level source code directory (mpich home)
+if test -z "$top_srcdir" -o "$top_srcdir" = "." ; then 
+    top_srcdir=$MPE_HOME
+fi
+
+# This could be MPIR_HOME/lib ...
+if test -z "$libbuild_dir" ; then 
+    libbuild_dir="`pwd`/lib"
+fi
+if test ! -d $libbuild_dir ; then mkdir $libbuild_dir ; fi
+AC_SUBST(libbuild_dir)
+#
+eval PREFIX=$prefix
+PREFIX=$prefix
+if test "$PREFIX" = "NONE" ; then
+    echo "*# Missing prefix value - configure with -prefix=<install directory>"
+    echo "*# if want to use the mpeinstall script"
+    PREFIX=""
+fi
+#
+eval GEN_BINDIR=$bindir
+GEN_BINDIR=$bindir
+#
+MPICH=0
+VERSION=""
+CC=${CC:-cc}
+MPI_CC=$CC
+F77=""
+MPI_F77=""
+OPTFLAGS=""
+INCLUDEDIR=""
+MPE_LIBPATH=""
+MPE_CFLAGS=""
+MPE_FFLAGS=""
+FORTRANNAMES=""
+NEEDS_CC_SHARED_OPT=1
+MPILIB_DIR=""
+MPI_IMP=""
+MPI_INC=""
+MPI_LIBS=""
+DEBUG_LIBS=""
+LOGLIB=""
+PROFLIB=""
+TRACELIB=""
+ANIMLIB=""
+LIBPATH=""
+FLIBS=""
+EXTRA_FLIB=""
+F77_EXTRA_FLAG=""
+DBX_NAME=""
+GDB_NAME=""
+# CPRP is the version of cp that accepts -r and -p arguments.
+# See CRAY below
+CPRP="cp"
+TCLSH=""
+TK_VERSION=""
+NO_X=0
+BUILD_NUPSHOT=1
+BUILD_UPSHOT=1
+MAKE=${MAKE:-make}
+
+#
+AC_ARG_WITH(tcldir, [--with-tcldir=TCL_DIR              - Directory containing tcl (can only be version 7) .  Must have lib/libtcl.a and include/tcl.h.  Used only for nupshot.], TCL_DIR=$withval, TCL_DIR="") 
+#
+AC_ARG_WITH(tkdir, [--with-tkdir=TK_DIR                - Directory containing tk (can only be version 3 if want to use nupshot).  Must have lib/libtcl.a and include/tk.h.  May be the same as tcldir.  ], TK_DIR=$withval, TK_DIR="") 
+#
+AC_ARG_WITH(wish, [--with-wish=WISHLOC                - Name of tcl/tk wish executable.  Configure will attempt to find a version of wish for you, but if it is not in your path or you need to use a different version, use this option.  Used only for nupshot and upshot. Note: Because tcl and tk keep changing in incompatible ways, we will soon be dropping support for any tool that uses tcl/tk.  The newest version of upshot, JUMPSHOT, is written in Java.], wishloc=$withval, wishloc="") 
+#
+AC_ARG_WITH(jumpshot_home, [--with-jumpshot_home=JUMP_DIR      - Path of the top-level directory where jumpshot is installed.  When configuring jumpshot with MPICH, this option is automatically configured by default.  However, if can be overridden here.  If not configuring with MPICH, then you need to specify this option in order to configure jumpshot.], JUMPSHOT_HOME=$withval, JUMPSHOT_HOME="")
+#
+AC_ARG_WITH(jumpshot_opts, [--with-jumpshot_opts=JUMP_OPTS     - This option allows you to pass specific options to the jumpshot configure.], JUMPSHOT_OPTS="$withval") 
+#
+AC_ARG_WITH(slog_home, [--with-slog_home=SLOG_HOME         - Path of the top-level directory where SLOG_API is installed.  When configuring SLOG_API with MPICH, this option is automatically configured by default.  However, it can be overridden here.], SLOG_HOME=$withval, SLOG_HOME="")
+#
+if test -z "$SLOG_HOME" ; then
+    SLOG_HOME=$MPE_HOME/slog_api
+fi
+SLOGLIB=$SLOG_HOME/lib
+#
+AC_ARG_WITH(flib_path_leader, [--with-flib_path_leader=FLIB_PATH_LEADER - This option shows how to specify a Fortran library path .], FLIB_PATH_LEADER="$withval")
+#
+if test -z "$FLIB_PATH_LEADER" ; then
+    FLIB_PATH_LEADER=-L
+fi
+#
+AC_ARG_WITH(f77_extra_flag, [--with-f77_extra_flag - Fortran option used for compiling and not linking. Used currently for the Absoft compiler -f option.], F77_EXTRA_FLAG="$withval")
+#
+
+
+#
+# Get the user supplied CFLAGS and FFLAGS 
+#
+AC_ARG_WITH( cflags, [--with-cflags=MPE_CFLAGS           - supply extra CFLAGS to the CC compiler], MPE_CFLAGS="$withval")
+ 
+AC_ARG_WITH( fflags, [--with-fflags=MPE_FFLAGS           - supply extra FFLAGS to the Fortran compiler], MPE_FFLAGS="$withval")
+ 
+
+#
+# Append "-g" to MPE_CFLAGS and MPE_FFLAGS if enable_debug=yes
+if test $enable_debug = "yes"; then
+
+    if test -z "`echo $MPE_CFLAGS | grep "\-g"`"; then
+        MPE_CFLAGS="-g $MPE_CFLAGS"
+    fi
+    if test -z "`echo $MPE_FFLAGS | grep "\-g"`"; then
+        MPE_FFLAGS="-g $MPE_FFLAGS"
+    fi
+
+    AC_CHECK_LIB( efence, malloc, DEBUG_LIBS="-lefence" )
+fi
+
+#
+# There is a bug in ac_INIT that messes up CANONICAL_HOST.  Specifically, 
+# if a blank argument is passed to configure (because configure is being 
+# invoked by another script), that blank changes the value of nonopt, which
+# is used as the default host name.  Thus, if nonopt is blank, we set it back 
+# to the default, which is "NONE".  Our scripts try to ignore blank arguments.
+if test -z "$nonopt" ; then nonopt=NONE ; fi
+AC_CANONICAL_HOST
+case "$host" in
+   *alpha*)  
+        MPE_CFLAGS="$MPE_CFLAGS -DDBX_IS_OSF"
+        host=alpha
+	;;
+
+   *cray*)
+        host=cray
+        MPE_CFLAGS="$MPE_CFLAGS -DMPI_CRAY"
+	;;
+   
+   *rs6000*)
+	host=rs6000
+	MPE_CFLAGS="$MPE_CFLAGS -DMPI_rs6000"
+	;;
+   *solaris*)
+        host=solaris
+	MPE_CFLAGS="$MPE_CFLAGS -DMPI_solaris"
+	;;
+    *linux*)
+        host=linux
+	MPE_CFLAGS="$MPE_CFLAGS -DMPI_LINUX"
+	;;
+    *sun4*)
+        host=sun4
+	MPE_CFLAGS="$MPE_CFLAGS -DMPI_sun4"
+	;;
+    mips-sgi-irix*)
+        host=irix
+	MPE_CFLAGS="$MPE_CFLAGS -DMPI_IRIX"
+	;;
+esac
+#
+#
+#  Various Platform dependent options.
+#
+AC_ARG_WITH(mpich, [--with-mpich=MPI_DIR               - Top-level install directory for MPICH/MPI], MPI_IMP="mpich" WITHDIR=$withval)
+AC_ARG_WITH(mpichdev, [--with-mpichdev=LIBDIR             - Library subdirectory for MPICH/MPI], MPI_IMP="mpich" MPICH_DEV=$withval)
+AC_ARG_WITH(mpichbin, [--with-mpichbin=BINDIR             - Directory containing MPICH binaries such as mpicc],MPI_IMP="mpich" MPICH_BIN=$withval)
+
+
+#
+#
+if test "$MPI_IMP" = "mpich"; then
+#  
+    if test "$WITHDIR" = "yes"; then
+        AC_MSG_ERROR([supplied --with-mpich without a directory])
+    fi
+#   
+    if test -x $MPICH_DEV/../bin/mpicc  ; then
+	LIBDIR=$MPICH_DEV
+    elif test -x $WITHDIR/$MPICH_DEV/../bin/mpicc  ; then
+        LIBDIR=$WITHDIR/$MPICH_DEV
+    else
+	AC_MSG_ERROR([Could not find mpicc in $MPICH_DEV or $WITHDIR/$MPICH_DEV])
+    fi
+#
+    AC_MSG_CHECKING([MPICH version])
+    MPICH_VERSION=`cat $WITHDIR/include/patchlevel.h | awk '{print $3}' | sed -e 's/\.[0-9]//' | tr '\012' '.'`
+    if test "$MPICH_VERSION" = "1.0.0.13."; then
+        VERSION=1
+        MPE_LIBPATH="$LIBDIR" 
+	PROFLIB="-lmpe -lpmpi"
+        LOGLIB="-llmpi $PROFLIB"
+        TRACELIB="-ltmpi -lpmpi"
+        ANIMLIB="-lampi $PROFLIB"
+        if test "$NOF77" = "0" ; then
+	    FLIBS="-lfmpi $LOGLIB"
+        fi
+        AC_MSG_RESULT([1.0.13 (you should upgrade)])
+    elif test "$MPICH_VERSION" = "1.1.0."; then
+        VERSION=1
+        MPE_LIBPATH="$LIBDIR"
+	PROFLIB="-lmpe -lpmpi"
+        LOGLIB="-llmpi $PROFLIB"
+        TRACELIB="-ltmpi -lpmpi"
+        ANIMLIB="-lampi $PROFLIB"
+        if test "$NOF77" = "0" ; then
+	    FLIBS="-lfmpi $LOGLIB"
+	fi
+        AC_MSG_RESULT([1.1.0 (you should upgrade)])
+    else
+#
+	#
+	# Argh!  MPICH changed the format of their patchlevel file
+	# as of version 1.1.1.
+	#
+#
+	MPICH_VERSION=`grep 'PATCHLEVEL ' $WITHDIR/include/patchlevel.h | awk '{print $3}'`
+	mv1=`grep 'PATCHLEVEL_SUBMINOR' $WITHDIR/include/patchlevel.h | awk '{print $3}'`
+	MPICH_VERSION="$MPICH_VERSION.$mv1."
+        if test "$MPICH_VERSION" = "1.1.1." ; then
+            VERSION=1
+            MPE_LIBPATH="$LIBDIR"
+	    PROFLIB="-lmpe -lpmpich"
+            LOGLIB="-llmpi $PROFLIB"
+            TRACELIB="-ltmpi -lpmpich"
+            ANIMLIB="-lampi $PROFLIB"
+	    if test "$NOF77" = "0" ; then
+	        FLIBS="-lfmpich $LOGLIB"
+	    fi
+            AC_MSG_RESULT([1.1.1])
+        else                  
+            VERSION=2
+	fi
+#        
+	if test "$VERSION" = "2"; then
+	    AC_MSG_RESULT([You have a newer version of MPICH (good)])
+	    # Note that the profiling library is included automatically by
+            # mpicc/mpif77/etc, which is good, since if there is weak
+            # symbol support, there won't be a libpmpich.a (well,
+	    # we might have a link)
+            MPE_LIBPATH="$libbuild_dir"
+	    PROFLIB="-lmpe"
+            LOGLIB="-llmpi $PROFLIB"
+            TRACELIB="-ltmpi"
+            ANIMLIB="-lampi $PROFLIB"
+            if test "$NOF77" = "0" ; then
+	        FLIBS="-lfmpich $LOGLIB"
+	    fi
+	fi
+    fi
+#    
+    if test "$VERSION" = "1" ; then
+        if test -z "$BINDIR" ; then
+	    BINDIR=$WITHDIR/$MPICH_DEV
+	fi
+	INCLUDEDIR=$WITHDIR/include
+    elif test "$VERSION" = "2" ; then
+        if test -z "$BINDIR" ; then
+	    BINDIR=$LIBDIR/../bin
+	fi
+	INCLUDEDIR="-I$LIBDIR/../include -I$WITHDIR/include"
+    fi
+    CC=$BINDIR/mpicc
+    MPI_CC=$CC
+    if test "$NOF77" = "0" ; then
+        F77=$BINDIR/mpif77
+    fi
+
+    LIBPATH=$MPICH_DEV
+    MPICH=1
+    AC_DEFINE(MPICH_NAME)
+    if test "$NO_JUMPSHOT" = "0" ; then        
+        GEN_BINDIR=$WITHDIR/bin
+	if test -z "$JUMPSHOT_HOME" ; then
+	    if test -d "$WITHDIR/jumpshot" ; then
+		JUMPSHOT_HOME=$WITHDIR/jumpshot
+	    fi
+	fi
+	if test -z "$JUMPSHOT_RELDIR" ; then
+	    # Build jumpshot in the mpich directory (local in case of VPATH)
+	    JUMPSHOT_RELDIR=../jumpshot
+	fi
+    fi
+
+    MPI_CC=$CC
+    MPI_F77=$F77
+    binbuild_dir=$BINDIR
+fi
+#
+if test -z "$binbuild_dir" ; then
+    binbuild_dir="`pwd`/bin"
+fi
+if test ! -d $binbuild_dir ; then mkdir $binbuild_dir ; fi
+AC_SUBST(binbuild_dir)
+# 
+#
+AC_ARG_WITH(lam, [--with-lam=MPI_DIR               - Top-level install directory for LAM/MPI], MPI_IMP="lam" WITHDIR=$withval)
+#
+if test "$MPI_IMP" = "lam" ; then
+#
+    if test "$WITHDIR" = "yes"; then
+        AC_MSG_ERROR([supplied --with-lam without a directory])
+    fi
+#
+    AC_PATH_PROGS(MPI_CXX, mpicc hcc, doh)
+    if test "$MPI_CXX" = "doh" ; then
+        AC_MSG_CHECKING([for mpicc (elsewhere)])
+        if test -d $WITHDIR/bin -a -x $WITHDIR/bin/mpicc ; then
+            AC_MSG_RESULT([yes])
+            MPI_CXX=mpicc
+        else
+            AC_MSG_CHECKING([for hcc (elsewhere)])
+            if test -d $WITHDIR/bin -a -x $WITHDIR/bin/hcc ; then
+                AC_MSG_RESULT([yes])
+                MPI_CXX=hcc
+            fi
+        fi
+        if test "$MPI_CXX" = "" ; then
+            AC_MSG_RESULT([no])
+            AC_MSG_ERROR([cannot continue - put mpicc or hcc in your path])
+        fi
+    fi
+    CC=$MPI_CXX
+    NOF77=1
+#
+# Currently there is no support for profiling LAM's Fortran library
+    if test "$NOF77" = "0" ; then
+        AC_PATH_PROGS(MPI_FXX, mpif77 hf77, doh)
+        if test "$MPI_FXX" = "doh" ; then
+            AC_MSG_CHECKING([for mpif77 (elsewhere)])
+            if test -d $WITHDIR/bin -a -x $WITHDIR/bin/mpif77 ; then
+                AC_MSG_RESULT([yes])
+                MPI_FXX=mpif77
+            else
+                AC_MSG_CHECKING([for hf77 (elsewhere)])
+                if test -d $WITHDIR/bin -a -x $WITHDIR/bin/hf77 ; then
+                    AC_MSG_RESULT([yes])
+                    MPI_CXX=hf77
+                fi
+            fi
+            if test "$MPI_FXX" = "" ; then
+                AC_MSG_RESULT([no])
+                AC_MSG_WARN([cannot find mpif77 or hf77 in your path])
+                AC_MSG_WARN([will not compile fortran code])
+                NOF77=1
+            fi
+        fi
+    fi
+    F77=$MPI_FXX
+#
+    MPE_LIBPATH=$libbuild_dir
+#
+    if test -d $WITHDIR/lib ; then
+        LIBDIR=$WITHDIR/lib
+    else
+        AC_MSG_ERROR([Could not find mpi library in $WITHDIR/lib])
+    fi
+#
+    if test -d $WITHDIR/include ; then
+        BINDIR=$WITHDIR/bin
+    else
+        AC_MSG_ERROR([Could not find mpi bin directory in $WITHDIR/bin])
+    fi
+#
+    AC_MSG_CHECKING([LAM version])
+    LAM_MAJOR_VERSION=""
+    LAM_MINOR_VERSION=""
+    LAM_MAJOR_VERSION=`cat $WITHDIR/include/patchlevel.h | grep LAM_MAJOR_VERSION | sed -e 's/\#define LAM_MAJOR_VERSION//'`
+    LAM_MINOR_VERSION=`cat $WITHDIR/include/patchlevel.h | grep LAM_MINOR_VERSION | sed -e 's/\#define LAM_MINOR_VERSION//'`
+    if test -n $LAM_MAOR_VERSION -a test -n $LAM_MINOR_VERSION ; then
+        AC_MSG_RESULT(["$LAM_MAJOR_VERSION.$LAM_MINOR_VERSION"])
+    fi
+    if test -n $LAM_MINOR_VERSION  ; then
+        if test $LAM_MINOR_VERSION -lt 3 ; then
+            MPI_LIBS=-lmpi
+        else
+            MPI_LIBS=""
+        fi
+    fi
+#
+    PROFLIB="-lmpe -L$WITHDIR/lib -lpmpi"
+    LOGLIB="-llmpi $PROFLIB"
+    TRACELIB="-ltmpi $PROFLIB"
+    ANIMLIB="-lampi $PROFLIB"
+    if test "$NOF77" = "0" ; then
+        EXTRA_FLIB="$MPE_LIBPATH/mpe_proff.o"
+        FLIBS="$LOGLIB"
+    fi
+fi
+
+
+
+#
+#
+# IBM SP
+#
+#
+AC_ARG_WITH(sp,	[--with-sp                          - Use IBM's SP/MPI], MPI_IMP="ibm-sp")
+#
+if test "$MPI_IMP" = "ibm-sp"; then
+    CC=xlc
+    AC_PROG_CC
+
+    AC_PATH_PROG(MPI_CXX, mpcc, doh)
+    if test "$MPI_CXX" = "doh"; then
+        AC_MSG_CHECKING([for mpcc (elsewhere)])
+        foreach comp /bin/mpcc /usr/bin/mpcc
+            if test "$MPI_CXX" = "" -a -x $comp; then
+                AC_MSG_RESULT([yes])
+                MPI_CXX=$comp
+            fi
+        end
+        if test "$MPI_CXX" = ""; then
+            AC_MSG_RESULT([no])
+            AC_MSG_ERROR([cannot continue -- put mpcc in your path])
+        fi
+    fi
+    MPI_CC=$MPI_CXX
+#
+    if test "$NOF77" = "0" ; then
+        AC_CHECK_PROG(F77, xlf, xlf, "" )
+        if test "$F77" != "xlf"; then
+            F77=""
+            NOF77=1
+        fi
+
+        AC_PATH_PROG(MPI_FXX, mpxlf, doh)
+        if test "$MPI_FXX" = "doh"; then
+            AC_MSG_CHECKING([for mpxlf (elsewhere)])
+            foreach comp /bin/mpxlf /usr/bin/mpxlf
+                if test "$MPI_FXX" = "" -a -x $comp; then
+                    AC_MSG_RESULT([yes])
+                    MPI_FXX=$comp
+                fi
+            end
+            if test "$MPI_FXX" = ""; then
+                AC_MSG_RESULT([no])
+                AC_MSG_ERROR([cannot continue -- put mpcc in your path])
+            fi
+        fi
+        MPI_F77=$MPI_FXX
+    fi
+#
+    AC_MSG_CHECKING([POE version])
+    POE_VERSION=`lslpp -L ppe.poe | grep poe | awk '{ print $2 }'`
+    if test "$POE_VERSION" = "2.1.0.14"; then
+        AC_MSG_RESULT([2.1.0.14 (you should upgrade)])
+    elif test "$POE_VERSION" = "2.1.0.15"; then
+        AC_MSG_RESULT([2.1.0.15 (you should upgrade)])
+    elif test "$POE_VERSION" = "2.1.0.16"; then
+        AC_MSG_RESULT([2.1.0.16 (you should upgrade)])
+    elif test "$POE_VERSION" = "2.1.0.17"; then
+        AC_MSG_RESULT([2.1.0.17 (you should upgrade)])
+    elif test "$POE_VERSION" = "2.1.0.18"; then
+        AC_MSG_RESULT([2.1.0.18 (good)])
+    else
+        AC_DEFINE(IBMUNKNOWN)
+        AC_MSG_RESULT([Unknown version -- $POE_VERSION (good luck)])
+    fi
+    MPE_LIBPATH="$libdir"
+    PROFLIB="-lmpe"
+    LOGLIB="-llmpi $PROFLIB"
+    TRACELIB="-ltmpi"
+    ANIMLIB="-lampi $PROFLIB"
+    if test "$NOF77" = "0" ; then    
+        EXTRA_FLIB="$libdir/mpe_proff.o"
+        FLIBS="$LOGLIB"
+    fi
+    MPE_CFLAGS="$MPE_CFLAGS -DIBM_MPI"
+    LIBPATH=lib
+fi
+#
+#
+# SGI IRIX 6.4
+#
+#
+AC_ARG_WITH(sgi, [--with-sgi                         - Use SGI's IRIX/64 MPI], MPI_IMP="sgi" CC=cc F77=f77)
+AC_ARG_WITH(sgi64, [--with-sgi64                       - Use SGI's IRIX/64 MPI (force 64 bit mode)], MPI_IMP="sgi64" CC=cc F77=f77)
+#
+if test "$MPI_IMP" = "sgi" -o "$MPI_IMP" = "sgi64"; then
+    MPI_LIBS="-lmpi"
+#
+    # If they just said "--with-sgi", go find the libmpi.so
+#    
+    if test "$MPI_IMP" = "sgi"; then
+        if test -f /usr/lib32/libmpi.so; then
+            MPILIB_DIR=/usr/lib32
+            OPTFLAGS="-n32"
+        elif test -f /usr/lib64/libmpi.so; then
+            MPILIB_DIR=/usr/lib64
+            OPTFLAGS="-64"
+        else
+            AC_MSG_ERROR([cannot find libmpi.so in /usr/lib32 or /usr/lib64])
+        fi
+    elif test "$MPI_IMP" = "sgi64"; then
+        if test -f /usr/lib64/libmpi.so; then
+            MPILIB_DIR=/usr/lib64
+            OPTFLAGS="-64"
+        else
+            AC_MSG_ERROR([cannot find libmpi.so in /usr/lib64])
+        fi
+    fi
+#
+    AC_MSG_CHECKING([SGI MPI version])
+    IS20=`strings $MPILIB_DIR/libmpi.so | grep "SGI MPI 2.0"`
+    if test "$IS20" != ""; then    
+        AC_MSG_RESULT([2.0 ($SGIBIT) (you should upgrade)])
+        AC_MSG_WARN([*# You are advised to get the latest version of SGI's MPI])
+        AC_MSG_WARN([*# See http://www.sgi.com/Products/Evaluation/evaluation.html])
+    else
+        IS30=`strings $MPILIB_DIR/libmpi.so | grep "SGI MPI 3.0"`
+        if test "$IS30" != ""; then
+            AC_MSG_RESULT([3.0 ($SGIBIT -- good)])
+        else
+            VER=`strings $MPILIB_DIR/libmpi.so | grep "SGI MPI"`
+            AC_MSG_RESULT([Unknown version ($SGIBIT) -- $VER (good luck)])
+        fi
+    fi
+    MPE_LIBPATH="$libdir"
+    PROFLIB="-lmpe"
+    LOGLIB="-llmpi $PROFLIB"
+    TRACELIB="-ltmpi"
+    ANIMLIB="-lampi $PROFLIB"
+    if test "$NOF77" = "0" ; then
+        EXTRA_FLIB="$libdir/mpe_proff.o"
+        FLIBS="$LOGLIB"
+    fi
+    MPE_CFLAGS="$MPE_CFLAGS -DSGI_MPI"
+    LIBPATH=lib
+
+    MPI_CC=$CC
+    MPI_F77=$F77
+fi
+
+ 
+#
+# Cray
+#
+AC_ARG_WITH(cray, [--with-cray                        - Use Cray's native MPI], MPI_IMP="cray" CC=cc)
+#
+if test "$MPI_IMP" = "cray"; then
+    MPI_LIBS="-lmpi"
+#
+    if test "$NOF77" = "0" ; then
+        AC_CHECK_PROG(F77,fort77,fort77,;)
+    fi
+#
+    AC_MSG_CHECKING([Cray MPI version])
+    CRAYVER=`ls -ld /opt/ctl/mpt/mpt | awk '{ print $11 }' | cut -d/ -f5`
+    if test "$CRAYVER" = "1.1.0.4"; then
+        AC_DEFINE(CRAY1104)
+	AC_MSG_RESULT([1.1.0.4 (good)])
+    else
+	AC_DEFINE(CRAYUNKNOWN)
+	AC_MSG_RESULT([unknown Cray MPI version -- good luck!])
+    fi
+    MPE_LIBPATH="$libdir"
+    PROFLIB="-lmpe -lpmpi"
+    LOGLIB="-llmpi $PROFLIB"
+    TRACELIB="-ltmpi -lpmpi"
+    ANIMLIB="-lampi $PROFLIB"
+    if test "$NOF77" = "0" ; then
+        EXTRA_FLIB="$libdir/mpe_proff.o"
+        FLIBS="$EXTRA_FLIB $LOGLIB"
+    fi
+#
+   # The CRAY cp doesn't even support -r (!!) but at least there 
+   # is a version that does work.
+   if test -x /usr/ucb/cp ; then
+       CPRP="/usr/ucb/cp"
+   else
+       echo "Using default cp for copy; install may fail if -r and -p"
+       echo "switches are not supported."
+   fi
+   LIBPATH=lib
+   # If tested code does NOT compile, then define _TWO_WORD_FCD
+   AC_MSG_CHECKING(whether _TWO_WORD_FCDs are used)
+   AC_TRY_COMPILE( [#include <fortran.h>],
+                   [void  *buf;_fcd temp;temp = _fcdtocp(buf);],
+                   compile_check=yes,compile_check=no )
+   if test "$compile_check" = "no" ; then
+       TEMP_CFLAGS=$CFLAGS
+       CFLAGS="-D_TWO_WORD_FCD $CFLAGS"
+       AC_MSG_RESULT(perhaps)
+       AC_MSG_CHECKING(whether program compiles if _TWO_WORD_FCD is defined)
+       AC_TRY_COMPILE( [#include <fortran.h>],
+                       [void  *buf;_fcd temp;temp = _fcdtocp(buf);],
+                       compile_check=yes,compile_check=no )
+       if test "$compile_check" = "no" ; then
+           AC_MSG_RESULT(no)
+           AC_MSG_WARN(You may have problems compiling the Fortran interface,)
+           AC_MSG_WARN(specifically calls to _fcdtocp)
+       elif test "$compile_check" = "yes" ; then
+           AC_MSG_RESULT(yes)
+           AC_DEFINE(_TWO_WORD_FCD)
+       fi
+       CFLAGS=$TEMP_CFLAGS
+    elif test "$compile_check" = "yes" ; then
+       AC_MSG_RESULT(no)
+   fi
+
+   MPI_CC=$CC
+   MPI_F77=$F77
+fi
+ 
+
+#
+#   Unknown MPI implmentation, i.e. User defined MPI_LIBS and MPI_INC
+#
+AC_ARG_WITH( mpiinc, [--with-mpiinc=MPI_INC              - MPI include directory, e.g. -I/pkgs/MPI/include], MPI_INC="$withval")
+#
+AC_ARG_WITH( mpilibs, [--with-mpilibs=MPI_LIBS            - MPI Profiling and API libraries, e.g. -L$MPI_LIB_DIR -lfmpich -lpmpich -lmpich], MPI_LIBS="$withval")
+#
+if test -z "$MPI_IMP"; then
+    echo "User supplied MPI implmentation (Good Luck!)"
+    MPI_IMP="UserSupplied"
+fi
+#
+if test "$MPI_IMP" = "UserSupplied"; then
+    AC_PROG_CC
+
+    AC_MSG_CHECKING( whether the User supplied MPI implmentation is linkable )
+    TMP_CFLAGS=$CFLAGS
+    TMP_LIBS=$LIBS
+    CFLAGS=$MPI_INC
+    LIBS=$MPI_LIBS
+    AC_TRY_LINK( [ #include "mpi.h" ],
+                 [ int argc; char **argv;
+                   MPI_Init(&argc, &argv);
+                   MPI_Finalize() ],
+                 mpi_working=yes,
+                 mpi_working=no )
+    if test "$mpi_working" = "yes" ; then
+        AC_MSG_RESULT(yes)
+    else
+        AC_MSG_RESULT(no)
+        echo "Cannot link MPI program!"
+        echo "Check your MPI include paths and MPI libraries"
+        exit 1
+    fi
+    CFLAGS=$TMP_CFLAGS
+    LIBS=$TMP_LIBS
+
+    MPE_LIBPATH="$libdir"
+    PROFLIB="-lmpe"
+    LOGLIB="-llmpi $PROFLIB"
+    TRACELIB="-ltmpi"
+    ANIMLIB="-lampi $PROFLIB"
+    if test "$NOF77" = "0" ; then
+        AC_CHECK_PROG(F77, f77, f77, "" ) 
+        if test "$F77" = "f77"; then
+            EXTRA_FLIB="$libdir/mpe_proff.o"
+            FLIBS="$EXTRAF_LIB $LOGLIB"
+        else
+            F77=""
+            NOF77=1
+        fi
+    fi
+
+    MPI_CC=$CC
+    MPI_F77=$F77
+fi
+
+if test -d "$SLOG_HOME"; then
+  echo "Configure SLOG-API, for support of big logfile"
+  #
+  # For VPATH, we need an slog_api
+  if test ! -d slog_api ; then mkdir slog_api ; fi
+  if test "$enable_debug" = "yes"; then
+     ( cd slog_api ; \
+       echo; \
+       $SLOG_HOME/configure --with-cc="$CC" --with-cflags="$OPTFLAGS $MPE_CFLAGS" \
+                   --enable-debug -prefix=$prefix ; \
+       echo )
+  else
+     ( cd slog_api ; \
+       echo; \
+       $SLOG_HOME/configure --with-cc="$CC" --with-cflags="$OPTFLAGS $MPE_CFLAGS" \
+                   -prefix=$prefix ; \
+       echo )     
+  fi
+fi
+#
+if test $NO_JUMPSHOT = 0 -a ! -d "$JUMPSHOT_HOME" ; then
+    if test -n "$JUMPSHOT_HOME" ; then 
+        echo "*# $JUMPSHOT_HOME is not a valid directory - JUMPSHOT will not be installed"
+        JUMPSHOT_HOME=""
+    fi
+    NO_JUMPSHOT=1
+fi
+#
+#
+# Miscellaneous directories
+#
+# Why are these tests for exec_prefix and LIBDIR here?
+# exec_prefix is used in the Makefile as part of the library paths
+# because libdir contains it.
+#
+# Autoconf libdir has '' around it by default, and contains make variables.
+# Thus, we can't use it unmodified.
+if test "$exec_prefix" = "NONE" -a "$LIBDIR" = '${exec_prefix}/lib' ; then
+    echo "*# Missing exec_prefix and/or libdir value"
+    echo "*# exec_prefix = $exec_prefix"
+    echo "*# LIBDIR      = $LIBDIR"
+    echo "*# Set --prefix= --exec-prefix= and rerun configure"
+    exit 1
+fi
+#
+if test ! -d "$LIBDIR" ; then
+    # We really shouldn't depend on -p (not all systems have it)
+    mkdir -p "$LIBDIR"
+fi
+#
+if test -z "$CC" ; then
+    echo "You must configure MPE with a specific MPI"
+    exit 1
+fi
+#
+if test -n "$F77" ; then 
+dnl Get the format of Fortran names.  Uses F77 and sets WDEF.
+dnl If the test fails, sets NOF77 to 1, HAS_FORTRAN to 0 
+   cat > confftest.f <<EOF
+       subroutine mpir_init_fop( a )
+       integer a
+       a = 1
+       return
+       end
+EOF
+    $F77 $MPE_FFLAGS -c confftest.f > /dev/null 2>&1
+    if test ! -s confftest.o ; then
+        echo "Unable to test Fortran compiler"
+        echo "(compiling a test program failed to produce an object file)"
+    elif test -z "$FORTRANNAMES" ; then
+        # We have to be careful here, since the name may occur in several
+        # forms.  We try to handle this by testing for several forms
+        # directly.
+        if test "$host" = "cray" ; then
+            # Cray doesn't accept -a ...
+            nameform1=`strings confftest.o | grep mpir_init_fop_  | sed -n -e '1p'`
+            nameform2=`strings confftest.o | grep MPIR_INIT_FOP   | sed -n -e '1p'`
+            nameform3=`strings confftest.o | grep mpir_init_fop   | sed -n -e '1p'`
+            nameform4=`strings confftest.o | grep mpir_init_fop__ | sed -n -e '1p'`
+       else
+           nameform1=`strings -a confftest.o | grep mpir_init_fop_  | sed -n -e '1p'`
+           nameform2=`strings -a confftest.o | grep MPIR_INIT_FOP   | sed -n -e '1p'`
+           nameform3=`strings -a confftest.o | grep mpir_init_fop   | sed -n -e '1p'`
+           nameform4=`strings -a confftest.o | grep mpir_init_fop__ | sed -n -e '1p'`
+       fi
+       /bin/rm -f confftest.f confftest.o
+       if test -n "$nameform4" ; then
+	   echo "Fortran externals are lower case and have 1 or 2 trailing underscores"
+	   FORTRANNAMES="FORTRANDOUBLEUNDERSCORE"
+       elif test -n "$nameform1" ; then
+           # We don't set this in CFLAGS; it is a default case
+           echo "Fortran externals have a trailing underscore and are lowercase"
+	   FORTRANNAMES="FORTRANUNDERSCORE"
+       elif test -n "$nameform2" ; then
+	   echo "Fortran externals are uppercase"     
+	   FORTRANNAMES="FORTRANCAPS" 
+       elif test -n "$nameform3" ; then
+	   echo "Fortran externals are lower case"
+	   FORTRANNAMES="FORTRANNOUNDERSCORE"
+       else
+           NOF77=1
+	   echo "Unable to determine the form of Fortran external names"
+	   echo "Make sure that the compiler $F77 can be run on this system"
+       fi
+       if test -n "$FORTRANNAMES" ; then
+           MPE_CFLAGS="$MPE_CFLAGS -D$FORTRANNAMES"
+       fi
+   fi
+fi
+#
+MPE_GRPAHICS=""
+MPEGRAPHICS_SOURCE=""
+MPEGRAPHICS_OBJS=""
+MPEGRAPHICS_FSOURCE=""
+MPEGRAPHICS_FOBJS=""
+#
+# We need to check that this has worked.  The autoconf macro is broken
+AC_PROG_CPP
+if test "$CPP" = "/lib/cpp" -a ! -x /lib/cpp ; then
+   AC_MSG_ERROR([configure could not find a working C preprocessor])
+fi
+if test "$enable_mpe_graphics" = "yes" ; then
+    AC_PATH_X
+else
+    no_x="yes"
+fi
+#
+if test -z "$no_x" ; then
+    MPE_GRAPHICS="-DMPE_GRAPHICS"
+    MPEGRAPHICS_SOURCE="mpe_graphics.c xcolor.c xframe.c xinit.c xwmap.c xmouse.c"
+    MPEGRAPHICS_OBJS="mpe_graphics.o xcolor.o xframe.o xinit.o xwmap.o xmouse.o"
+    MPEGRAPHICS_FSOURCE="mpe_graphicsf.c"
+    MPEGRAPHICS_FOBJS="mpe_graphicsf.o"
+    if test -n "$x_includes" ; then
+        X_INC=-I$x_includes
+    fi
+    if test -n "$x_libraries" ; then
+	X_LIB="-L$x_libraries -lX11"
+        ANIMLIB="$ANIMLIB -L$x_libraries -lX11"
+    else
+	X_LIB="-lX11"
+        ANIMLIB="$ANIMLIB -lX11"
+    fi
+else
+    AC_MSG_WARN([*# Could not find appropriate X windows libraries.  MPE routines that make use of X11 graphics will NOT be built unless you put X windows libraries in your path and reconfigure])
+    MPE_GRAPHICS="" 
+    NO_X=1
+fi
+#
+# Fixup for make
+PAC_MAKE_IS_GNUMAKE
+PAC_MAKE_IS_BSD44
+PAC_MAKE_IS_OSF
+PAC_MAKE_VPATH
+AC_SUBST(MAKE)
+#
+# Look for wish (the tcl/tk windowing shell; this is used by the new
+# Upshot
+#
+if test -z "$wishloc" ; then
+    AC_PATH_PROG(wishloc,wish)
+fi 
+#
+# Test that wish exists
+if test -n "$wishloc" ; then
+   namelen=`expr "$wishloc" : ".*"`
+   if test $namelen -gt 26 ; then
+	echo "*# The path for wish, $wishloc, may be too long"
+        echo "for some Unix systems to accept as a command interpreter."
+	echo "This may cause problems when using upshot."
+        echo "(Some systems limit the length to 26 characters!)"
+   fi
+   if test ! -x $wishloc ; then
+       wishloc=
+   fi
+fi
+if test -z "$wishloc" ; then
+    echo "*# Could not find executable wish (needed for Upshot)"
+fi
+#
+if test -z "$TCL_DIR" ; then
+    PAC_FIND_TCL
+    BUILD_NUPSHOT=0
+    if test -n "$TCL_DIR" -a "$FOUND_TK36" = 1 ; then
+        BUILD_NUPSHOT=1
+    fi
+    BUILD_UPSHOT=0
+    if test -n "$FOUND_TK" -o "$FOUND_TK36" ; then
+        BUILD_UPSHOT=1
+    fi
+fi
+#
+# Test that TCL and TK was found
+if test "$BUILD_NUPSHOT" = "0" ; then
+    if test -n "$MPICH_WARNING_SEP" ; then echo '>'$MPICH_WARNING_SEP ; fi
+    echo "*# Could not find libraries for TCL and TK or could not find"
+    echo "*# the required versions (different versions of TCL and TK "
+    echo "*# are incompatible with others) that are needed for Nupshot"
+    echo "*# Will not be able to install Nupshot"
+    if test -n "$MPICH_WARNING_SEP" ; then echo '<'$MPICH_WARNING_SEP ; fi
+fi
+#
+if test "$BUILD_UPSHOT" = "0" ; then
+    if test -n "$MPICH_WARNING_SEP" ; then echo '>'$MPICH_WARNING_SEP ; fi
+    echo "*# Could not find TK library or could not find a compatible"
+    echo "*# version of TK (different versions of TK are incompatible)"
+    echo "*# needed for Upshot"
+    echo "*# Will not be able to install Upshot"
+    if test -n "$MPICH_WARNING_SEP" ; then echo '<'$MPICH_WARNING_SEP ; fi
+fi
+#
+AC_PATH_PROG(DBX_NAME,dbx)
+if test -z "$DBX_NAME" ; then
+    if test -n "$MPICH_WARNING_SEP" ; then echo '>'$MPICH_WARNING_SEP ; fi
+    echo "*# Cannot find dbx in your path.  You can put dbx in your path and "
+    echo "*# reconfigure or else you will not be able to run the debugger code"
+    echo "*# using the dbx debugger."
+    if test -n "$MPICH_WARNING_SEP" ; then echo '<'$MPICH_WARNING_SEP ; fi
+fi
+#
+AC_PATH_PROG(GDB_NAME,gdb)
+if test -z "$GDB_NAME" ; then
+    if test -n "$MPICH_WARNING_SEP" ; then echo '>'$MPICH_WARNING_SEP ; fi
+    echo "*# Cannot find gdb in your path.  You can put gdb in your path and"
+    echo "*# reconfigure or else you will not be able to run the debugger code"
+    echo "*# using the gdb debugger."
+    if test -n "$MPICH_WARNING_SEP" ; then echo '<'$MPICH_WARNING_SEP ; fi
+fi
+#   
+dnl Check if C compiler fully supports the keyword `const' - if not define 
+dnl `const' to be empty.     
+AC_C_CONST
+AC_C_BIGENDIAN
+AC_HEADER_STDC
+#
+AC_MSG_CHECKING(for long pointers)
+AC_TRY_RUN(int main()
+{
+  if (sizeof(void *) > 4)
+    return -1;
+  return 0;
+}, sizeof_void_greater=no, sizeof_void_greater=yes)
+if test "$sizeof_void_greater" = "yes" ; then
+    AC_DEFINE(POINTER_64_BITS)
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+AC_HAVE_FUNCS(system)
+AC_HAVE_FUNCS(sysinfo)
+AC_CHECK_FUNC(uname,AC_DEFINE(HAVE_UNAME)haveuname=1)
+AC_CHECK_FUNC(gethostbyname,AC_DEFINE(HAVE_GETHOSTBYNAME)havegethostbyname=1)
+#
+AC_CHECK_HEADERS(unistd.h stdlib.h string.h netdb.h sys/systeminfo.h)
+AC_CHECK_HEADER(stdarg.h,[AC_DEFINE(HAVE_STDARG_H) havestdarg=1],,)
+#
+# We need to build mpe with the shared library flags
+# This should rely on the same approach used in the mpich configure,
+# since just using TRY_LINK or TRY_COMPILE doesn't identify warning messages
+# about "compiler flag unrecognized".
+#
+# It isn't enough to check for stdarg.  Even gcc doesn't get it right;
+# on some systems, the gcc version of stdio.h loads stdarg.h WITH THE WRONG
+# OPTIONS (causing it to choose the OLD STYLE va_start etc).
+#
+if test -n "$havestdarg" ; then
+    PAC_COMPILE_CHECK_FUNC(stdarg is correct,[
+#include <stdio.h>
+#include <stdarg.h>
+int func( int a, ... ){
+int b;
+va_list ap;
+va_start( ap, a );
+b = va_arg(ap, int);
+printf( "%d-%d\n", a, b );
+va_end(ap);
+fflush(stdout);
+return 0;
+}
+int main() { func( 1, 2 ); return 0;}],
+AC_DEFINE(USE_STDARG)
+MPE_CFLAGS="$MPE_CFLAGS -DUSE_STDARG")
+fi
+#
+AC_MSG_CHECKING([if compiler accepts prototypes])
+AC_TRY_COMPILE(, int f(double a);, have_proto=yes, have_proto=no)
+if test "$have_proto" = "yes" ; then
+    AC_DEFINE(HAVE_PROTOTYPES)
+    MPE_CFLAGS="$MPE_CFLAGS -DHAVE_PROTOTYPES"
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+#
+# Some MPI's seem to have trouble with MPI_Wtime, PMPI_Wtime, and MPI_Attr_get
+# (Fujitsu for MPI_Wtime and MPI_Attr_get; IBM's PMPI_Wtime returned 0)
+# Check at least that we can link with MPI_Wtime and MPI_Attr_get
+if test "$mpi_is_building" != "yes" ; then
+    AC_MSG_CHECKING(for MPI_Wtime)
+    AC_TRY_LINK([#include "mpi.h"],
+[double d;d=MPI_Wtime();return 0;],wtime_found=yes,wtime_found=no)
+    if test $wtime_found = "yes" ; then
+        AC_MSG_RESULT(yes)
+    else
+        AC_MSG_RESULT(no)
+        echo "Cannot link with MPI_Wtime!"
+        echo "Check your MPI libraries"
+        exit 1
+    fi
+fi
+#
+if test "$NO_JUMPSHOT" = "0" -a -n "$JUMPSHOT_HOME" ; then
+    JUMPSHOT=1
+else
+    JUMPSHOT=0
+fi
+#
+if test "$MPICH" = "0" -a "$JUMPSHOT" = "1"; then
+    if test "$GEN_BINDIR" = '${exec_prefix}/bin' ; then
+        GEN_BINDIR=$LIBDIR/../bin
+    fi
+    if test ! -d "$GEN_BINDIR" ; then
+        # We really shouldn't depend on -p (not all systems have it)
+        mkdir -p "$GEN_BINDIR"
+    fi
+fi
+#
+AC_PROG_RANLIB
+AC_CHECK_PROG(AR, ar, ar, ;)
+#
+AC_SUBST(AR)
+AC_SUBST(RANLIB)
+AC_SUBST(MPICH)
+AC_SUBST(MPE_HOME)
+AC_SUBST(INCLUDEDIR)
+AC_SUBST(LIBDIR)
+AC_SUBST(PREFIX)
+AC_SUBST(CC)
+AC_SUBST(MPI_CC)
+AC_SUBST(F77)
+AC_SUBST(MPI_F77)
+AC_SUBST(F77_EXTRA_FLAG)
+AC_SUBST(X_INC)
+AC_SUBST(OPTFLAGS)
+AC_SUBST(MPE_GRAPHICS)
+AC_SUBST(NO_X)
+AC_SUBST(X_LIB)
+AC_SUBST(MPE_LIBPATH)
+AC_SUBST(MPI_INC)
+AC_SUBST(MPI_LIBS)
+AC_SUBST(DEBUG_LIBS)
+AC_SUBST(LOGLIB)
+AC_SUBST(TRACELIB)
+AC_SUBST(ANIMLIB)
+AC_SUBST(PROFLIB)
+AC_SUBST(MPEDBG)
+AC_SUBST(MPEGRAPHICS_SOURCE)
+AC_SUBST(MPEGRAPHICS_OBJS)
+AC_SUBST(MPEGRAPHICS_FSOURCE)
+AC_SUBST(MPEGRAPHICS_FOBJS)
+AC_SUBST(MPE_CFLAGS)
+AC_SUBST(MPE_FFLAGS)
+AC_SUBST(LIBPATH)
+AC_SUBST(EXTRA_FLIB)
+AC_SUBST(FLIB_PATH_LEADER)
+AC_SUBST(FLIBS)
+AC_SUBST(CPRP)
+AC_SUBST(wishloc)
+AC_SUBST(TCL_DIR)
+AC_SUBST(TK_DIR)
+AC_SUBST(TK_VERSION)
+AC_SUBST(BUILD_UPSHOT)
+AC_SUBST(BUILD_NUPSHOT)
+AC_SUBST(NOF77)
+AC_SUBST(NO_JUMPSHOT)
+AC_SUBST(JUMPSHOT_HOME)
+AC_SUBST(SLOG_HOME)
+AC_SUBST(SLOGLIB)
+# Make the directories that do not contain Makefiles (should they?) but 
+# are needed for the subsequent directories.
+if test ! -d contrib ; then mkdir contrib ; fi
+if test ! -d profiling ; then mkdir profiling ; fi
+rm -f $srcdir/mpeconf.h
+AC_OUTPUT(Makefile Makefile_nompi mpeinstall contrib/life/Makefile contrib/mandel/Makefile contrib/mastermind/Makefile contrib/test/Makefile profiling/examples/Makefile profiling/lib/Makefile profiling/wrappergen/Makefile dbxerr.c  )
+#
+# if test "$JUMPSHOT" = "1" ; then
+#   if test -d "$JUMPSHOT_HOME" ; then
+#        # ?
+#        # This could use CONFIG_FILES=... and then ./config.status instead,
+#        # since autoconf2 no longer add the first comment line to all files.
+#        (cd $JUMPSHOT_HOME ;
+#        if test -f "build/unix/bin/jumpshot.in" -a -f "build/unix/bin/jumpshot12.in" ; then
+#             PAC_OUTPUT_EXEC(build/unix/bin/jumpshot build/unix/bin/jumpshot12, a+x) 
+#        fi ) 
+#    fi
+# fi
+#
+CONFIG_HEADERS=""
+export CONFIG_HEADERS
+#
+# Update nupshot's Makefile if have correct version of TCL and TK
+if test "$NO_NUPSHOT" = "0" ; then
+    CONFIG_FILES="profiling/nupshot/Makefile"
+    export CONFIG_FILES
+    ${CONFIG_SHELL-/bin/sh} ./config.status
+    CONFIG_FILES=""
+else
+    # This isn't an error, it is a message
+    echo "mpe/profiling/nupshot has its own configure script.  You can"
+    echo "use it on another platform to build this program."
+fi
+#
+# Update the upshot script if have the correct version of TK
+if test "$NO_UPSHOT" = "0" ; then
+    echo "configuring upshot"
+    if test -f profiling/upshot/bin/upshot.in ; then
+        echo "configuring upshot.in"
+        CONFIG_FILES="profiling/upshot/bin/upshot"
+        export CONFIG_FILES
+        ${CONFIG_SHELL-/bin/sh} ./config.status
+        (cd profiling/upshot/bin ; /bin/rm -f .run1 ; \
+	    sed -e '1d' upshot > .run1 ; \
+        /bin/rm -f upshot ; /bin/mv .run1 upshot ; chmod a+x upshot )
+    fi
+fi
+#
+# Call the Jumpshot configure if JUMPSHOT = 1
+if test "$JUMPSHOT" = "1" ; then
+    echo "Configuring JUMPSHOT"
+    if test ! -d $JUMPSHOT_RELDIR ; then mkdir $JUMPSHOT_RELDIR ; fi
+    (cd $JUMPSHOT_RELDIR ; $JUMPSHOT_HOME/configure --with-bindir=$GEN_BINDIR --with-jumpshot_home=$JUMPSHOT_HOME $JUMPSHOT_OPTS)
+fi
+if test ! -x mpeinstall ; then
+    chmod a+x mpeinstall
+fi

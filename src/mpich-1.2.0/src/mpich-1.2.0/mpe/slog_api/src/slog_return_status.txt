@@ -1,0 +1,20 @@
+/*N SLOG_RETURN_STATUS
+
+  Notes on SLOG return status code :
+       There are 5 allowed SLOG returned status codes.  They include
+       SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+       are defined in slog.h
+
+       SLOG_SUCCESS is returned when no error is encountered.
+
+       SLOG_FAIL is returned when error is encounted.
+
+       SLOG_EOF is returned when End of file is encounted.
+
+       There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+       values, in particular they are used in boolean functions which
+       are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.n
+
+N*/
+

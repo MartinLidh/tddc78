@@ -1,0 +1,113 @@
+#!/bin/sh
+# Generated automatically by configure.
+# Run this file to recreate the current configuration.
+# This directory was configured as follows,
+# on host ent4000.ida.liu.se:
+#
+# /home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4/configure -p4arch=SUN_SOLARIS -p4make=make --no-print-directory -opt=-fast -cc=cc -p4comm= -p4device=ch_p4 -srcdir=/home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4 -exec-prefix=${prefix} -libbuild_dir=/home/TDDB78/src/mpich-1.2.0/lib -cflags=   -rsh=ssh
+
+for arg
+do
+  case "$arg" in
+    -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
+    echo running ${CONFIG_SHELL-/bin/sh} /home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4/configure -p4arch=SUN_SOLARIS -p4make=make --no-print-directory -opt=-fast -cc=cc -p4comm= -p4device=ch_p4 -srcdir=/home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4 -exec-prefix=${prefix} -libbuild_dir=/home/TDDB78/src/mpich-1.2.0/lib -cflags=   -rsh=ssh
+    exec ${CONFIG_SHELL-/bin/sh} /home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4/configure -p4arch=SUN_SOLARIS -p4make=make --no-print-directory -opt=-fast -cc=cc -p4comm= -p4device=ch_p4 -srcdir=/home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4 -exec-prefix=${prefix} -libbuild_dir=/home/TDDB78/src/mpich-1.2.0/lib -cflags=   -rsh=ssh ;;
+    *) echo "Usage: config.status --recheck" 2>&1; exit 1 ;;
+  esac
+done
+
+trap 'rm -f Makefile lib/Makefile alog/Makefile usc/Makefile usc/usctest/Makefile messages/Makefile include/Makefile lib_f/Makefile contrib/Makefile contrib_f/Makefile bin/Makefile doc/Makefile messages_f/Makefile misc/Makefile monitors/Makefile servers/Makefile; exit 1' 1 3 15
+top_srcdir='/home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4'
+exec_prefix='${prefix}'
+libdir='${prefix}/lib'
+libbuild_dir='/home/TDDB78/src/mpich-1.2.0/lib'
+RANLIB='true'
+VPATH='VPATH=.:$(srcdir)'
+P4ARCH='SUN_SOLARIS'
+MAKE='make --no-print-directory'
+CC='cc'
+DEFS=' -DHAVE_LIBSOCKET=1 -DHAVE_LIBNSL=1 -DHAVE_RPC_RPC_H=1 -DHAVE_NETINET_IN_H=1 -DHAVE_ARPA_INET_H=1 -DHAVE_STDLIB_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DHAVE_STRING_H=1 -DHAVE_STRINGS_H=1 -DHAVE_TERMIO_H=1 -DHAVE_TERMIOS_H=1 -DBOTH_STRING_INCS=1 -DUSE_STDARG=1 -DHAVE_SIGACTION=1 -DSEMUN_UNDEFINED=1 -DHAVE_STRERROR=1 -DHAVE_VPRINTF=1 -DNONBLOCKING_READ_WORKS=1 -DNO_ECHO=1 -DHAS_RSHCOMMAND=1 -DHAVE_XDRMEM_CREATE=1'
+CFLAGS='   -DHAVE_LIBSOCKET=1 -DHAVE_LIBNSL=1 -DHAVE_RPC_RPC_H=1 -DHAVE_NETINET_IN_H=1 -DHAVE_ARPA_INET_H=1 -DHAVE_STDLIB_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DHAVE_STRING_H=1 -DHAVE_STRINGS_H=1 -DHAVE_TERMIO_H=1 -DHAVE_TERMIOS_H=1 -DBOTH_STRING_INCS=1 -DUSE_STDARG=1 -DHAVE_SIGACTION=1 -DSEMUN_UNDEFINED=1 -DHAVE_STRERROR=1 -DHAVE_VPRINTF=1 -DNONBLOCKING_READ_WORKS=1 -DNO_ECHO=1 -DHAS_RSHCOMMAND=1 -DHAVE_XDRMEM_CREATE=1'
+FC='f77'
+CLINKER='cc'
+FLINKER='f77'
+AR='ar ruv'
+RM='/bin/rm'
+P4_OBJ='$(P4_COMM_OBJ) $(P4_SOCK_OBJ) $(P4_SHMEM_OBJ)'
+MDEP_LIBS=' -lsocket -lnsl'
+CRYPT_LIBS='-lcrypt'
+MDEP_CFLAGS=''
+MDEP_FFLAGS=''
+MDEP_LFLAGS=''
+OPTFLAGS='-fast'
+P4_CONFIGURED_TIME='Wed Mar 15 13:33:48 MET 2000'
+DEFINE_ALOG='#undef ALOG_TRACE'
+DEFINE_SYSV_IPC='#undef SYSV_IPC'
+DEFINE_VENDOR_IPC='#undef VENDOR_IPC'
+DEFINE_P4_DPRINTFL='#define P4_DPRINTFL'
+LISTENER_PATHNAME=''
+RSHCOMMAND='ssh'
+LIBS=' -lsocket -lnsl'
+srcdir='/home/TDDB78/src/mpich-1.2.0/mpid/ch_p4/p4'
+DEFS=' -DHAVE_LIBSOCKET=1 -DHAVE_LIBNSL=1 -DHAVE_RPC_RPC_H=1 -DHAVE_NETINET_IN_H=1 -DHAVE_ARPA_INET_H=1 -DHAVE_STDLIB_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DHAVE_STRING_H=1 -DHAVE_STRINGS_H=1 -DHAVE_TERMIO_H=1 -DHAVE_TERMIOS_H=1 -DBOTH_STRING_INCS=1 -DUSE_STDARG=1 -DHAVE_SIGACTION=1 -DSEMUN_UNDEFINED=1 -DHAVE_STRERROR=1 -DHAVE_VPRINTF=1 -DNONBLOCKING_READ_WORKS=1 -DNO_ECHO=1 -DHAS_RSHCOMMAND=1 -DHAVE_XDRMEM_CREATE=1'
+prefix=''
+exec_prefix='${prefix}'
+prsub='
+s%^exec_prefix\([ 	]*\)=\([ 	]*\).*$%exec_prefix\1=\2${prefix}%'
+extrasub=''
+
+top_srcdir=$srcdir
+
+CONFIG_FILES=${CONFIG_FILES-"Makefile lib/Makefile alog/Makefile usc/Makefile usc/usctest/Makefile messages/Makefile include/Makefile lib_f/Makefile contrib/Makefile contrib_f/Makefile bin/Makefile doc/Makefile messages_f/Makefile misc/Makefile monitors/Makefile servers/Makefile"}
+for file in .. ${CONFIG_FILES}; do if test "x$file" != x..; then
+  srcdir=$top_srcdir
+  # Remove last slash and all that follows it.  Not all systems have dirname.
+  dir=`echo $file|sed 's%/[^/][^/]*$%%'`
+  if test "$dir" != "$file"; then
+    test "$top_srcdir" != . && srcdir=$top_srcdir/$dir
+    test ! -d $dir && mkdir $dir
+  fi
+  echo creating $file
+  rm -f $file
+  echo "# Generated automatically from `echo $file|sed 's|.*/||'`.in by configure." > $file
+cat $top_srcdir/${file}.in | sed -e "
+$prsub
+$extrasub
+s%@top_srcdir@%$top_srcdir%g
+s%@exec_prefix@%$exec_prefix%g
+s%@libdir@%$libdir%g
+s%@libbuild_dir@%$libbuild_dir%g
+s%@RANLIB@%$RANLIB%g
+s%@VPATH@%$VPATH%g
+s%@P4ARCH@%$P4ARCH%g
+s%@MAKE@%$MAKE%g
+s%@CC@%$CC%g
+s%@DEFS@%$DEFS%g
+s%@CFLAGS@%$CFLAGS%g
+s%@FC@%$FC%g
+s%@CLINKER@%$CLINKER%g
+s%@FLINKER@%$FLINKER%g
+s%@AR@%$AR%g
+s%@RM@%$RM%g
+s%@P4_OBJ@%$P4_OBJ%g
+s%@MDEP_LIBS@%$MDEP_LIBS%g
+s%@CRYPT_LIBS@%$CRYPT_LIBS%g
+s%@MDEP_CFLAGS@%$MDEP_CFLAGS%g
+s%@MDEP_FFLAGS@%$MDEP_FFLAGS%g
+s%@MDEP_LFLAGS@%$MDEP_LFLAGS%g
+s%@OPTFLAGS@%$OPTFLAGS%g
+s%@P4_CONFIGURED_TIME@%$P4_CONFIGURED_TIME%g
+s%@DEFINE_ALOG@%$DEFINE_ALOG%g
+s%@DEFINE_SYSV_IPC@%$DEFINE_SYSV_IPC%g
+s%@DEFINE_VENDOR_IPC@%$DEFINE_VENDOR_IPC%g
+s%@DEFINE_P4_DPRINTFL@%$DEFINE_P4_DPRINTFL%g
+s%@LISTENER_PATHNAME@%$LISTENER_PATHNAME%g
+s%@RSHCOMMAND@%$RSHCOMMAND%g
+s%@LIBS@%$LIBS%g
+s%@srcdir@%$srcdir%g
+s%@DEFS@%$DEFS%
+" >> $file
+fi; done
+
+
+exit 0

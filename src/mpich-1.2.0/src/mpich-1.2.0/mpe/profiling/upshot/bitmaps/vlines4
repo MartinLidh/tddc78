@@ -1,0 +1,4 @@
+#define vlines4_width 4
+#define vlines4_height 4
+static char vlines4_bits[] = {
+   0x08, 0x08, 0x08, 0x08};

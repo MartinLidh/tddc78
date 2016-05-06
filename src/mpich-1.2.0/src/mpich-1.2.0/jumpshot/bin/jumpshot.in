@@ -1,0 +1,50 @@
+#! /bin/sh
+
+JAVA_HOME=@JAVA_HOME@
+JUMPSHOT_HOME=@JUMPSHOT_HOME@
+
+JAVA_LIBS=@JAVA_LIBS@
+SWING_LIBS=@SWING_LIBS@
+JVM=@JVM@
+
+GUI_LIBDIR=${JUMPSHOT_HOME}/lib
+MAIN_LIB=${GUI_LIBDIR}/js_classes.jar
+
+echo
+echo "*********************************************************"
+echo "Jumpshot directory is located at " $JUMPSHOT_HOME
+echo "This program requires a Java Virtual Machine to run"
+echo "JVM specified in JAVA_HOME will be used."
+echo "*********************************************************"
+
+# We explicitly do not want the environment's CLASSPATH and JAVA_HOME.
+if [ -z "${JAVA_HOME}" ] ; then
+    echo "JAVA_HOME is NOT set!"
+    exit 1
+else
+    export JAVA_HOME
+    echo "JAVA_HOME is set. JAVA_HOME = "${JAVA_HOME}
+fi
+
+if [ -z "${SWING_LIBS}" -o "${SWING_LIBS}" = "/swing/swing.jar" ]; then
+    echo "SWING_LIBS is NOT set!"
+    exit 1
+else
+    echo "SWING_LIBS is set. SWING_LIBS = "${SWING_LIBS}
+fi
+
+if [ -z "${GUI_LIBDIR}" -o "${GUI_LIBDIR}" = "/lib" ]; then
+    echo "GUI_LIBDIR is NOT set!"
+    exit 1
+else
+    echo "GUI_LIBDIR is set. GUI_LIBDIR = "${GUI_LIBDIR}
+fi
+
+if [ -n "${SWING_LIBS}" ]; then
+    CLASSPATH=${JAVA_LIBS}:${SWING_LIBS}:${MAIN_LIB}:.
+else
+    CLASSPATH=${JAVA_LIBS}:${MAIN_LIB}:.
+fi
+
+export CLASSPATH
+${JVM} -ms32m -mx256m jumpshot "$@"

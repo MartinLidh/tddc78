@@ -1,0 +1,22 @@
+.TH SLOG_Irec_Free 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_Free \-  Deallocate the given interval record data structure, i.e.  free the memory associated with it. (SLOG_intvlrec_t's destructor) 
+.SH SYNOPSIS
+.nf
+void SLOG_Irec_Free( SLOG_intvlrec_t *irec )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B irec 
+- pointer to the interval record data structure to be erased/freed.
+.PD 1
+
+.SH USAGE NOTES ON THIS ROUTINE 
+Free the memory allocated by SLOG_Irec_Create(), SLOG_Irec_Copy() and
+other related routines.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+.SH LOCATION
+../src/slog_irec_common.c

@@ -1,0 +1,100 @@
+#! /bin/sh
+# Generated automatically by configure.
+# Run this file to recreate the current configuration.
+# This directory was configured as follows,
+# on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
+#
+# $0 $configure_args
+
+for arg
+do
+  case "\$arg" in
+    -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
+    echo running \${CONFIG_SHELL-/bin/sh} $0 $configure_args
+    exec \${CONFIG_SHELL-/bin/sh} $0 $configure_args ;;
+    *) echo "Usage: config.status --recheck" 2>&1; exit 1 ;;
+  esac
+done
+
+trap 'rm -f Makefile; exit 1' 1 3 15
+P4ARCH='$P4ARCH'
+MAKE='$MAKE'
+CC='$CC'
+FC='$FC'
+CLINKER='$CLINKER'
+FLINKER='$FLINKER'
+AR='$AR'
+RANLIB='$RANLIB'
+RM='$RM'
+P4_OBJ='$P4_OBJ'
+MDEP_LIBS='$MDEP_LIBS'
+MDEP_CFLAGS='$MDEP_CFLAGS'
+MDEP_FFLAGS='$MDEP_FFLAGS'
+MDEP_LFLAGS='$MDEP_LFLAGS'
+P4_CONFIGURED_TIME='$P4_CONFIGURED_TIME'
+DEFINE_ALOG='$DEFINE_ALOG'
+DEFINE_SYSV_IPC='$DEFINE_SYSV_IPC'
+DEFINE_VENDOR_IPC='$DEFINE_VENDOR_IPC'
+DEFINE_P4_DPRINTFL='$DEFINE_P4_DPRINTFL'
+LISTENER_PATHNAME='$LISTENER_PATHNAME'
+LIBS='$LIBS'
+srcdir='$srcdir'
+DEFS='$DEFS'
+prefix='$prefix'
+exec_prefix='$exec_prefix'
+prsub='$prsub'
+extrasub='$extrasub'
+EOF
+cat >> config.status <<\EOF
+
+top_srcdir=$srcdir
+
+CONFIG_FILES=${CONFIG_FILES-"Makefile"}
+for file in .. ${CONFIG_FILES}; do if test "x$file" != x..; then
+  srcdir=$top_srcdir
+  # Remove last slash and all that follows it.  Not all systems have dirname.
+  dir=`echo $file|sed 's%/[^/][^/]*$%%'`
+  if test "$dir" != "$file"; then
+    test "$top_srcdir" != . && srcdir=$top_srcdir/$dir
+    test ! -d $dir && mkdir $dir
+  fi
+  echo creating $file
+  rm -f $file
+  echo "# Generated automatically from `echo $file|sed 's|.*/||'`.in by configure." > $file
+cat $top_srcdir/${file}.in | sed -e "
+$prsub
+$extrasub
+s%@P4ARCH@%$P4ARCH%g
+s%@MAKE@%$MAKE%g
+s%@CC@%$CC%g
+s%@FC@%$FC%g
+s%@CLINKER@%$CLINKER%g
+s%@FLINKER@%$FLINKER%g
+s%@AR@%$AR%g
+s%@RANLIB@%$RANLIB%g
+s%@RM@%$RM%g
+s%@P4_OBJ@%$P4_OBJ%g
+s%@MDEP_LIBS@%$MDEP_LIBS%g
+s%@MDEP_CFLAGS@%$MDEP_CFLAGS%g
+s%@MDEP_FFLAGS@%$MDEP_FFLAGS%g
+s%@MDEP_LFLAGS@%$MDEP_LFLAGS%g
+s%@P4_CONFIGURED_TIME@%$P4_CONFIGURED_TIME%g
+s%@DEFINE_ALOG@%$DEFINE_ALOG%g
+s%@DEFINE_SYSV_IPC@%$DEFINE_SYSV_IPC%g
+s%@DEFINE_VENDOR_IPC@%$DEFINE_VENDOR_IPC%g
+s%@DEFINE_P4_DPRINTFL@%$DEFINE_P4_DPRINTFL%g
+s%@LISTENER_PATHNAME@%$LISTENER_PATHNAME%g
+s%@LIBS@%$LIBS%g
+s%@srcdir@%$srcdir%g
+s%@DEFS@%$DEFS%
+" >> $file
+fi; done
+
+
+exit 0
+EOF
+chmod +x config.status
+${CONFIG_SHELL-/bin/sh} ./config.status
+
+
+

@@ -1,0 +1,4 @@
+#define 2x2_width 4
+#define 2x2_height 4
+static char 2x2_bits[] = {
+   0x0f, 0x0f, 0x03, 0x03};

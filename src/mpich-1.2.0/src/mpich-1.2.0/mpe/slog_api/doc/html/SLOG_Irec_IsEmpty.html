@@ -1,0 +1,43 @@
+<HTML>
+<TITLE>SLOG_Irec_IsEmpty</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_IsEmpty"><H1>SLOG_Irec_IsEmpty</H1></A>
+Check if the specified Interval record is empty 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_IsEmpty( const SLOG_intvlrec_t *irec )
+</CODE></PRE>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>irec </B> - constant SLOG_intvlrec_t pointer to be checked
+</DL>
+<P>
+<H2>Modified Output variables </H2>
+<DL><DT><B>returned value </B> - integer return status
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+This routine is mainly used for debugging purposes.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_irec_common.c<P>
+</BODY></HTML>

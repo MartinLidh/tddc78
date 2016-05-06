@@ -1,0 +1,44 @@
+
+SHELL = /bin/sh
+
+JC         = @JC@
+JAR        = @JAR@
+JAVA_LIBS  = @JAVA_LIBS@
+SWING_LIBS = @SWING_LIBS@
+
+GUI_HOME   = ../..
+GUI_LIBDIR = $(GUI_HOME)/lib
+
+PVIEW_LIB = preview.jar
+
+SRC = Graph.java Graph_Pane.java Graph_Title.java Graph_data.java \
+      TimeInterface.java ColorChooser.java PreviewPanel.java \
+      ScrollBarBorder.java XAxisEndPanel.java YAxisPanel.java
+
+OBJ = $(SRC:.java=.class)
+
+.SUFFIXES:	.java .class
+
+STATS_LIB  = $(GUI_HOME)/lib/statsviewer.jar
+
+CLASSPATH = $(JAVA_LIBS):$(SWING_LIBS):$(STATS_LIB):.
+
+JFLAGS = -classpath $(CLASSPATH) @JFLAGS@
+
+ALL:	CLASSFILES $(PVIEW_LIB)
+
+CLASSFILES: $(SRC)
+	$(JC) $(JFLAGS) $?
+
+$(PVIEW_LIB): $(OBJ)
+	$(JAR) cvf $@ *.class
+	mv -f $@ $(GUI_LIBDIR)
+
+clean:
+	rm -f $(OBJ) $(PVIEW_LIB) *.class core
+
+rmlib:
+	rm -f $(GUI_LIBDIR)/$(PVIEW_LIB)
+
+distclean: clean rmlib
+	rm -f *.java.*

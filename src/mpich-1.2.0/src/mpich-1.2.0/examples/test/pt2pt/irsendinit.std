@@ -1,0 +1,124 @@
+**** Testing MPI_Rsend_init ****
+Testing type Basic type MPI_CHAR
+Testing type Basic type MPI_SHORT
+Testing type Basic type MPI_INT
+Testing type Basic type MPI_LONG
+Testing type Basic type MPI_UNSIGNED_CHAR
+Testing type Basic type MPI_UNSIGNED_SHORT
+Testing type Basic type MPI_UNSIGNED
+Testing type Basic type MPI_UNSIGNED_LONG
+Testing type Basic type MPI_FLOAT
+Testing type Basic type MPI_DOUBLE
+Testing type Basic type MPI_BYTE
+Testing type Contig type MPI_CHAR
+Testing type Contig type MPI_SHORT
+Testing type Contig type MPI_INT
+Testing type Contig type MPI_LONG
+Testing type Contig type MPI_UNSIGNED_CHAR
+Testing type Contig type MPI_UNSIGNED_SHORT
+Testing type Contig type MPI_UNSIGNED
+Testing type Contig type MPI_UNSIGNED_LONG
+Testing type Contig type MPI_FLOAT
+Testing type Contig type MPI_DOUBLE
+Testing type Contig type MPI_BYTE
+Testing type Vector type MPI_CHAR
+Testing type Vector type MPI_SHORT
+Testing type Vector type MPI_INT
+Testing type Vector type MPI_LONG
+Testing type Vector type MPI_UNSIGNED_CHAR
+Testing type Vector type MPI_UNSIGNED_SHORT
+Testing type Vector type MPI_UNSIGNED
+Testing type Vector type MPI_UNSIGNED_LONG
+Testing type Vector type MPI_FLOAT
+Testing type Vector type MPI_DOUBLE
+Testing type Vector type MPI_BYTE
+Testing type Index type MPI_CHAR
+Testing type Index type MPI_SHORT
+Testing type Index type MPI_INT
+Testing type Index type MPI_LONG
+Testing type Index type MPI_UNSIGNED_CHAR
+Testing type Index type MPI_UNSIGNED_SHORT
+Testing type Index type MPI_UNSIGNED
+Testing type Index type MPI_UNSIGNED_LONG
+Testing type Index type MPI_FLOAT
+Testing type Index type MPI_DOUBLE
+Testing type Index type MPI_BYTE
+Testing type Struct type char-double
+Testing type Struct type double-char
+Testing type Struct type unsigned-double
+Testing type Struct type float-long
+Testing type Struct type unsigned char-char
+Testing type Struct type unsigned short-double
+Testing type Struct (MPI_UB) type MPI_CHAR
+Testing type Struct (MPI_UB) type MPI_SHORT
+Testing type Struct (MPI_UB) type MPI_INT
+Testing type Struct (MPI_UB) type MPI_LONG
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_CHAR
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_SHORT
+Testing type Struct (MPI_UB) type MPI_UNSIGNED
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_LONG
+Testing type Struct (MPI_UB) type MPI_FLOAT
+Testing type Struct (MPI_UB) type MPI_DOUBLE
+Testing type Struct (MPI_UB) type MPI_BYTE
+Testing type Basic type MPI_CHAR
+Testing type Basic type MPI_SHORT
+Testing type Basic type MPI_INT
+Testing type Basic type MPI_LONG
+Testing type Basic type MPI_UNSIGNED_CHAR
+Testing type Basic type MPI_UNSIGNED_SHORT
+Testing type Basic type MPI_UNSIGNED
+Testing type Basic type MPI_UNSIGNED_LONG
+Testing type Basic type MPI_FLOAT
+Testing type Basic type MPI_DOUBLE
+Testing type Basic type MPI_BYTE
+Testing type Contig type MPI_CHAR
+Testing type Contig type MPI_SHORT
+Testing type Contig type MPI_INT
+Testing type Contig type MPI_LONG
+Testing type Contig type MPI_UNSIGNED_CHAR
+Testing type Contig type MPI_UNSIGNED_SHORT
+Testing type Contig type MPI_UNSIGNED
+Testing type Contig type MPI_UNSIGNED_LONG
+Testing type Contig type MPI_FLOAT
+Testing type Contig type MPI_DOUBLE
+Testing type Contig type MPI_BYTE
+Testing type Vector type MPI_CHAR
+Testing type Vector type MPI_SHORT
+Testing type Vector type MPI_INT
+Testing type Vector type MPI_LONG
+Testing type Vector type MPI_UNSIGNED_CHAR
+Testing type Vector type MPI_UNSIGNED_SHORT
+Testing type Vector type MPI_UNSIGNED
+Testing type Vector type MPI_UNSIGNED_LONG
+Testing type Vector type MPI_FLOAT
+Testing type Vector type MPI_DOUBLE
+Testing type Vector type MPI_BYTE
+Testing type Index type MPI_CHAR
+Testing type Index type MPI_SHORT
+Testing type Index type MPI_INT
+Testing type Index type MPI_LONG
+Testing type Index type MPI_UNSIGNED_CHAR
+Testing type Index type MPI_UNSIGNED_SHORT
+Testing type Index type MPI_UNSIGNED
+Testing type Index type MPI_UNSIGNED_LONG
+Testing type Index type MPI_FLOAT
+Testing type Index type MPI_DOUBLE
+Testing type Index type MPI_BYTE
+Testing type Struct type char-double
+Testing type Struct type double-char
+Testing type Struct type unsigned-double
+Testing type Struct type float-long
+Testing type Struct type unsigned char-char
+Testing type Struct type unsigned short-double
+Testing type Struct (MPI_UB) type MPI_CHAR
+Testing type Struct (MPI_UB) type MPI_SHORT
+Testing type Struct (MPI_UB) type MPI_INT
+Testing type Struct (MPI_UB) type MPI_LONG
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_CHAR
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_SHORT
+Testing type Struct (MPI_UB) type MPI_UNSIGNED
+Testing type Struct (MPI_UB) type MPI_UNSIGNED_LONG
+Testing type Struct (MPI_UB) type MPI_FLOAT
+Testing type Struct (MPI_UB) type MPI_DOUBLE
+Testing type Struct (MPI_UB) type MPI_BYTE
+**** Testing MPI_Rsend_init ****

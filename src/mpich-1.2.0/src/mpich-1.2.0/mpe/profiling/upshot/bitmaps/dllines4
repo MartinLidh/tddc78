@@ -1,0 +1,4 @@
+#define dllines4_width 4
+#define dllines4_height 4
+static char dllines4_bits[] = {
+   0x01, 0x08, 0x04, 0x02};

@@ -1,0 +1,73 @@
+.TH SLOG_Irec_FromInputStream 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_FromInputStream \-  Return a pointer to the next interval  record in the given SLOG_STREAM. The interval record returned can be real or pseudo record. 
+.SH SYNOPSIS
+.nf
+const SLOG_intvlrec_t *
+SLOG_Irec_FromInputStream( SLOG_STREAM *slog, int *irc )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to the SLOG_STREAM where interval record is retrieved.
+.PD 1
+.PD 0
+.TP
+.B irc  
+- pointer to the returned integer status code.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- pointer to the next interval record of type 
+SLOG_intvlrec_t in the frame buffer.  The "const" 
+qualifier indicates that user should NOT modify the
+content.  The pointer is NULL when the routine 
+encounters error or end of file.
+.PD 1
+
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+
+The routine returns a pointer to the interval record of the various
+Bbuf in current frame buffer in the SLOG_STREAM given.  The
+routine does NOT create new node/irec.  It just simply returns a pointer
+to the existing one in the bi-directional linked list( an internal data
+structure ).  If one wants to modify the content of the interval record
+without modification of the specified bi-directional linked node, one
+should use SLOG_Irec_Copy() to copy the returned record content to a new
+record.  The routine also ADVANCES the internal pointer of the specified
+linked list buffer.  Also, the routine does NOT gurantee the memory
+associated with previously _returned_ interval record be retained in the
+next call of the routine.  So if one wants to keep interval record for
+future reference, one need to use SLOG_Irec_Copy() to copy
+the content of the interval record to another memory location __BEFORE__
+calling SLOG_Irec_FromInputStream() again.  The example program,
+slog_readtest.c shows the typical way of using this subroutine.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_irec_read.c

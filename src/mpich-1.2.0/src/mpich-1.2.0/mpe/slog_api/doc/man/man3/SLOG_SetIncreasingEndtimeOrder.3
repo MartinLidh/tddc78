@@ -1,0 +1,25 @@
+.TH SLOG_SetIncreasingEndtimeOrder 3 "6/22/1999" " " "SLOG_API"
+.SH NAME
+SLOG_SetIncreasingEndtimeOrder \-  Set the flag for the interval records will be arranged in increasing endtime order.  That means there will be a second pass of the logfile and the endtime of the interval will be used to determine endtime of the frame. 
+.SH SYNOPSIS
+.nf
+int SLOG_SetIncreasingEndtimeOrder( SLOG_STREAM  *slog )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to SLOG_STREAM where interval records will be stored.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH INCLUDE FILE NEEDED 
+slog_header.h
+.SH LOCATION
+../src/slog_header.c

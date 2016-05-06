@@ -1,0 +1,47 @@
+#! /bin/sh
+CONFIG_FILES=""
+for arg 
+do
+    if [ -s $arg.in ] ; then 
+        # If relative local path, make it absolute
+        hasslash=`echo $arg | sed -e 's%/.*/%%g'`
+        if [ "$hasslash" = "$arg" ] ; then
+	    arg="`pwd`/$arg"
+        fi
+        CONFIG_FILES="$CONFIG_FILES $arg" 
+    elif [ -s #top_srcdir#/$arg.in ] ; then
+        CONFIG_FILES="$CONFIG_FILES #top_srcdir#/$arg" 
+    else
+        echo "Cannot find file $arg"
+	exit 1
+    fi
+done
+export CONFIG_FILES
+PREFIX="#PREFIX#"
+# First, try the device/architecture specific config.status
+# Our first try is for the mpireconfig.dat in the same directory as this script
+# came from if it is specifically set.
+mydir=`echo $0 | sed 's%/[^/][^/]*$%%'`
+if [ -x $mydir/mpereconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    $mydir/mpereconfig.dat 
+elif [ -x #bindir#/mpereconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    #bindir#/mpereconfig.dat 
+elif [ -x #binbuild_dir#/mpereconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    #binbuild_dir#/mpereconfig.dat 
+elif [ -x #MPE_HOME#/config.status ] ; then
+    # Export the location of mpichconf.h.in
+    #CONFIG_HEADERS="#MPE_HOME#/mpichconf.h"
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    #MPE_HOME#/config.status
+else
+    echo "A config.status file is needed to perform a reconfig of a file"
+    exit 1
+fi
+

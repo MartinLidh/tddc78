@@ -1,0 +1,56 @@
+
+SHELL = /bin/sh
+
+JC         = @JC@
+JAR        = @JAR@
+JAVA_LIBS  = @JAVA_LIBS@
+
+GUI_HOME   = ../..
+GUI_LIBDIR = $(GUI_HOME)/lib
+
+SLOG_LIB = slog.jar
+
+SRC = SLOG_Buffer.java SLOG_Const.java \
+      SLOG_Dir.java SLOG_DirHdr.java SLOG_DirEntry.java \
+      SLOG_Frame.java SLOG_FrameHdr.java SLOG_FrameSector.java \
+      SLOG_Header.java SLOG_InputStream.java \
+      SLOG_Irec.java SLOG_Irec_assocs.java SLOG_Irec_min.java \
+      SLOG_Irec_vtrargs.java SLOG_Irec_args.java \
+      SLOG_StatSet.java SLOG_Statistics.java \
+      SLOG_ThreadInfo.java SLOG_ThreadInfos.java \
+      SLOG_ProfileEntry.java SLOG_Profile.java \
+      SLOG_RecDef.java SLOG_RecDefs.java \
+      SLOG_Preview.java \
+      SLOG_String.java SLOG_bebits.java SLOG_tasklabel.java SLOG_global.java \
+      SLOG_Thread.java iarray.java NegativeIntegerException.java
+
+OBJ = $(SRC:.java=.class)
+
+.SUFFIXES:	.java .class
+
+CLASSPATH = $(JAVA_LIBS):.
+
+JFLAGS = -classpath $(CLASSPATH) @JFLAGS@
+
+ALL:	CLASSFILES $(SLOG_LIB) slog_print
+
+CLASSFILES: $(SRC)
+	$(JC) $(JFLAGS) $?
+
+$(SLOG_LIB): $(OBJ)
+	$(JAR) cvf $@ $?
+	mv -f $@ $(GUI_LIBDIR)
+
+slog_print: slog_print.java
+	$(JC) $(JFLAGS) $?
+	mv -f $@.class $(GUI_LIBDIR)
+
+clean:
+	rm -f $(OBJ) $(SLOG_LIB) slog_print.class core
+
+rmlib:
+	rm -f $(GUI_LIBDIR)/$(SLOG_LIB)
+	rm -f $(GUI_LIBDIR)/slog_print.class
+
+distclean: clean rmlib
+	rm -rf old

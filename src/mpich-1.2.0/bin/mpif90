@@ -1,0 +1,304 @@
+#! /bin/sh
+#
+DoLink=1
+DoCompile=0
+show_compile=0
+show_link=0
+MPILOG=
+Show=eval
+allargs=
+compileargs=
+linkargs=
+linkobjs=
+gettinglinkarg=0
+HasDashC=0
+UsesPmpi=0
+proflib=-lpmpich
+proflibfullname=/home/TDDB78/mpich-1.2.0//lib/libpmpich.a
+F90BASE="f90"
+F90="${MPICH_F90-$F90BASE}"
+F90LINKERBASE="f90"
+F90LINKER="${MPICH_F90LINKER-$F90LINKERBASE}"
+UseSharedLib=${MPICH_USE_SHLIB-no}
+choice=0
+for arg in "$@" ; do
+#    echo procssing arg $arg
+    # Special processing for -o name
+    if [ $gettinglinkarg = 1 ] ; then
+	linkargs="$linkargs $arg"
+	gettinglinkarg=0
+	outputfilename="$arg"
+	continue
+    fi
+    case "$arg" in 
+	-c)
+	# If -c is NOT specified, then we need to perform a link step.
+	allargs="$allargs $arg"
+	compileargs="$compileargs $arg"
+        # If -o was set, then we need to move the output file option
+        # to the compile line (note that this is non-standard, and should
+        # not be used in portable codes)
+        if [ $DoLink = 1 -a -n "$outputfilename" ] ; then
+	    compileargs="$compileargs -o $outputfilename"
+        fi
+	DoLink=0
+	HasDashC=1
+	;;
+        -o)
+	# Need to link
+	allargs="$allargs $arg"
+        if [ $HasDashC = 1 ] ; then
+            # Some BUT NOT ALL compilers support -o with -c.  Allow
+            # the user to make use of the feature, IF IT EXISTS.
+            compileargs="$compileargs $arg"	
+        else
+	    linkargs="$linkargs $arg"
+	    compileargs="$compileargs -c"
+	    # Still need to add the target of the -o
+	    gettinglinkarg=1
+	    DoLink=1
+        fi
+	;;
+	-O*)
+	allargs="$allargs $arg"
+	compileargs="$compileargs $arg"
+	linkargs="$linkargs $arg"
+	if [ $choice = 0 ] ; then choice=2 ; fi
+	;;
+	-choicemod) choice=1 ;;
+	-nochoicemod) choice=2 ;;
+	-mpilog)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+		MPILOG="-lfmpich -llmpi"
+	else
+	    echo "-mpilog requires the MPE libraries"
+	fi
+	;;
+	-mpitrace)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+   	    MPILOG="-lfmpich -ltmpi"
+	else
+	    echo "-mpitrace requires the MPE libraries"
+	fi
+	;;
+	-mpianim)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+	    MPILOG="-lfmpich -lampi -lmpe"
+	else
+	    echo "-mpianim requires the MPE libraries"
+	fi
+	;;
+	-echo)
+	set -x
+	;;
+	-show)
+	Show=echo
+	;;
+	-f90=*)
+	F90=`echo A$arg | sed -e 's/A-f90=//g'`
+	F90LINKER="$F90"
+	;;
+	-compile_info)
+	show_compile=1
+	DoLink=0
+	Show=echo
+	;;
+	-link_info)
+	show_link=1
+	Show=echo
+	;;
+	-shlib)
+        UseSharedLib=yes
+	;;
+	-noshlib)
+        UseSharedLib=no
+	;;
+	-v)
+	verbose=1
+	compileargs="$compileargs -v"
+	linkargs="$linkargs -v"
+	;;
+	-l*)
+	# This SHOULD be the -l<lib> argument.  Only for the linker
+	linkargs="$linkargs $arg"
+	allargs="$allargs $arg"
+	;;
+	-help)
+cat <<EOF
+This is a program to compile or link MPI programs
+In addition, the following special options are supported
+    -mpilog    - Build version that generate MPE log files
+    -mpitrace  - Build version that generates traces
+    -mpianim   - Build version that generates real-time animation
+    -choicemod - Use a version of the MPI module that supports "choice"
+                 types.  This is also the default unless -O is specified
+    -nochoicemod - Use a basic version of the MPI module.
+    -f90=pgm   - Change the program to use to compile and link
+                 MPI programs.  WARNING! The program that you
+                 choose MUST be compatible with the MPICH 
+                 libraries.  If you have trouble, you should
+                 reconfigure and rebuild MPICH, selecting
+                 this compiler.
+    -show      - Show the commands that would be used without
+                 runnning them
+    -compile_info - Show how to compile a program
+    -link_info - Show how to link a program
+    -help      - Give this help
+    -echo      - Show exactly what this program is doing.
+                 This option should normally not be used.
+This should be used just like the usual Fortran compiler
+For example,
+   $0 -c foo.f 
+and
+   $0 -o foo foo.o
+Combining compilation and linking in a single command
+   $0 -o foo foo.f
+may not work on some systems, and is not recommended.
+EOF
+	exit 1
+	;;
+	# Unrecognized args.  Because we do an eval, we need to
+	# carefully quote any args that contain quotes.
+        *\"*) 
+	qarg="'"$arg"'"
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *\'*) 
+	qarg='\"'"$arg"'\"'
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *) allargs="$allargs $arg"
+	if [ -s "$arg" ] ; then
+	    ext=`expr "$arg" : '.*\(\..*\)'`
+	    if [ "$ext" = ".f" -o "$ext" = ".F" -o "$ext" = ".f90" -o \
+		 "$ext" = ".for" -o "$ext" = ".FOR" ] ; then
+	        DoCompile=1
+	        compileargs="$compileargs $arg"
+	        fname=`basename $arg $ext`
+	        linkobjs="$linkobjs $fname.o"
+	    elif [ "$ext" = ".o" ] ; then
+		if [ $HasDashC = 1 ] ; then
+	            compileargs="$compileargs $arg"
+                else
+	            DoLink=1
+	            linkobjs="$linkobjs $arg"
+                fi
+	    else
+	        compileargs="$compileargs $arg"
+	        linkargs="$linkargs $arg"
+	    fi
+	else
+            compileargs="$compileargs $arg"
+	    linkargs="$linkargs $arg"
+	fi
+	;;
+    esac
+done
+#
+# Set the module directory
+if [ -n "-M" ] ; then
+    if [ $choice -lt 2 ] ; then
+        moduledir="-M/home/TDDB78/mpich-1.2.0//include/f90choice"
+        modulelib=mpichf90
+    else
+        moduledir="-M/home/TDDB78/mpich-1.2.0//include/f90base"
+        modulelib=mpichf90base
+    fi
+    compileargs="$compileargs $moduledir"
+    linkargs="$linkargs -l$modulelib"
+fi
+
+#
+# Take care of mpif.h; try to add the link if necessary
+# We'll need to edit mpif.h to remove comments if we use mpif.h instead
+# of an MPI module
+#
+finc="-I/home/TDDB78/mpich-1.2.0//include"
+added_link=0
+if [ -z "$finc" ] ; then
+    if [ ! -r mpif.h ] ; then
+        #echo "Adding a symbolic link for mpif.h"
+	trap "$Show /bin/rm mpif.h" 0
+	$Show ln -s /home/TDDB78/mpich-1.2.0//include/mpif.h mpif.h
+	added_link=1
+    fi
+fi
+status=0
+if [ $DoCompile = 1 -o $show_compile = 1 ] ; then 
+    if [ $HasDashC != 1 ] ; then
+        compileargs="-c $compileargs"
+    fi
+    $Show $F90  $finc  $compileargs
+    status=$?
+    if [ $status != 0 ] ; then 
+	exit $status
+    fi
+fi
+if [ $DoLink = 1 -o $show_link = 1 ] ; then
+    # If the profiling library doesn't exist, or MPICH_NO_PROF environment
+    # variable is set, skip the profiling library.
+    if [ -n "$MPICH_NO_PROF" -o ! -s "$proflibfullname" ] ; then
+        proflib=""
+    fi
+    # IRIX complains if we include a library twice.  In the case of a
+    # library using weak symbols, we don't need the proflib.  Just
+    # in case we do, there is an enviroment variable that
+    # can be used to override this test.
+    if [ "1" = "1" -a "$MPICH_INCLUDE_PROFLIB" != yes ] ; then
+        proflib=""
+    fi
+    # See the comment in mpicc about UseSharedLib
+    # Also, don't use if the shared libraries don't exist yet
+    # (because -lmpichfarg.a won't exist yet)
+    if [ "ignore" != "ignore" -a $UseSharedLib = "yes" -a \
+	-s /home/TDDB78/mpich-1.2.0//lib/lib@MPILIBNAMEfarg.a ] ; then
+	# We also add a library containing MPI_Init and the routines
+        # that it uses to call getarg/iarg.  
+	flibpath="-L/home/TDDB78/mpich-1.2.0//lib/shared" 
+        if [ -n "" ] ; then
+	    flibpath="/home/TDDB78/mpich-1.2.0//lib/shared $flibpath"
+	fi
+	if [ -n "" ] ; then
+	    flibpath="-L $flibpath"
+ 	    if [ -n "" ] ; then
+	        flibpath=" $flibpath"
+	    fi
+	fi
+	farglib="-lmpichfarg $farglib" 
+    fi
+    if [ -n "$MPILOG" ] ; then
+        $Show $F90LINKER   $flibpath -L/home/TDDB78/mpich-1.2.0//lib $linkobjs $MPILOG $linkargs $proflib -lmpich $proflib $farglib  -lsocket -lnsl -lnsl -laio  
+    else
+        $Show $F90LINKER   $flibpath -L/home/TDDB78/mpich-1.2.0//lib $linkobjs $linkargs $proflib -lmpich $proflib $farglib  -lsocket -lnsl -lnsl -laio  
+    fi
+    status=$?
+fi
+#
+# If we added the link, remove it.
+if [ $added_link = 1 ] ; then
+    $Show rm mpif.h
+    trap 0
+fi
+exit $status

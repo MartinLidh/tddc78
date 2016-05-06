@@ -1,0 +1,31 @@
+.TH MPE_Draw_points 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_Draw_points \-  Draws points on an X Windows display  
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+int MPE_Draw_points( handle, points, npoints )
+MPE_XGraph handle;
+MPE_Point *points;
+int npoints;
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B handle 
+- MPE graphics handle 
+.PD 1
+.PD 0
+.TP
+.B points 
+- list of points to draw
+.PD 1
+.PD 0
+.TP
+.B npoints 
+- number of points to draw
+.PD 1
+
+.SH LOCATION
+mpe_graphics.c

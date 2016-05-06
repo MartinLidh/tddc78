@@ -1,0 +1,55 @@
+<HTML>
+<TITLE>SLOG_Irec_ToOutputStream</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_ToOutputStream"><H1>SLOG_Irec_ToOutputStream</H1></A>
+store the given interval record in the frame buffer and write it out to the disk when the frame buffer is full. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_ToOutputStream(       SLOG_STREAM      *slog,
+                              const SLOG_intvlrec_t  *irec )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to SLOG_STREAM where the interval record will be stored.
+</DL>
+<P>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>irec </B> - pointer to constant interval record with the fields set by 
+the user before this routine is called.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+The routine provides all the core management of the implementation of
+SLOG_STREAM.  Be sure to call SLOG_Irec_SetMinRec() at least once for
+the interval record to be appended to the SLOG_STREAM.  Also this routine
+can be called in either increasing starttime and endtime order depending
+if SLOG_IsIncreasingStarttimeOrder() or SLOG_IsIncreasingEndtimeOrder()
+is called.   But NOT both.  And there is time order checking code
+if user turns on the corresponding compiler flag.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_irec_write.c<P>
+</BODY></HTML>

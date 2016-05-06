@@ -1,0 +1,104 @@
+.TH SLOG_Irec_ReserveSpace 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_ReserveSpace \-  Reserve space in the current frame for the current interval record identified by record type ID and interval record type ID.  
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_ReserveSpace(       SLOG_STREAM      *slog,
+                            const SLOG_rectype_t    rectype,
+                            const SLOG_intvltype_t  intvltype,
+                            const SLOG_bebit_t      bebit_0,
+                            const SLOG_bebit_t      bebit_1,
+                            const SLOG_starttime_t  starttime )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to the SLOG_STREAM where the interval record locates.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B rectype 
+- interval record's record field which determines if the
+record is a FIXED, VARIABLE or Message record, this in turns
+will determine the number of association and the number of 
+sets of MPI call arguments or the extra space needed for Message
+record.
+.PD 1
+.PD 0
+.TP
+.B intvltype 
+- interval record's interval type field.
+.PD 1
+.PD 0
+.TP
+.B bebit_0 
+- interval record's first bebit.
+.PD 1
+.PD 0
+.TP
+.B bebit_1 
+- interval record's second bebit.
+.PD 1
+.PD 0
+.TP
+.B starttime 
+- interval record's start time, used to check if the interval
+follows the time order rule set by 
+SLOG_SetIncreasingEndtimeOrder() or
+SLOG_SetIncreasingStarttimeOrder().  The checking is only
+done when user turns on the corresponding compiler
+flag.  If not, this input variable will not be used.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+***  IMPORTANT ***, this routine is totally optional.
+User doesn't have to use this routine to use the API.
+And this routine can only be called when the completed
+interval records are arranged in increasing endtime order.
+The subroutine allocates space in the current frame for the
+interval record.  Typically, the routine is called when user
+knows only __start_event__ of an interval record without the
+knowledge of the __end_event__.  So the routine must be
+called before calling SLOG_Irec_ToOutputStream().  For completed
+interval records which are arranged in increasing endtime stamp
+order, each interval record may be called with
+SLOG_Irec_ReserveSpace() first when the time of the corresponding
+__start_event__ is known and called with SLOG_Irec_ToOutputStream()
+when the time of the corresponding __end_event__ is known.  Also
+the routine will check if the starttime supplied is called in
+increasing time order which is a sufficient condition to guarantee
+that space reservation for every pseudo record in each frame.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_irec_write.c

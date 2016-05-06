@@ -1,0 +1,11 @@
+#! /bin/sh
+if [ -f short-data.gpl -a ! -f short.eps ] ; then
+    echo "Building plotfiles in this directory"
+    ./portperf -plotonly -testdir=./ -destdir=./
+fi
+latex doc1 < /dev/null
+bibtex doc1
+latex doc1 < /dev/null
+bibtex doc1
+latex doc1 < /dev/null
+dvips doc1

@@ -1,0 +1,31 @@
+#! /bin/sh
+exitstatus=1
+if [ "$MPIR_HOME" = "" ] ; then 
+    MPIR_HOME=/home/TDDB78/src/mpich-1.2.0
+fi
+if [ "$MPIR_HOME" = "#""MPIR_HOME""#" ] ; then
+    MPIR_HOME=`pwd`/..
+fi
+if [ "/home/TDDB78/src/mpich-1.2.0/bin" = "#""MPIRUN_BIN""#" ] ; then 
+    MPIRUN_HOME=$MPIR_HOME/bin
+else
+    MPIRUN_HOME=/home/TDDB78/src/mpich-1.2.0/bin
+fi
+if [ "$argsset" = "" ] ; then
+   . $MPIRUN_HOME/mpirun.args
+   argsset=1
+fi
+
+if [ -z "$p4pgfile" ] ; then
+    np=`expr $np - 1`
+    p4pgfile="$PWD_TRIAL/PI$$"
+    $Show echo "local $np $progname" >  "$p4pgfile"
+    np=`expr $np + 1`
+fi
+$Show $progname $cmdLineArgs -p4pg "$p4pgfile"
+exitstatus=$?
+if [ $leavePGFile = 1 ] ; then
+  echo "P4 procgroup file is $p4pgfile"
+else
+  $Show /bin/rm "$p4pgfile"
+fi

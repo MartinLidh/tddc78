@@ -1,0 +1,163 @@
+.TH Jumpshot 1 "1/21/1999" " " "Jumpshot"
+.SH NAME
+Jumpshot \-  Graphical Visualization Tool for Parallel Programs   
+.SH DESCRIPTION
+Jumpshot is a graphical tool for understanding the performance of parallel
+programs.  It has evolved from 
+.I upshot
+and is written in java.  Jumpshot
+interprets binary CLOG tracefiles and displays them onto a canvas object.
+
+.SH CONFIGURING JUMPSHOT
+Jumpshot can be configured in 3 ways
+
+.PD 0
+.TP
+.B As part of the mpich configure
+- The configure in the 
+.I mpich
+directory can invoke the configure in the 
+.I mpe
+subdirectory which can invoke the configure in the 
+.I jumpshot
+subdirectory.  This is the default way in which MPICH is configured
+but can be overridden by configuring MPICH with the 
+.I -nompe
+option.
+.PD 1
+
+.PD 0
+.TP
+.B As part of the mpe configure
+- The configure in the 
+.I mpe
+subdirectory can invoke the configure in the
+.I jumpshot
+subdirectory.  This is the default if the 
+.I mpe
+library was
+configured with MPICH.  Otherwise, the configure option
+.PD 1
+.br
+.I --with-jumpshot_home=JUMP_HOME
+must be given to the 
+.I mpe
+configure.
+
+.PD 0
+.TP
+.B By itself
+- Jumpshot can be configured by typing 
+.I ./configure <configure options>
+in the 
+.I jumpshot
+directory.
+.PD 1
+
+.SH MANDATORY CONFIGURE OPTIONS
+
+.PD 0
+.TP
+.B --with-bindir=DIR 
+- Specifies the directory where 
+.I jumpshot's
+executable will be 
+located.  Without this flag, 
+.I jumpshot
+can not be configured.  If
+configuring with MPICH or just the  
+.I mpe
+library, this will be
+automatically determined by default ( but can be overridden ).
+.PD 1
+
+.PD 0
+.TP
+.B --with-jumpshot_home=JUMP_HOME
+- Specifies the path of the top-level directory where 
+.I jumpshot
+is
+installed.  Without this directory, 
+.I jumpshot
+can not be configured.
+When configuring with MPICH, this will be automatically determined
+by default ( but can be overridden ).
+.PD 1
+
+.SH OPTIONAL CONFIGURE OPTIONS
+
+.PD 0
+.TP
+.B --enable-echo
+- This switch will turn on strong echoing.  The default is enable=no.
+.PD 1
+
+.PD 0
+.TP
+.B --with-arch_bindir=DIR 
+- Specifies an optional directory where 
+.I jumpshot's
+executable will
+be located.  For example, when configuring with MPICH, this will be
+the 
+.I build/ARCH/DEVICE/bin
+directory.
+.PD 1
+
+.PD 0
+.TP
+.B --with-java=DIR
+- Specifes the path of JAVA's top-level directory.  If omitted,
+configure will attempt to locate java.
+.PD 1
+
+.PD 0
+.TP
+.B --with-java_version=VERSION
+- Specifies the version of JAVA.  If omitted, configure will attempt
+to locate your java's version.
+.PD 1
+
+.SH ADDITIONAL INFORMATION
+
+To view a list of configure options, type 
+.I ./configure --help
+in the
+top-level 
+.I jumpshot
+directory.
+
+In the Installation Manual, there is a section on Jumpshot which gives
+instructions and examples for each type of installation.
+
+The INSTALL in the top-level 
+.I jumpshot
+directory.
+
+In the Users Guide, there is a section describing how to use Jumpshot.
+
+In the 
+.I jumpshot/lib/data
+directory, 
+.I jumpshot.help
+describes how to use
+Jumpshot.  Clicking the 
+.I help
+button on the Jumpshot display will also
+bring up this same information.
+
+There is a URL for Jumpshot at
+.br
+.I http://www-c.mcs.anl.gov/~zaki/JS/home.html
+
+In the 
+.I jumpshot/src
+directory, 
+.I jumpshot.doc
+is the originial documentation
+written by the author of Jumpshot, 
+.I Omer Zaki
+.
+
+.SH LOCATION
+/home/MPI/mansrc/jumpshot

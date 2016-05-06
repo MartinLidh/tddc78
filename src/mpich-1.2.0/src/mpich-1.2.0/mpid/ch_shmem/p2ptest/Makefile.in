@@ -1,0 +1,71 @@
+
+DEFS = @DEFS@
+
+##### User configurable options #####
+
+ARCH        = @ARCH@
+COMM        = @COMM@
+MPIR_HOME   = @MPIR_HOME@
+CC          = @CC@
+F77         = @F77@
+AR          = @AR@
+RANLIB      = @RANLIB@
+INCLUDE_DIR = @INCLUDE_PATH@ -I../../mpid/@DEVICE@ -I../../include
+DEVICE      = @DEVICE@
+OPTFLAGS    = @OPTFLAGS@
+LIB_PATH    = @LIB_PATH@
+FLIB_PATH   = @FLIB_PATH@
+LIB_LIST    = @LIB_LIST@
+
+### End User configurable options ###
+
+SHELL = /bin/sh
+
+#LIBS	  = $(LIB_PATH) $(LIB_LIST)
+#FLIBS	  = $(FLIB_PATH) $(LIB_LIST)
+
+CFLAGS = -g -DMPI_$(ARCH) @CFLAGS@ @DEVCFLAGS@ @DEV_DEFS@
+
+RM = /bin/rm
+
+P2POBJ = ../p2p.o 
+#p2p_mon.o
+
+all:	tst
+
+tst:	tst.o $(P2POBJ)
+	cc -o tst tst.o $(P2POBJ) $(LIBS)
+
+addtwo.ask:	addtwo.ask.o $(P2POBJ)
+	cc -o addtwo.ask addtwo.ask.o $(P2POBJ) $(LIBS)
+
+grid.shmem:	grid.shmem.o $(P2POBJ)
+	cc -o grid.shmem grid.shmem.o $(P2POBJ) $(LIBS)
+
+barrtest:	barrtest.o $(P2POBJ)
+	cc -o barrtest barrtest.o $(P2POBJ) $(LIBS)
+
+adquad:	adquad.o $(P2POBJ)
+	cc -o adquad adquad.o $(P2POBJ) $(LIBS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $*.c 
+
+clean:
+	$(RM) -f  *.o addtwo grid.shmem
+
+
+#  following for p2p developers (not needed by users)
+#
+
+configure:
+	autoheader
+	autoconf
+
+cleanconfigure:
+	$(RM) -f p3_configure.h.in configure 
+	$(RM) -f config.cache config.status config.log
+
+manpages:
+	/home/gropp/bin/sun4/doctext -mpath man/man3 -ext 3 \
+	-heading "p3 Sockets" p3_interface.c 

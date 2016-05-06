@@ -1,0 +1,47 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:540: checking for gcc
+configure:617: checking whether the C compiler (cc  ) works
+configure:631: cc -o conftest    conftest.c  1>&2
+configure:651: checking whether the C compiler (cc  ) is a cross-compiler
+configure:656: checking whether we are using GNU C
+configure:665: cc -E conftest.c
+configure:714: checking for mmap
+configure:737: cc -o conftest -g   conftest.c  1>&2
+configure:761: checking that shared, anonymous mmap works with -1 filedes
+configure:843: checking that semget works
+configure:950: checking that signals work correctly
+configure:1104: checking size of int
+configure:1123: cc -o conftest -g   conftest.c  1>&2
+configure:1143: checking size of long
+configure:1162: cc -o conftest -g   conftest.c  1>&2
+configure:1185: checking for gettimeofday
+configure:1208: cc -o conftest -g   conftest.c  1>&2
+configure:1185: checking for BSDgettimeofday
+configure:1208: cc -o conftest -g   conftest.c  1>&2
+Undefined			first referenced
+ symbol  			    in file
+BSDgettimeofday                     conftest.o
+ld: fatal: Symbol referencing errors. No output written to conftest
+configure: failed program was:
+#line 1187 "configure"
+#include "confdefs.h"
+#include <ctype.h> /* Arbitrary system header to define __stub macros. */
+#ifdef __cplusplus
+extern "C" { char BSDgettimeofday(); };
+#else
+char BSDgettimeofday();
+#endif
+int main() {
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_BSDgettimeofday) || defined (__stub___BSDgettimeofday)
+choke me
+#else
+/* Override any gcc2 internal prototype to avoid an error.  */
+BSDgettimeofday();
+#endif
+
+; return 0; }

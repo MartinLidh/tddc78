@@ -1,0 +1,18 @@
+.TH CLOG_commtype 4 "5/15/1999" " " "MPE"
+.SH NAME
+CLOG_commtype \-  print communicator creation event type 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+void CLOG_commtype( etype )
+int etype;
+.fi
+.PD 0
+.TP
+.B etype 
+- event type for communicator creation event
+.PD 1
+
+.SH LOCATION
+clog_util.c

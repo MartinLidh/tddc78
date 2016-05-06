@@ -1,0 +1,18 @@
+.TH MPE_Close_graphics 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_Close_graphics \-  Closes a X11 graphics device 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+int MPE_Close_graphics( handle )
+MPE_XGraph *handle;
+.fi
+.SH INPUT PARAMETER
+.PD 0
+.TP
+.B handle 
+- MPE graphics handle.
+.PD 1
+.SH LOCATION
+mpe_graphics.c

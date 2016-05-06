@@ -1,0 +1,68 @@
+# Generated automatically from Makefile.in by configure.
+#  (C) 1993 by Argonne National Laboratory and Mississipi State University.
+#      All rights reserved.  See COPYRIGHT in top-level directory.
+#
+SHELL = /bin/sh
+MAKE = make --no-print-directory 
+LN_S = ln -s
+RM = /bin/rm
+srcdir=/home/TDDB78/src/mpich-1.2.0/mpe/slog_api
+top_srcdir=/home/TDDB78/src/mpich-1.2.0/mpe/slog_api
+
+SLOG_HEADERS = fbuf.h slog.h slog_config.h slog_header.h slog_impl.h \
+               slog_preview.h slog_profile.h slog_pstat.h \
+               slog_recdefs.h slog_ttable.h
+
+SLOG_EXES    = slog_printbbufs slog_printframes \
+               slog_readtest slog_recdefs_test \
+               ts_incrEQendtime_resfnEQno ts_incrEQendtime_resfnEQyes \
+               ts_incrEQstarttime
+
+all: setlinks sloglib
+
+setlinks:
+	-if [ ! -d include ] ; then mkdir include ; fi
+	-cd include; \
+	for file in ${SLOG_HEADERS} ; do \
+	    if [ ! -h $$file -a -s ${top_srcdir}/src/$$file ] ; then \
+	        $(LN_S) ${top_srcdir}/src/$$file $$file ; \
+	    fi ; \
+	done
+	-if [ ! -d test ] ; then mkdir test ; fi
+	-cd test; \
+	for file in ${SLOG_EXES} ; do \
+	    if [ ! -h $$file ] ; then \
+	        $(LN_S) ${top_srcdir}/bin/$$file $$file ; \
+	    fi ; \
+	done; \
+	if [ ! -h slog_print ] ; then \
+	    $(LN_S) ./slog_printbbufs slog_print ; \
+	fi
+	-cd bin; \
+	if [ ! -h slog_print ] ; then \
+	   $(LN_S) ./slog_printbbufs slog_print ; \
+	fi
+
+rmlinks:
+	-cd include; $(RM) -f $(SLOG_HEADERS)
+	-cd test; $(RM) -f $(SLOG_EXES) slog_print
+	-cd bin; $(RM) -f slog_print
+
+sloglib:
+	if test -s src/Makefile ; then ( cd src ; $(MAKE) ) ; fi
+
+rmlib:
+	-if test -s src/Makefile ; then ( cd src ; $(MAKE) rmlib ); fi
+
+rmprog:
+	-if test -s src/Makefile ; then ( cd src ; $(MAKE) rmprog ); fi
+
+clean:	
+	-if test -s src/Makefile ; then ( cd src ; $(MAKE) clean ) ; fi
+
+distclean: rmlinks
+	-if test -s src/Makefile ; then ( cd src ; $(MAKE) distclean ) ; fi
+
+configure:
+	autoheader
+	autoconf

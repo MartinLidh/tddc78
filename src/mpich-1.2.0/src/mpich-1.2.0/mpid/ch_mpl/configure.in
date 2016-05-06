@@ -1,0 +1,30 @@
+dnl
+dnl Caching is usually WRONG for systems with cross-mounted file systems
+dnl (the cache file may correspond to a different system).  Since configure
+dnl is not on a performance-critical path, go for robustness over speed.
+dnl
+define([AC_CACHE_LOAD], )dnl
+define([AC_CACHE_SAVE], )dnl
+AC_INIT()
+AC_CONFIG_HEADER(mpich-mpid.h)
+# check for mpproto.h
+# (try compile instead?)
+AC_CHECK_HEADERS(mpproto.h,pre_req=1,pre_req=0)
+if test $pre_req = 0 ; then
+	print_error "Could not find the header file mpproto.h that is needed"
+	print_error "by the ch_mpl device.  Check that you have"
+	print_error "IBMs parallel operating environment (POE), which is "
+	print_error "required for this device."
+	exit 1
+fi
+if test "$MPILIBNAME" = "mpi" ; then 
+	print_error "You should select a name for the MPICH library with"
+	print_error "-mpilibname=name_of_library.  Using mpich as the"
+	print_error "library name."
+	MPILIBNAME="mpich"
+fi
+# We need to check for gettimeofday in case we are not using the Switch
+# timer
+AC_HAVE_FUNCS(gettimeofday)
+
+AC_OUTPUT()

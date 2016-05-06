@@ -1,0 +1,27 @@
+<HTML>
+<TITLE>SLOG_Irec_Copy</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_Copy"><H1>SLOG_Irec_Copy</H1></A>
+Copy the content of the specified interval record  to a newly allocated one and return it.   (SLOG_intvlrec_t's Copy constructor) 
+<H2>Synopsis</H2>
+<PRE><CODE>
+SLOG_intvlrec_t *SLOG_Irec_Copy( const SLOG_intvlrec_t *src )
+</CODE></PRE>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>src </B> - pointer to constant SLOG_intvlrec_t to be copied.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - dest, pointer to the newly allocated SLOG_intvlrec_t, 
+interval record data structure.
+</DL>
+<P>
+<H2>Usage Notes on this routine </H2>
+This routine is similar to SLOG_Irec_Create(), except it uses
+the content of the given SLOG_intvlrec_t to create/copy a new one.
+The memory can be deallocated by SLOG_Irec_Free().
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P><B>Location:</B>../src/slog_irec_common.c<P>
+</BODY></HTML>

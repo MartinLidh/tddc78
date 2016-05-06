@@ -1,0 +1,125 @@
+.TH SLOG_Irec_GetMinRec 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_GetMinRec \-  Retrieve the fields for a bare minimal Interval Record 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_GetMinRec( const SLOG_intvlrec_t   *intvlrec,
+                               SLOG_rectype_t    *rectype,
+                               SLOG_intvltype_t  *intvltype,
+                               SLOG_bebit_t      *bebit_0,
+                               SLOG_bebit_t      *bebit_1,
+                               SLOG_starttime_t  *starttime,
+                               SLOG_duration_t   *duration,
+                               SLOG_nodeID_t     *orig_node_id,
+                               SLOG_cpuID_t      *orig_cpu_id,
+                               SLOG_threadID_t   *orig_thread_id,
+                               SLOG_where_t      *where,
+                         ... )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal Interval record to be retrieved.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B rectype 
+- pointer to the interval record's record field which determines 
+if the record is a FIXED record or VARIABLE record, this in turns
+will determine the number of association and the number of
+sets of MPI call arguments.
+.PD 1
+.PD 0
+.TP
+.B intvltype 
+- pointer to interval record's interval type field.
+.PD 1
+.PD 0
+.TP
+.B bebit_0 
+- pointer to interval record's first bebit.
+.PD 1
+.PD 0
+.TP
+.B bebit_1 
+- pointer to interval record's second bebit.
+.PD 1
+.PD 0
+.TP
+.B starttime 
+- pointer to interval record's start time.
+.PD 1
+.PD 0
+.TP
+.B duration 
+- pointer to interval record's life time.
+.PD 1
+.PD 0
+.TP
+.B orig_node_id 
+- pointer to interval record's origin node ID.
+.PD 1
+.PD 0
+.TP
+.B orig_cpu_id 
+- pointer to interval record's origin cpu ID.
+.PD 1
+.PD 0
+.TP
+.B orig_thread_id 
+- pointer to interval record's origin thread ID.
+.PD 1
+.PD 0
+.TP
+.B orig_where 
+- pointer to interval record's where integer pointer.
+.PD 1
+.PD 0
+.TP
+.B ...   
+- pointers to destination task labels for Message Record ( optional ) :
+dest_node_id - pointer to interval record's destination node ID.
+dest_cpu_id - pointer to interval record's destination cpu ID.
+dest_thread_id - pointer to interval record's destination thread ID.
+.PD 1
+
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+Since the subroutine copies all the fixed fields of the specified
+record to the input variables, the record must be non-empty.
+The subroutine can only be called __After__ retrieving the interval
+record from the SLOG file.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_irec_read.c

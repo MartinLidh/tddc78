@@ -1,0 +1,33 @@
+.TH SLOG_SetMaxNumOfFramesPerDir 3 "6/22/1999" " " "SLOG_API"
+.SH NAME
+SLOG_SetMaxNumOfFramesPerDir \-  Set the Maximum Number of frames per directory in SLOG file 
+.SH SYNOPSIS
+.nf
+int SLOG_SetMaxNumOfFramesPerDir( SLOG_STREAM  *slog, SLOG_uint32 Ndirframe )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B Ndirframe 
+- unsigned integer to specify the maximum number of frames
+per directory in SLOG file.
+.PD 1
+
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to SLOG_STREAM where interval records will be stored.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH INCLUDE FILE NEEDED 
+slog_header.h
+.SH LOCATION
+../src/slog_header.c

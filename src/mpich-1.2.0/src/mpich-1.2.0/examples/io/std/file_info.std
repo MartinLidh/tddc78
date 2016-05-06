@@ -1,0 +1,11 @@
+Process 0, Default:  key = cb_buffer_size, value = 4194304
+Process 0, Default:  key = cb_nodes, value = 4
+Process 0, Default:  key = ind_rd_buffer_size, value = 4194304
+Process 0, Default:  key = ind_wr_buffer_size, value = 524288
+
+ New values
+
+Process 0, key = cb_buffer_size, value = 8388608
+Process 0, key = cb_nodes, value = 2
+Process 0, key = ind_rd_buffer_size, value = 2097152
+Process 0, key = ind_wr_buffer_size, value = 1048576

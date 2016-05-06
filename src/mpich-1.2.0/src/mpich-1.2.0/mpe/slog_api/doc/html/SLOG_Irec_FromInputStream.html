@@ -1,0 +1,66 @@
+<HTML>
+<TITLE>SLOG_Irec_FromInputStream</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_FromInputStream"><H1>SLOG_Irec_FromInputStream</H1></A>
+Return a pointer to the next interval  record in the given SLOG_STREAM. The interval record returned can be real or pseudo record. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+const SLOG_intvlrec_t *
+SLOG_Irec_FromInputStream( SLOG_STREAM *slog, int *irc )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to the SLOG_STREAM where interval record is retrieved.
+</DL>
+<DL><DT><B>irc  </B> - pointer to the returned integer status code.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - pointer to the next interval record of type 
+SLOG_intvlrec_t in the frame buffer.  The "const" 
+qualifier indicates that user should NOT modify the
+content.  The pointer is NULL when the routine 
+encounters error or end of file.
+</DL>
+<P>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+<P>
+The routine returns a pointer to the interval record of the various
+Bbuf in current frame buffer in the SLOG_STREAM given.  The
+routine does NOT create new node/irec.  It just simply returns a pointer
+to the existing one in the bi-directional linked list( an internal data
+structure ).  If one wants to modify the content of the interval record
+without modification of the specified bi-directional linked node, one
+should use SLOG_Irec_Copy() to copy the returned record content to a new
+record.  The routine also ADVANCES the internal pointer of the specified
+linked list buffer.  Also, the routine does NOT gurantee the memory
+associated with previously _returned_ interval record be retained in the
+next call of the routine.  So if one wants to keep interval record for
+future reference, one need to use SLOG_Irec_Copy() to copy
+the content of the interval record to another memory location __BEFORE__
+calling SLOG_Irec_FromInputStream() again.  The example program,
+slog_readtest.c shows the typical way of using this subroutine.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_irec_read.c<P>
+</BODY></HTML>

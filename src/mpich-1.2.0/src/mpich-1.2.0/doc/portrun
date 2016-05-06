@@ -1,0 +1,20 @@
+#! /bin/sh
+#
+# This script is a sample for running doc/port
+#
+configure "$@" >config.log 2>&1
+doc/port -noperf -config=config.log
+#
+# Test that mpirun etc works
+(cd examples/basic ; make cpi ; mpirun -np 2 cpi ; \
+if [ $? != 0 ] ; then echo "Error from mpirun" ; exit 1; fi )
+#
+# At this point, you can pass special args to the test with
+# TESTARGS="..."
+# For example, 
+# TESTARGS="-margs=\"-arch sun4\""
+(cd examples/test ; make testing_save >test.log 2>&1 )
+doc/porttest -testsdone
+doc/portperf
+doc/docgather
+

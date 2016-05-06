@@ -1,0 +1,335 @@
+# Generated automatically from Makefile.in by configure.
+#  (C) 1993 by Argonne National Laboratory and Mississipi State University.
+#      All rights reserved.  See COPYRIGHT in top-level directory.
+#
+
+##### User configurable options #####
+
+INSTALL_DIR  = /home/TDDB78/src/mpich-1.2.0/mpe
+PREFIX       = /home/TDDB78/mpich-1.2.0/
+CC           = /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc
+CLINKER      = $(CC)
+F77          = /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpif77
+FLINKER      = $(F77)
+AR           = ar
+ARFLAGS      = cr
+RANLIB       = ranlib
+MAKE         = make --no-print-directory
+DEBUG_LIBS   = 
+SLOG_HOME    = /home/TDDB78/src/mpich-1.2.0/mpe/slog_api
+MPI_INC      = 
+MPI_LIBS     = 
+INCLUDE_DIR  =  -I/home/TDDB78/src/mpich-1.2.0/lib/../include -I/home/TDDB78/src/mpich-1.2.0/include -I. -I${srcdir} \
+               -I$(SLOG_HOME) -Islog_api/include $(MPI_INC)
+OPTFLAGS     = 
+MPE_GRAPH    = -DMPE_GRAPHICS
+LIB_PATH     = -L/home/TDDB78/src/mpich-1.2.0/lib -lX11 $(MPI_LIBS)
+LOG_LIB      = -L/home/TDDB78/src/mpich-1.2.0/lib -llmpi -lmpe $(MPI_LIBS)
+PROF_LIB     = -L/home/TDDB78/src/mpich-1.2.0/lib -lmpe $(MPI_LIBS)
+LDFLAGS      = 
+BUILDUPSHOT  = 1
+BUILDNUPSHOT = 0
+MPICH        = 1
+NOF77        = 0
+
+MPEGRAPHICS_SOURCE = mpe_graphics.c xcolor.c xframe.c xinit.c xwmap.c xmouse.c
+MPEGRAPHICS_OBJS   = mpe_graphics.o xcolor.o xframe.o xinit.o xwmap.o xmouse.o
+MPEGRAPHICS_FSOURCE = mpe_graphicsf.c
+MPEGRAPHICS_FOBJS   = mpe_graphicsf.o
+### End User configurable options ###
+SHELL = /bin/sh
+
+VPATH=.:$(srcdir)
+# Installation directories
+prefix       = /home/TDDB78/mpich-1.2.0/
+exec_prefix  = ${prefix}
+bindir       = /home/TDDB78/mpich-1.2.0//bin
+includedir   = ${prefix}/include
+libdir       = /home/TDDB78/mpich-1.2.0//lib
+# Build directories
+libbuild_dir = /home/TDDB78/src/mpich-1.2.0/lib
+binbuild_dir = /home/TDDB78/src/mpich-1.2.0/lib/../bin
+top_srcdir   = /home/TDDB78/src/mpich-1.2.0/mpe
+srcdir       = /home/TDDB78/src/mpich-1.2.0/mpe
+
+EXECS = dbxtest dbxtest2 printlog ctoalog testlog srtest
+
+# GETNAME_DEFS are needed by mpehname.c
+CFLAGS =   -DMPI_solaris -DFORTRANUNDERSCORE -DUSE_STDARG -DHAVE_PROTOTYPES  $(MPE_GRAPH) $(OPTFLAGS) $(INCLUDE_DIR) 
+
+MPE_CSOURCES =  $(MPEGRAPHICS_SOURCE) clog_sysio.c mpe_log.c clog.c \
+		clog_merge.c clog_time.c clog_util.c clog2alog.c decomp.c \
+	       	mpe_seq.c examine.c privtags.c getgrank.c mpehname.c mpe_io.c \
+		c2s_util.c	
+MPE_TSOURCES =  decomp.c mpe_seq.c dbxerr.c getgrank.c
+MPE_COBJECTS =  $(MPEGRAPHICS_OBJS) clog_sysio.o mpe_log.o clog.o \
+		clog_merge.o clog_time.o clog_util.o clog2alog.o decomp.o \
+		mpe_seq.o dbxerr.o examine.o privtags.o getgrank.o mpehname.o \
+		mpe_io.o c2s_util.o
+MPE_WSOURCES = $(MPEGRAPHICS_FSOURCE) mpe_logf.c decompf.c mpe_seqf.c \
+	       getgrankf.c
+MPE_WOBJECTS = $(MPEGRAPHICS_FOBJS) mpe_logf.o decompf.o mpe_seqf.o \
+		getgrankf.o
+
+MPE_SOURCES = $(MPE_CSOURCES) $(MPE_WSOURCES)
+MPE_OBJECTS = $(MPE_COBJECTS) $(MPE_WOBJECTS)
+
+C2S_CSOURCES = c2s_util.c c2s_assist.c clog2slog.c
+C2S_OBJECTS  = $(C2S_CSOURCES:.c=.o)
+
+# default_all is the same as default, but without the RANLIB.  This
+# can speed up the build (ranlibs can take a LONG time).  profile_all 
+# is the same, but for the profile library
+# **** Currently the same as default for simplicity ****
+default_all: default
+profile_all: 
+
+#
+# libmpe_nompi must be last because some make's "optimize" by computing
+# all dependencies at the beginning, rather than when each target is
+# evaluated.  Since libmpe_nompi cleans the object files (to force a rebuild
+# with the NO_MPI switch), this can cause problems.
+default: clean rmprog rmlib \
+	 mpe_debug_objs \
+	 ${libbuild_dir}/libslog.a \
+	 ${libbuild_dir}/libmpe.a \
+	 ${libbuild_dir}/mpe_prof.o \
+	 ${libbuild_dir}/mpe_proff.o \
+	 ${libbuild_dir}/libtmpi.a \
+	 ${libbuild_dir}/liblmpi.a \
+	 ${libbuild_dir}/libampi.a \
+	 ${libbuild_dir}/libmpe_nompi.a \
+	 upshot \
+	 nupshot \
+	 linktest_C \
+	 linktest_f77 \
+	 mpereconfig
+	$(MAKE) clean
+
+#
+# This target will get compiled if the user specified --with-mpedbg option
+mpe_debug_objs:
+	@-if [ "0" = "1" ] ; then \
+	    echo "making mpedbg" ;  \
+	    (cd ${top_srcdir}/../src/env ; \
+	    $(MAKE) mpe_debug_objs) ;   \
+	fi
+
+#
+# This must refer to a relative directory incase we are in a VPATH build.
+# Because VPATH searches are applied to targets as well as sources, we
+# set this up to a dummy directory.
+${libbuild_dir}/libslog.a:
+	@if [ "$(SLOG_HOME)" != "" -a -d $(SLOG_HOME) ]; then \
+	    ( cd slog_api ; \
+	      $(MAKE) "SLOG_DESTLIB=${libbuild_dir}/libmpe.a" )   \
+	fi
+#
+#
+# It is tempting here to use ... libmpe.a($(MPE_OBJECTS)) as the dependency,
+# but this would require that all makes properly handle library dependencies.
+# Since makes that DO are the exception rather than the rule, we don't
+# use this form
+${libbuild_dir}/libmpe.a: $(MPE_OBJECTS)
+	$(AR) $(ARFLAGS) $@ $?
+	$(RANLIB) $@
+#	-/bin/rm -f $?
+
+${libbuild_dir}/libmpe_nompi.a:  $(MPEGRAPHICS_SOURCE)
+	@if [ "$(MPEGRAPHICS_SOURCE)" != "" ] ; then \
+	    $(MAKE) -f Makefile_nompi clean ; \
+	    $(MAKE) -f Makefile_nompi $@ ; \
+	    $(MAKE) -f Makefile_nompi clean ; \
+	fi
+
+mpe_log.o: mpe_log.h clog.h clog_merge.h
+clog.o: clog.h clogimpl.h
+clog_util.o: clog.h clogimpl.h
+clog_merge.o: clog.h clogimpl.h clog_merge.h clog2slog.h
+clog2alog.o: clog.h clogimpl.h
+printlog.o: clog.h clogimpl.h
+c2s_util.o: clog.h clogimpl.h clog2slog.h
+
+mpe_plog.o: mpe_log.h mpe_log.c mpe_log_genproc.c mpe_log_genproc.h \
+	  mpe_log_merge.c mpe_log_adjusttime.c
+	$(CC) $(CFLAGS) -c -DUSE_PMPI ${srcdir}/mpe_log.c
+	@/bin/mv mpe_log.o mpe_plog.o
+
+${libbuild_dir}/libtmpi.a: trc_wrappers.o
+	$(AR) $(ARFLAGS) $@ $?
+	$(RANLIB) $@
+#	-/bin/rm -f $?
+
+${libbuild_dir}/liblmpi.a: log_wrap.o mpe_plog.o clog.o clog_util.o clog_merge.o \
+                        clog2alog.o clog_time.o
+	$(AR) $(ARFLAGS) $@ $?
+	$(RANLIB) $@
+#	-/bin/rm -f $?
+
+${libbuild_dir}/libampi.a: visual_mess.c
+	if [ -n "-DMPE_GRAPHICS" ] ; then \
+	$(CC) $(CFLAGS) -c ${srcdir}/visual_mess.c ; \
+	$(AR) $(ARFLAGS) $@ visual_mess.o ; \
+	$(RANLIB) $@ ; fi
+#	-/bin/rm -f $?
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+.c.a:
+	$(CC) $(CFLAGS) -c $<
+
+${libbuild_dir}/mpe_prof.o: mpe_prof.c
+	$(CC) $(CFLAGS) -c ${srcdir}/mpe_prof.c
+	@-if [ ${libbuild_dir} != "." ] ; then /bin/cp mpe_prof.o ${libbuild_dir} ; fi
+
+${libbuild_dir}/mpe_proff.o: mpe_proff.c
+	$(CC) $(CFLAGS) -c ${srcdir}/mpe_proff.c
+	@-if [ ${libbuild_dir} != "." ] ; then /bin/cp mpe_proff.o ${libbuild_dir} ; fi
+
+# Make upshot from upshot.in
+upshot: ${binbuild_dir}/upshot
+#
+# Update the install if you change this!
+${binbuild_dir}/upshot: ${srcdir}/profiling/upshot/bin/upshot.in
+	@-if [ $(BUILDUPSHOT) = 1 ] ; then \
+	    if [ -z "/usr/local/bin/wish" ] ; then \
+	        echo "Upshot requires the tk wish shell" ; \
+	    else \
+	        echo "Making Upshot" ; \
+	        /bin/rm -f ${binbuild_dir}/upshot ; \
+	        cat ${srcdir}/profiling/upshot/bin/upshot.in | sed \
+	        -e "s%\#wishloc\#%/usr/local/bin/wish%g" \
+	        -e "s%\#TK_VERSION\#%%g" \
+	        -e "s%\#BITMAP_DIR\#%$(MPE_HOME)/profiling/upshot/bitmaps%g" > \
+	        ${binbuild_dir}/upshot;\
+	        chmod 775 ${binbuild_dir}/upshot ; \
+	    fi \
+	fi
+
+nupshot:
+	@-if [ $(BUILDNUPSHOT) = 1 ] ; then \
+	    if [ ! -d profiling/nupshot ] ; then mkdir profiling/nupshot ; fi ;\
+	    (cd profiling/nupshot; \
+	    if [ ! -s Makefile ] ; then \
+	        /bin/rm -f config.cache ; \
+	        ${top_srcdir}/profiling/nupshot/configure -tcldir= -tkdir= ; fi ; \
+	    $(MAKE) ) ; \
+	fi
+
+#  For backward compatibility
+linktest: linktest_C
+
+#  For backward compatibility
+fortran_test: linktest_f77
+
+linktest_C:
+	( cd contrib/test; $(MAKE) linktest_C )
+
+linktest_f77:
+	@if [ $(NOF77) = 0 ] ; then \
+	    ( cd contrib/test; $(MAKE) linktest_f77 ) \
+        fi
+#
+# If you change this, ALSO change it in the install target!
+mpereconfig: mpereconfig.in config.status
+	@/bin/rm -f mpereconfig ; \
+	cat ${srcdir}/mpereconfig.in | \
+		sed -e "s%\#MPE_HOME\#%$(INSTALL_DIR)%g" > \
+		    mpereconfig ;\
+	chmod 775 mpereconfig
+
+dbxtest: dbxtest.o ${libbuild_dir}/libmpe.a
+	$(CLINKER) $(LDFLAGS) -o dbxtest dbxtest.o \
+		${libbuild_dir}/libmpe.a \
+		$(LIB_PATH)
+dbxtest2: dbxtest2.o ${libbuild_dir}/libmpe.a
+	$(CLINKER) $(LDFLAGS) -o dbxtest2 dbxtest2.o \
+		${libbuild_dir}/libmpe.a \
+		$(LIB_PATH) 
+printlog: printlog.o clog.o clog_time.o clog_util.o clog_merge.o
+	/home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc $(LDFLAGS) -o printlog printlog.o \
+		${libbuild_dir}/libmpe.a \
+		$(PROF_LIB) 
+	rm -f $?
+ctoalog: ctoalog.o clog2alog.o clog.o clog_time.o clog_merge.o
+	/home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc $(LDFLAGS) -o ctoalog ctoalog.o clog2alog.o \
+		${libbuild_dir}/libmpe.a \
+		$(LIB_PATH) 
+#
+#  -DSTANDALONE turns on the byteswapping code
+#
+clog2slog: $(C2S_CSOURCES)
+	@for srcfile in $(C2S_CSOURCES); do \
+	    echo "$(CC) -DSTANDALONE $(CFLAGS) -c $${srcfile}"; \
+	    $(CC) -DSTANDALONE $(CFLAGS) -c $${srcfile} ; \
+	done
+	/home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc $(LDFLAGS) -o clog2slog $(C2S_OBJECTS) \
+		-L$(SLOG_HOME)/lib -lslog $(DEBUG_LIBS)
+	rm -f $(C2S_OBJECTS)
+testlog.o: testlog.c clog.h clog_merge.h clog_time.h
+	$(CC) $(CFLAGS) -c testlog.c
+testlog: testlog.o clog.o clog_time.o clog_merge.o clog_util.o
+	$(CLINKER) $(LDFLAGS) -o testlog testlog.o \
+		$(LOG_LIB) 
+#
+# Remove the old libraries before rebuilding (in case they came from another
+# architecture or are otherwise damaged)
+rmlib:
+	@-if [ "$(SLOG_HOME)" != "" -a -d "$(SLOG_HOME)" ]; then \
+	    ( cd slog_api ; $(MAKE) rmlib ) \
+	fi
+	rm -f ${libbuild_dir}/libmpe.a 
+	rm -f ${libbuild_dir}/mpe_prof.o
+	rm -f ${libbuild_dir}/mpe_proff.o 
+	rm -f ${libbuild_dir}/libtmpi.a 
+	rm -f ${libbuild_dir}/liblmpi.a 
+	rm -f ${libbuild_dir}/libampi.a 
+	rm -f ${libbuild_dir}/libmpe_nompi.a
+
+rmprog:
+	@-if [ "$(SLOG_HOME)" != "" -a -d "$(SLOG_HOME)" ]; then \
+	    ( cd slog_api ; $(MAKE) rmprog ) \
+	fi
+	rm -f dbxtest dbxtest2 printlog ctoalog clog2slog testlog
+
+clean:
+	@-if [ "$(SLOG_HOME)" != "" -a -d "$(SLOG_HOME)" ]; then \
+	    ( cd slog_api ; $(MAKE) clean ) \
+	fi
+	-/bin/rm -f *.o *~ $(EXECS) PI*
+	for dir in contrib/mandel contrib/mastermind contrib/life \
+	    contrib/test test; do \
+	    if test -s $$dir/Makefile ; then (cd $$dir ; $(MAKE) clean ) ; \
+	    fi ;\
+	done 
+	@-if [ -d profiling/wrappergen ] ; then \
+	    /bin/rm -f profiling/wrappergen/*.o ; fi
+	@-if [ -s profiling/nupshot/Makefile ] ; then \
+	    ( cd profiling/nupshot ; $(MAKE) clean ; \
+		/bin/rm Makefile ) ; fi
+	@-if [ -s profiling/upshot/bin/Makefile ] ; then \
+	    ( cd profiling/upshot/bin ; $(MAKE) clean ) ; fi
+
+distclean: clean rmprog rmlib
+	@-if [ "$(SLOG_HOME)" != "" -a -d "$(SLOG_HOME)" ]; then \
+	    ( cd slog_api ; $(MAKE) rmlinks ) \
+	fi
+	for dir in contrib/mandel contrib/mastermind contrib/life \
+	    contrib/test test profiling/examples profiling/lib \
+	    profiling/wrappergen test; do \
+	    if test -s $$dir/Makefile ; then (cd $$dir ; \
+		                              /bin/rm -f Makefile ) ; \
+	    fi ;\
+	done 	
+	-@if [ -d profiling/nupshot -a -s /profiling/nupshot/config.status ] ; then \
+	  (cd profiling/nupshot ; /bin/rm -f config.status) ; fi
+	-@if [ -d profiling/upshot/bin -a -s profiling/upshot/bin/upshot ] ; then \
+	  (cd profiling/upshot/bin ; /bin/rm -f upshot) ; fi
+	-@/bin/rm -f Makefile Makefile_nompi dbxerr.c mpeconf.h mpeinstall \
+	mpereconfig config.log config.status
+
+
+configure: configure.in aclocal.m4
+	autoheader
+	autoconf

@@ -1,0 +1,57 @@
+
+SHELL = /bin/sh
+
+JC         = @JC@
+JAR        = @JAR@
+JAVA_LIBS  = @JAVA_LIBS@
+SWING_LIBS = @SWING_LIBS@
+
+GUI_HOME   = ../..
+GUI_LIBDIR = $(GUI_HOME)/lib
+
+MAIN_LIB = jumpshot.jar
+
+SRC = CONST.java Info.java RecDef.java \
+      StateGroupLabel.java StateInterval.java StateGroup.java \
+      StateGroupList.java StateGroupListPair.java StateGroupDialog.java \
+      ArrowList.java RecordDialog.java HelpDlg.java \
+      ApltFileDlg.java CanOptions.java \
+      ColorUtil.java ColoredRect.java \
+      MyButton.java MyImage.java MyJPanel.java MyTextField.java \
+      PHistCanvas.java PVertScaleCanvas.java PrintCanvas.java PrintDlg.java \
+      HistCanvas.java HistImage.java Histwin.java ROUTINES.java \
+      Mainwin.java ViewFrameChooser.java \
+      ProgressDialog.java FrameReadingTask.java  \
+      PlotData.java RecDefButtons.java \
+      FrameDisplay.java ProgramCanvas.java \
+      VertScaleCanvas.java jumpshot.java SwingWorker.java \
+      debug.java
+
+OBJ = $(SRC:.java=.class)
+
+.SUFFIXES:	.java .class
+
+SLOG_LIB   = $(GUI_HOME)/lib/slog.jar
+PVIEW_LIB  = $(GUI_HOME)/lib/preview.jar
+
+CLASSPATH = $(JAVA_LIBS):$(SWING_LIBS):$(SLOG_LIB):$(PVIEW_LIB):.
+
+JFLAGS = -classpath $(CLASSPATH) @JFLAGS@
+
+ALL:	CLASSFILES $(MAIN_LIB)
+
+CLASSFILES: $(SRC)
+	$(JC) $(JFLAGS) $?
+
+$(MAIN_LIB): $(OBJ)
+	$(JAR) cvf $@ *.class
+	mv -f $@ $(GUI_LIBDIR)
+
+clean:
+	rm -f $(OBJ) $(MAIN_LIB) *.class core
+
+rmlib:
+	rm -f $(GUI_LIBDIR)/$(MAIN_LIB)
+
+distclean: clean rmlib
+	rm -f *.java.* 

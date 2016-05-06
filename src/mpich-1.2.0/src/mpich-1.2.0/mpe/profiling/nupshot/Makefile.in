@@ -1,0 +1,90 @@
+#  (C) 1993 by Argonne National Laboratory and Mississipi State University.
+#      All rights reserved.  See COPYRIGHT in top-level directory.
+#
+
+##### User configurable options #####
+
+SRC_DIR     = @NUPSHOT_HOME@
+CC          = @CC@
+CLINKER     = $(CC)
+X_INC	    = @XINCLUDES@
+INCLUDE_DIR = $(X_INC) $(TCLTK_INC) -I${srcdir}
+# Duplicate libs in case XPMLIB adds refs
+LIBS        = $(TCLTK_LIB) @XPMLIB@ $(TCLTK_LIB) @XLIBSW@ @LIBS@ -lm
+OPTFLAGS    = @OPTFLAGS@
+
+@VPATH@
+# Installation directories
+prefix       = @prefix@
+exec_prefix  = @exec_prefix@
+bindir       = @bindir@
+# Build directories
+top_srcdir   = @top_srcdir@
+srcdir       = @srcdir@
+
+# It is easier if the tcl and tcl stuff is in the same directory,
+# but if your installation has them in separate directories, so be it.
+
+# Right now, TCLLIB and TKLIB can be specified as a command line option
+# for configure, so we'll make do with what we can.
+
+TCL_DIR     = @TCL_DIR@
+TK_DIR      = @TK_DIR@
+AC_FLAGS    = @DEFS@ @USER_CFLAGS@
+
+#
+# Because there may be a DIFFERENT tcl/tk library in the default search
+# path, we put the specified libraries FIRST.  We leave the -L<directory>
+# form in case additional tcl/tk libraries are needed (unlikely but with
+# tcl/tk, you never know).
+TCL_LIB     = $(TCL_DIR)/lib/libtcl.a -L$(TCL_DIR)/lib
+TK_LIB      = $(TK_DIR)/lib/libtk.a -L$(TK_DIR)/lib
+TCLTK_LIB   = $(TK_LIB) $(TCL_LIB)
+
+TCL_INC     = -I@TCLINCDIR@/include
+TK_INC      = -I@TKINCDIR@/include
+TCLTK_INC   = $(TCL_INC) $(TK_INC)
+
+
+### End User configurable options ###
+SHELL = /bin/sh
+
+EXECS = nupshot
+
+CFLAGS = $(OPTFLAGS) $(INCLUDE_DIR) $(AC_FLAGS)\
+	 "-DNUPSHOT_SOURCE=\"$(SRC_DIR)\""
+
+COBJECTS = timelines.o mtn.o msgs.o states.o events.o procs.o \
+	   alog.o picl.o log.o time_lbl.o hist.o cvt_args.o \
+	   tclptr.o tkAppInit.o vis.o str_dup.o bitmaps.o \
+	   colors.o proc_varargs.o stats.o nupshot.o \
+	   tkColor.o tkCanvas.o tkCanvLine.o tkRectOval.o tkBitmap.o
+
+CSOURCES = timelines.c mtn.c msgs.c states.c events.c procs.c \
+	   alog.c picl.c log.c \
+	   time_lbl.c hist.c cvt_args.c tclptr.c tkAppInit.c \
+	   vis.c str_dup.c bitmaps.c colors.c proc_varargs.c stats.c \
+	   nupshot.c \
+	   tkColor.c tkCanvas.c tkCanvLine.c tkRectOval.c tkBitmap.c
+
+CHEADERS = timelines.h mtn.h msgs.h states.h events.h alog.h picl.h log.h \
+	   time_lbl.h hist.h cvt_args.h tclptr.h \
+	   vis.h str_dup.h bitmaps.h colors.h proc_varargs.h stats.h \
+	   expandingList.h tcl_callargv.h tkCanvas.h tkConfig.h tkInt.h \
+	   default.h feather.h heapsort.h alog_int.h
+
+TCL_SOURCES = nupshot.tcl common.tcl entries.tcl fileselect.tcl zoom.tcl \
+	      mainwin.tcl timelines.tcl legend.tcl procnums.tcl hist.tcl \
+	      print.tcl print_mainwin.tcl print_hist.tcl copy_canvas.tcl \
+	      trim_canvas.tcl color.tcl args.tcl defaults.tcl mtn.tcl \
+	      displays.tcl
+
+nupshot: $(COBJECTS)
+	$(CLINKER) -o nupshot $(COBJECTS) $(LIBS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+clean:
+	-/bin/rm -f *.o *~ $(EXECS) ${srcdir}/*.o
+

@@ -1,0 +1,83 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:960: checking host system type
+configure:1053: checking MPICH version
+configure:2310: checking how to run the C preprocessor
+configure:2331: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:2379: checking for X
+configure:2446: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:2522: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c -lXt  1>&5
+configure:2637: checking gnumake
+configure:2663: checking BSD 4.4 make
+configure:2687: checking OSF V3 make
+configure:2711: checking for virtual path format
+configure:2754: checking for wish
+configure:2810: checking for tclsh
+configure:2836: checking for Tcl
+configure:2932: checking for Tk
+configure:3072: checking for dbx
+configure:3111: checking for gdb
+configure:3148: checking for working const
+configure:3202: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c   conftest.c 1>&5
+configure:3223: checking whether byte ordering is bigendian
+configure:3241: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c   conftest.c 1>&5
+"configure", line 3236: undefined symbol: bogus
+"configure", line 3236: syntax error before or at: endian
+cc: acomp failed for conftest.c
+configure: failed program was:
+#line 3230 "configure"
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/param.h>
+int main() {
+
+#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
+ bogus endian macros
+#endif
+; return 0; }
+configure:3289: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure: failed program was:
+#line 3276 "configure"
+#include "confdefs.h"
+main () {
+  /* Are we little or big endian?  From Harbison&Steele.  */
+  union
+  {
+    long l;
+    char c[sizeof (long)];
+  } u;
+  u.l = 1;
+  exit (u.c[sizeof (long) - 1] == 1);
+}
+configure:3313: checking for ANSI C header files
+configure:3326: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3393: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3418: checking for long pointers
+configure:3432: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3456: checking for system
+configure:3484: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3511: checking for sysinfo
+configure:3539: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3564: checking for uname
+configure:3592: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3615: checking for gethostbyname
+configure:3643: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest    conftest.c  1>&5
+configure:3670: checking for unistd.h
+configure:3680: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3670: checking for stdlib.h
+configure:3680: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3670: checking for string.h
+configure:3680: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3670: checking for netdb.h
+configure:3680: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3670: checking for sys/systeminfo.h
+configure:3680: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3708: checking for stdarg.h
+configure:3718: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E  conftest.c >/dev/null 2>conftest.out
+configure:3754: checking for stdarg is correct
+configure:3780: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c   conftest.c 1>&5
+configure:3796: checking if compiler accepts prototypes
+configure:3805: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c   conftest.c 1>&5
+configure:3879: checking for ranlib
+configure:3908: checking for ar

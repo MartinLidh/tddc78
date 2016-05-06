@@ -1,0 +1,26 @@
+# -DDEBUG          : Turn on Debugging and extra redundant checking code
+# -DBYTESWAP       : Turn on the bytes swapping code for the intel box.
+# -DNOCPUID        : Don't write the interval record's CPU-ID field to the disk
+# -DNOWHERE        : Don't write the interval record's WHERE field to the disk
+# -DCHECKTIMEORDER : Turn on the increasing time order checking code
+# -DNO_ARROW_STAT  : Exclude arrows in statistics collection
+# -DLongLongFileOffset : turns on 64 bits file pointer/offset
+
+e.g.
+
+for Linux
+ANSICFLAGS = -Wformat
+CFLAGS     = $(ANSICFLAGS) -DBYTESWAP -g -DDEBUG -DNOWHERE -DCHECKTIMEORDER
+
+for AIX
+ANSICFLAGS =
+CFLAGS     = $(ANSICFLAGS) -g -DDEBUG -DNOWHERE -DCHECKTIMEORDER
+
+for SunOS
+ANSICFLAGS = -Wformat
+CFLAGS     = $(ANSICFLAGS) -g -DDEBUG -DNOWHERE -DCHECKTIMEORDER
+
+for IRIX64
+ANSICFLAGS = -ansi
+CFLAGS     = $(ANSICFLAGS) -n32 -woff 1429,1199 -g -DDEBUG \
+             -DNOWHERE -DCHECKTIMEORDER

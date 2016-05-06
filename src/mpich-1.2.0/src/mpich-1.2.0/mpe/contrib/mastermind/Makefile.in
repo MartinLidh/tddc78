@@ -1,0 +1,45 @@
+
+##### User configurable options #####
+
+CC          = @CC@
+CLINKER     = $(CC)
+OPTFLAGS    = @OPTFLAGS@
+LIB_PATH    = -L@MPE_LIBPATH@ -lmpe @X_LIB@ @MPI_LIBS@ -lm 
+MPE_DIR     = @MPE_HOME@
+LOG_LIB     = -L@MPE_LIBPATH@ @LOGLIB@ @X_LIB@
+PROF_LIB    = -L@MPE_LIBPATH@ @PROFLIB@ @X_LIB@
+INCLUDE_DIR = @INCLUDEDIR@ -I$(MPE_DIR)
+LDFLAGS     = @OPTFLAGS@
+
+### End User configurable options ###
+
+CFLAGS  =  @MPE_CFLAGS@ $(OPTFLAGS) $(INCLUDE_DIR)
+EXECS =  mm gmm
+
+default: $(EXECS)
+
+gmm:	gmm.o $(MPE_DIR)/mpe.h
+	$(CLINKER) $(LDFLAGS)  -o gmm gmm.o \
+	$(PROF_LIB) -lm  
+
+mm:	mm.o $(MPE_DIR)/mpe.h
+	$(CLINKER) $(LDFLAGS) -o mm mm.o \
+	$(PROF_LIB) -lm
+
+gmm.o:	gmm.c
+	$(CC) $(CFLAGS) -DUSE_GRAPHICS -c gmm.c
+
+mm.o:	gmm.c
+	$(CC) $(CFLAGS) -c -o mm.o gmm.c
+
+vb:	vb.o $(MPE_DIR)/mpe.h
+	$(CLINKER) $(LDFLAGS)  -o vb vb.o \
+	$(PROF_LIB)
+
+clean:
+	/bin/rm -f *.o *~ PI* $(EXECS) gmmlog
+
+.c.o:
+	$(CC) $(CFLAGS) -c $*.c
+.f.o:
+	$(F77) $(FFLAGS) -c $*.f

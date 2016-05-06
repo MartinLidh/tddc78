@@ -1,0 +1,44 @@
+<HTML>
+<TITLE>SLOG_Irec_GetAssocs</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_GetAssocs"><H1>SLOG_Irec_GetAssocs</H1></A>
+Retrieve the association array of the interval record. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_GetAssocs( const SLOG_intvlrec_t  *intvlrec,
+                         const SLOG_N_assocs_t   size_assocs,
+                               SLOG_assoc_t     *assocs )
+</CODE></PRE>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>intvlrec </B> - pointer to the internal Interval record to be retrieved.
+</DL>
+<DL><DT><B>size_assocs </B> - Number of elements available for the input association array.
+</DL>
+<P>
+<H2>Modified Intput Variables </H2>
+<DL><DT><B>assocs </B> - association array, array of file pointers to the associated
+interval records of the specified interval record.
+It is assumed the input array, assocs[], is big enough
+to hold the association array of the interval record.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - N_assocs : Number of elements in the association array
+returned.  If the input size, size_assocs, is smaller
+than the actual number of elements of the association
+array, the return value will be SLOG_EOF and only the
+first size_assocs elements will be returned.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+The subroutine gets the association array of the specified Internal
+Interval Record.  This subroutine is meant to be called once for
+each interval record.  Calling multiple times for the same interval
+record returns the same results.  If the return value, N_assocs,
+is equal to zero.  It means there is no associated record.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P><B>Location:</B>../src/slog_irec_read.c<P>
+</BODY></HTML>

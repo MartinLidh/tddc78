@@ -1,0 +1,103 @@
+Upshot
+Parallel Program Visualization Tool
+
+Upshot was written by Ed Karrels while a student at Argonne National
+Laboratory, under the direction of Ewing Lusk.  Additional direction and
+development were performed by William Gropp.
+
+Upshot is a Tcl/Tk program written for visualizing Alog, and PICL
+format logfiles.
+
+SETUP
+  1.  Build Tcl/Tk, including the 'wish' executable.  Upshot requires
+      Tk version 3.3 or above.  Tcl and Tk can be acquired via anonymous
+      ftp from harbor.ecn.purdue.edu in /pub/tcl/sprite-mirror as
+      tk3.6.tar.Z and tcl7.3.tar.Z.  Tk version 4 (incompatible with 
+      version 3) can be used.
+
+  2.  Modify the first line in profiling/upshot/bin/upshot to point to the
+      wish executable:
+      e.g.    #!/usr/local/tcl/bin/upshot -f
+
+  3.  Modify line 7 (set bitmapdir ...) to point to the directory with
+      all the bitmaps available to Upshot.  These are by default in the
+      same directory as the upshot source code.
+      e.g.    set bitmapdir /usr/local/mpi/profiling/upshot/bin
+
+  4.  Modify line 12 (set defaultfile ...) to point to whatever file
+      you wish Upshot to put/get settings into/from.
+
+RUNNING
+
+  Run profiling/upshot/bin/upshot.  It is a Tcl/Tk script, and with the
+  first line (#!/...wish -f) it automatically runs itself through 'wish',
+  the Tcl/Tk windowing shell.  I've heard that some shells don't like
+  the #!/... notation.  If your machine is one of these, please let me
+  know.  The program can still be run, but it will have to be run through
+  the wish interpreter manually.  For example:
+
+    wish -f profiling/upshot/bin/upshot
+
+  Or, of course, a quick script can be written to do this.
+
+  Using the program is (hopefully) mostly intuitive, so I'll just go over
+  a few brief points.
+
+  From the main window:
+    "Select Logfile" brings up a dialog box for selecting a different logfile.
+    "Setup" loads the select logfile and displays it.
+    "Options" brings up a dialog box for setting a few program options.
+    "Quit" closes Upshot.
+
+  Select Logfile:
+    All directories in the current directory are listed, as well as all files
+    that match the glob-style pattern in the 'Pattern:' entry field.
+    Click on a directory or file name to select it; double click on or click
+    on and hit 'OK' to change to the directory or select the file and
+    banish the dialog box.  When the file is clicked on, the file format
+    will be set automatically.  (Alog for *.log files, Picl for *.trf files,
+    Alog for anything else)  If the automatic format is incorrect, click on
+    the correct format.  Click 'OK' to accept the selection and close the
+    dialog box.  Click 'cancel' to close the dialog box and ignore the selected
+    file.
+
+  Setup button - open the file:
+    Clicking 'Setup' will load the logfile.  This may take a while, depending
+    on the size of the logfile, so a percent-done meter is displayed.  When
+    Upshot is finished loading the file, it displays the entire file in one
+    view.  Horizontal and vertical zoom buttons do what they say.  To set
+    the zoom point (the point of display that is stationary while the rest
+    expands or contracts around it), third-button click on the point of the
+    display desired.  To drag the canvas around, second-button click 'n drag
+    the display.  All mouse drag motion will be magnified 10x in the
+    displacement of the display.  'Reset' resets the display back to the
+    original view and adjust to fit the window if it has been resized.
+    Click on a state name or color box in the legend (at the top of the
+    display window) to get a distribution graph of the length (in sec.)
+    of all instances of that state.  The beginning and ending ranges of
+    the viewed portion can be adjusted to look closer at a certain range.
+
+  More than one logfile, or multiple copies of the same logfile can be open
+  at a time.  Just select another logfile in the initial window and hit
+  'Setup' again.
+
+  Some sample logfiles are in the profiling/upshot/logfiles directory.
+
+BUGS
+  Something is goofy with the legend.  It looks fine when printed out, but
+  on the legend items are jumbled sometimes.  I've found they sort themselves
+  out after a few redraws.
+
+  Stipple fill patterns get a little chopped on the left side on some
+  items when they are printed.
+
+TODO
+  Rewrite as much as possible in C to speed it up.
+  Add translator for the new format of PICL files.
+  The user interface on the state length distribution histogram isn't that
+    great.
+  This distribution histograms are pretty slow, rewrite this in C.
+
+SUGGESTIONS, QUESTIONS
+  Please send to mpi-bugs@mcs.anl.gov .
+

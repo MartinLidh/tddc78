@@ -1,0 +1,4 @@
+#define drlines4_width 4
+#define drlines4_height 4
+static char drlines4_bits[] = {
+   0x01, 0x02, 0x04, 0x08};

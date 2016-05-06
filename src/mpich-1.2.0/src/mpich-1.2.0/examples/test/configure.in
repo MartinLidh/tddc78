@@ -1,0 +1,586 @@
+dnl This is an autoconf script.
+dnl To rebuild the `configure' script from this, execute the command
+dnl 	autoconf
+dnl in the directory containing this script.  You must have autoconf
+dnl version 1.4 or later (but NOT version 2.0 or later)
+dnl
+dnl The following text appears in the resulting `configure' script,
+dnl explaining how to rebuild it.
+dnl
+dnl TODO
+dnl
+dnl Check for MPI_Pcontrol (const ... )
+[#!/bin/sh
+# Guess values for system-dependent variables and create Makefiles.
+# Generated automatically using autoconf.
+# Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+progname="`echo $0 | sed 's:^\./\./:\./:'`"
+print_error() {
+    echo "*# $*" 2>&1 ;
+    }
+print_usage() {
+cat <<.
+Usage: ${progname} [-arch=ARCH_TYPE]
+                   [-cc=C_COMPILER] [-fc=FORTRAN_COMPILER]
+		   [-basecc=C_COMPILER] [-basefc=FORTRAN_COMPILER]
+                   [-clinker=C_LINKER] [-flinker=FORTRAN_LINKER]
+                   [-nof77] [-opt=OPTFLAGS]
+                   [-f77_extra_flag=F77_EXTRA_FLAG] 
+	           [-make=MAKEPGM]
+		   [-device=DEVICE]
+                   [-cflags=CFLAGS] [-fflags=FFLAGS]
+                   [-optcc=C_OPTFLAGS] [-optf77=F77_OPTFLAGS]
+                   [-lib=LIBRARY] [-mpilibname=MPINAME]
+		   [-mpichpath=path]
+                   [-cross] [-mpi2]
+where
+   ARCH_TYPE    = the type of machine that MPI is to be configured for
+   OPTFLAGS     = optimization flags to give the compilers (e.g. -g)
+   CFLAGS       = flags to give C compiler
+   FFLAGS       = flags to give Fortran compiler
+   MAKEPGM      = version of make to use
+
+One and only one 'arch' argument should be provided.
+
+You can select a different C and Fortran compiler by using the '-cc' and 'fc'
+switches.  The environment variables 'CC' and 'FC' can also provide values for
+these but their settings may be overridden by the configure script.  Using
+'-cc=\$CC -fc=\$FC' will force configure to use those compilers.
+These should be the compilers that you use for MPI programs.
+
+If '-cross' is given, configure assumes that you are cross-compiling.  If it
+is not given, configure expects to be able to run programs.  Even if '-cross'
+is not selected, configure will try to determine if you are cross-compiling;
+this switch is needed only on systems where attempting to run a cross-compiled
+program causes the configure script to hang.
+
+The option '-nof77' prevents the compilation of routines that require a
+Fortran compiler.  If this option is selected, some tests will not be 
+available.
+
+The option '-opt' allows you to specify options for the compilers (both C and
+Fortran).  For example, '-opt=-O' chooses optimized code generation on many
+systems.  '-optcc' and '-optf77' allow you to specify options for just the C
+or Fortran compilers
+
+The option '-f77_extra_flag' is the option Fortran code needs to compile, but 
+cannot link with this option.  This is needed currently for the Absoft compiler
+(-f option), but it could be used for other cases as well.
+
+The option '-make' may be used to select an alternate make program.  For
+example, on FreeBSD systems, -make=gnumake may be required because of bugs in
+the system make.
+
+The option '-mpi2' enables testing of some MPI 2 functions.  Currently, only a
+few simple functions are tested.
+
+The option '-mpichpath=bindir' sets both the directory to look for compiler
+and mpirun commands in and specifies that MPICH is the version of MPI being
+tested.
+
+Sample Configure Usage:
+
+To make for an MPI with the MPI compile commands in your path:
+
+  ./configure -cc=mpicc -fc=mpif77
+  make
+
+To test an installed MPICH configuration (installed into /usr/local/mpich for
+architecture solaris and device ch_p4), use
+
+  ./configure -mpichpath=/usr/local/mpich/build/solaris/ch_p4/bin -mpi2
+  make
+.
+}
+#
+ARCH=""
+LIB_PATH=""
+FLIB_PATH=""
+OPTFLAGS=""
+OPTFLAGSF=""
+NOF77=0
+F77_EXTRA_FLAG=""
+HAS_FORTRAN=1
+MPILIBNAME=
+CFLAGS=""
+# Change MPIFDEP to make Fortran builds depend on an mpif link.
+MPIFDEP=""
+#
+# By not setting FFLAGS, we get the values from the environment
+MAKE=make
+PREFIX=""
+DEVICE=""
+DEVCFLAGS=""
+CONFIGURE_ARGS="$*"
+DEFAULT_MACHINE=''
+DEVICE_KIND=MPP
+HAS_MPI2=0
+cross_compiling=0
+# 
+BASECC=0
+BASEF77=0
+#
+# This next variable is a version without quotes.
+# We could also consider `echo $a | sed -e 's/"/\\"/g'`
+CONFIGURE_ARGS_CLEAN=`echo $* | tr '"' ' '`
+if test -n "$CONFIGURE_ARGS" ; then 
+    echo "Configuring with args $CONFIGURE_ARGS"
+fi
+#
+for arg
+do
+  # Handle --exec-prefix with a space before the argument.
+  if test x$next_exec_prefix = xyes; then exec_prefix=$arg; next_exec_prefix=
+  # Handle --host with a space before the argument.
+  elif test x$next_host = xyes; then next_host=
+  # Handle --prefix with a space before the argument.
+  elif test x$next_prefix = xyes; then prefix=$arg; next_prefix=
+  # Handle --srcdir with a space before the argument.
+  elif test x$next_srcdir = xyes; then srcdir=$arg; next_srcdir=
+  else
+    case $arg in
+     # For backward compatibility, also recognize exact --exec_prefix.
+     -exec-prefix=* | --exec_prefix=* | --exec-prefix=* | --exec-prefi=* | --exec-pref=* | --exec-pre=* | --exec-pr=* | --exec-p=* | --exec-=* | --exec=* | --exe=* | --ex=* | --e=*)
+	exec_prefix=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -exec-prefix | --exec_prefix | --exec-prefix | --exec-prefi | --exec-pref | --exec-pre | --exec-pr | --exec-p | --exec- | --exec | --exe | --ex | --e)
+	next_exec_prefix=yes ;;
+
+     -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
+	PREFIX=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
+	next_prefix=yes ;;
+
+     -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=* | --s=*)
+	srcdir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -srcdir | --srcdir | --srcdi | --srcd | --src | --sr | --s)
+	next_srcdir=yes ;;
+
+     -arch=* | --arch=*)
+       package=`echo $arg|sed 's/-*arch=//'`
+       # Delete all the valid chars; see if any are left.
+       if test -n "`echo $package|sed 's/[-a-zA-Z0-9_]*//g'`"; then
+         print_error "configure: $package: invalid architecture name"; exit 1
+       fi
+       ARCH=`echo $package|sed s/-/_/g`
+       eval "arch_`echo $package|sed s/-/_/g`=1"
+       ;;
+
+     -comm=* | --comm=*)
+       package=`echo $arg|sed 's/-*comm=//'`
+       # Delete all the valid chars; see if any are left.
+       if test -n "`echo $package|sed 's/[-a-zA-Z0-9_]*//g'`"; then
+         print_error "configure: $package: invalid communications layer name";
+	  exit 1
+       fi
+       COMM=`echo $package|sed s/-/_/g`	
+       eval "comm_`echo $package|sed s/-/_/g`=1" 
+       # Handle possible synonyms
+       if test -n "$comm_ch_eui" ; then
+           comm_ch_mpl=1
+           COMM=ch_mpl
+       fi
+	;;
+
+     -device=* | --device=*)
+       package=`echo $arg|sed 's/-*device=//'`
+       # Delete all the valid chars; see if any are left.
+       if test -n "`echo $package|sed 's/[-a-zA-Z0-9_]*//g'`"; then
+         print_error "configure: $package: invalid device name" ; exit 1
+       fi
+       DEVICE=$package    #|sed s/-/_/g`
+       # Can't have - in variable names
+       package=`echo $package | sed s/-/_/g`
+       eval "device_$package=1" 
+       # Handle possible synonyms
+       if test -n "$device_ch_eui"; then
+           device_ch_mpl=1
+           DEVICE=ch_mpl
+       fi
+       ;;
+
+     -mpilibname=*)
+	MPILIBNAME=`echo A$arg|sed 's/A-*mpilibname=//'`
+	;;
+
+     -cross)
+	cross_compiling=1
+	;;
+
+     -basecc=* | --basecc=*)
+	CC=`echo A$arg | sed 's/A-*basecc=//'`
+	BASECC=1
+	;;
+
+     -cc=* | --cc=*)
+	MPICC=`echo A$arg|sed 's/A-*cc=//'`
+	USERCC=1
+	;;
+
+     -fc=* | --fc=*)
+	MPIF77=`echo A$arg|sed 's/A-*fc=//'`
+	USERF77=1
+	;;
+
+     -basefc=* | --basefc=*)
+	FC=`echo A$arg|sed 's/A-*basefc=//'`
+	BASEF77=1
+	;;
+
+     -clinker=* | --clinker=*)
+	CLINKER=`echo $arg|sed 's/-*clinker=//'`
+	USERCLINKER=1
+	;;
+
+     -flinker=* | --flinker=*)
+	FLINKER=`echo $arg|sed 's/-*flinker=//'`
+	USERFLINKER=1
+	;;
+
+     -lib=* | --lib=*)
+       package="`echo $arg|sed 's/-*lib=//'`"
+       USERLIB="$package" ;;
+
+     -opt=* | --opt=*)
+       package="`echo $arg|sed 's/-*opt=//'`"
+       OPTFLAGS="$package" ;;
+
+     -optcc=* | --optcc=*)
+       package="`echo $arg|sed 's/-*optcc=//'`"
+       OPTFLAGSC="$package" ;;
+
+     -optf77=* | --optf77=*)
+       package="`echo $arg|sed 's/-*optf77=//'`"
+       OPTFLAGSF="$package" ;;
+
+     -cflags=* | --cflags=*)
+       package="`echo $arg|sed 's/-*cflags=//'`"
+       USER_CFLAGS="$package"
+       CFLAGS="$CFLAGS $package" ;;
+
+     -fflags=* | --fflags=*)
+       package="`echo $arg|sed 's/-*fflags=//'`"
+       FFLAGS="$package" ;;
+
+     -f77_extra_flag=* | --f77_extra_flag=*)
+       package="`echo $arg |sed 's/-*f77_extra_flag=//'`"
+       F77_EXTRA_FLAG="$package" ;;
+
+     -make=* | --make=*)
+       package=`echo $arg|sed 's/-*make=//'`
+       MAKE="$package"
+	;;
+
+     -mpichpath=*|--mpichpath=*)
+	mpichpath=`echo A$arg | sed 's/A-*mpichpath=//'`
+	MPIRUNARGS='"-mvhome"'
+	MPIRUNMVBACK="-mvback"
+	;;
+
+     -mpi2)
+	HAS_MPI2=1
+	;;
+
+     -nof77 | --nof77)
+       echo "Don't build the tests that need Fortran"
+       NOF77=1
+       HAS_FORTRAN=0
+       FC=true
+       ;;
+	
+     -nobanner)
+	nobanner=1
+	;;
+
+     -echo )
+	set -x 
+        configure_echo=1
+	;;
+
+     -u | -usage | --usage | --usag | --usa | --us | --u | -help | --help )
+	print_usage >& 2
+       exit 1 ;;
+
+     -v | -verbose | --verbose | --verbos | --verbo | --verb | --ver | --ve | --v)
+       verbose=yes ;;
+
+     *) 
+	print_error "Unrecognized configure option $arg" 
+	;;
+    esac
+  fi
+done]
+
+dnl Finish the initalization
+AC_PREPARE()
+#
+#
+## Find the MPICH home directory if not specified
+#if test -s $srcdir/src/pt2pt/Makefile.in ; then 
+#    MPIR_TRIAL=$srcdir
+#else
+#    PA C_GETWD(MPIR_TRIAL,src/pt2pt/Makefile.in)
+#fi
+#MPIR_HOME=$MPIR_TRIAL
+#
+if test -z "$prefix" -a -n "$PREFIX" ; then prefix=$PREFIX ; fi
+AC_SUBST(prefix)
+if test -z "$top_srcdir" -o "$top_srcdir" = "." ; then 
+    top_srcdir=$srcdir
+fi
+AC_SUBST(top_srcdir)
+
+if test -n "$mpichpath" ; then
+    if test -z "$MPICC" ; then MPICC=$mpichpath/mpicc ; fi
+    if test -z "$MPIF77" ; then MPIF77=$mpichpath/mpif77 ; fi
+    if test -z "$MPICPLUSPLUS" ; then MPICPLUSPLUS=$mpichpath/mpiCC ; fi
+    if test -z "$MPIRUN" ; then MPIRUN=$mpichpath/mpirun ; fi
+    if test -z "$MPICH_VERSION" ; then 
+	MPICH_VERSION="MPICH"
+    fi
+fi
+#
+if test $BASECC = 0 ; then
+    CC="$MPICC"
+fi
+if test $BASEF77 = 0 ; then
+    FC="$MPIF77"
+fi
+F77="$FC"
+#
+#
+# Check that an ARCH was set
+# If it wasn't set, try to guess using "util/tarch"
+#
+if test -z "$ARCH" -a -x tarch ; then
+    echo "Trying to guess architecture ..."
+    ARCH=`./tarch | sed s/-/_/g`
+fi
+if test -z "$ARCH" -a -x ../../bin/tarch ; then
+    ARCH=`../../bin/tarch | sed s/-/_/g`
+fi
+if test -z "$ARCH" -a -x $top_srcdir/../../bin/tarch ; then
+    ARCH=`$top_srcdir/../../bin/tarch | sed s/-/_/g`
+fi
+if test -z "$ARCH" ; then
+    print_error "Error: Couldn't guess target architecture."
+else
+    eval "arch_$ARCH=1"
+    echo "  configuring for \"$ARCH\" target architecture"
+fi
+
+if test -n "$arch_sgi" ; then
+    arch_IRIX=1
+    ARCH=IRIX
+fi
+if test -n "$arch_IRIX64" ; then
+    arch_IRIX=1
+fi
+if test -n "$arch_IRIX32" ; then
+    arch_IRIX=1
+fi
+if test -n "$arch_IRIXN32" ; then
+    arch_IRIX=1
+fi
+#  Handle solaris on Intel platforms, needed to get heterogeneity right in p4
+if test -n "$arch_solaris86" ; then
+    arch_solaris=1
+    ARCH=solaris86
+fi
+if test -n "$arch_sgi5" ; then
+    arch_IRIX5=1
+    ARCH=IRIX
+fi
+if test -n "$arch_cray" ; then
+    arch_CRAY=1
+    ARCH=CRAY
+fi
+# End of arch setup
+# 
+# Should eventually use a file like $file.run to see if the program should
+# be run or just compiled.  And eventually, this should be run EARLY,
+# before checking for things like functions and include files.
+#
+if test -z "$CC" ; then
+    echo "No C compiler specified!"
+    exit 1
+fi
+PAC_CHECK_COMPILER_OK(cc_works=1,cc_works=0)
+if test $cc_works = 0 ; then
+    print_error "Could not compile a simple file with $CC!"
+    print_error "Check for license and path restrictions on $CC."
+    exit 1
+fi
+if test $NOF77 = 0 ; then
+    if test -z "$FC" ; then
+	echo "No Fortran compiler specified!"
+	exit 1
+    fi
+    PAC_CHECK_F77_COMPILER_OK(,NOF77=1;HAS_FORTRAN=0;HAS_F77=0;
+       CFLAGS="-DMPID_NO_FORTRAN $CFLAGS"
+       F77="echo no Fortran compiler"
+       FLINKER="$F77"
+       MPI_FOBJECTS="")
+fi
+# Fixup for make
+PAC_MAKE_IS_GNUMAKE
+PAC_MAKE_IS_BSD44
+PAC_MAKE_IS_OSF
+PAC_MAKE_VPATH
+#
+# Check for header files
+# stdlib.h is used mostly for things like malloc and free, so it isn't
+# so important that stdlib.h be exactly "right".
+PAC_CHECK_HEADERS(stdlib.h)
+#
+# Check for stdarg correct (used in test.h)
+PAC_STDARG_CORRECT(stdarg_ok)
+if test $stdarg_ok = 1 ; then
+    AC_DEFINE(USE_STDARG)
+fi
+#
+# Check for special types
+PAC_LONG_DOUBLE()
+PAC_LONG_LONG_INT()
+#
+# Check to see if the compiler accepts prototypes
+PAC_CHECK_CC_PROTOTYPES(AC_DEFINE(HAVE_PROTOTYPES))
+#
+# This is used in one of the TEST programs (sigchk.c)
+PAC_CHECK_HEADERS(signal.h)
+AC_HAVE_FUNCS(sigaction)
+#
+INCLUDE_PATH=""
+USER_INCLUDE_PATH=""
+USER_DEFS=""
+LIB_LIST=""
+MPE_LIBS=""
+#
+# Generate the name for the MPI-C, MPI-CC, and MPI-F77 compilers (for use
+# in Makefiles that should not be MPICH dependent
+# MPICC etc should be set on the configure line
+if test -z "$MPICC" ; then
+    if [ -x $MPIR_HOME/build/$ARCH/$DEVICE/bin/mpicc ] ; then
+	MPICC=$MPIR_HOME/build/$ARCH/$DEVICE/bin/mpicc
+    else
+	# MPICH 1.1.1 and earlier
+        MPICC=$MPIR_HOME/lib/$ARCH/$DEVICE/mpicc
+    fi
+fi
+if test -z "$MPIF77" ; then
+    if test $NOF77 = 1 ; then
+	MPIF77=:
+    else
+	if [ -x $MPIR_HOME/build/$ARCH/$DEVICE/bin/mpif77 ] ; then
+	    MPIF77=$MPIR_HOME/build/$ARCH/$DEVICE/bin/mpif77
+	else
+ 	    # MPICH 1.1.1 and earlier
+            MPIF77=$MPIR_HOME/lib/$ARCH/$DEVICE/mpif77
+        fi
+    fi
+fi
+if test -z "$LIB_DIR" ; then
+    LIB_DIR="."
+fi
+# 
+# Default name for MPIRUN command
+if test -z "$MPIRUN" ; then
+    MPIRUN="mpirun"
+fi
+#
+#
+MPE_CFLAGS="$MPE_CFLAGS $DEFS"
+if test -n "$MPILIBNAME" ; then
+    LIB_LIST="$LIB_LIST -l$MPILIBNAME"
+fi
+
+#
+# Check that we can link MPI_Init using the MPICC program (if not MPICH)
+# (We don't test mpich because we may be configuring this before MPICH 
+# is built.)
+if test -z "$MPICH_VERSION" ; then
+    rm -f conftest*
+    cat >> conftest.c <<EOF
+#include "mpi.h"
+int main(int argc, char **argv)
+{MPI_Init( &argc, &argv );
+ MPI_Finalize();
+ return 0;
+}
+EOF
+    if $MPICC -o conftest conftest.c $LIB_LIST >conftest.log 2>&1 ; then
+	:
+    else
+        # Try adding -lmpi
+        rm conftest.log
+        if $MPICC -o conftest conftest.c $LIB_LIST -lmpi >conftest.log 2>&1 ; then
+            LIB_LIST="$LIB_LIST -lmpi"
+        else
+	    printerror "Could not compile/link a program containing MPI_Init"
+            if test -s conftest.log ; then cat conftest.out ; fi
+        fi
+    fi
+    rm -f conftest*
+fi
+AC_SUBST(MPIRUNARGS)
+# Substitute variables
+# Variables used in scripts only
+# FINC contains an @MPIR_HOME@, so it needs to come first
+AC_SUBST(FINC)dnl
+# Variables used by Makefile.in's:
+AC_SUBST(ARCH)dnl
+AC_SUBST(CC)dnl
+AC_SUBST(CFLAGS)dnl
+AC_SUBST(CLINKER)dnl
+AC_SUBST(COMM)dnl
+AC_SUBST(DEVICE)dnl
+AC_SUBST(F77)dnl
+AC_SUBST(FFLAGS)dnl
+AC_SUBST(FLIB_PATH)dnl
+AC_SUBST(FLIB_PATH_LEADER)dnl
+AC_SUBST(FLINKER)dnl
+AC_SUBST(HAS_FORTRAN)dnl
+AC_SUBST(F77_EXTRA_FLAG)dnl
+AC_SUBST(INCLUDE_PATH)dnl
+AC_SUBST(LIB_LIST)dnl
+AC_SUBST(LIB_PATH)dnl
+AC_SUBST(LIB_DIR)dnl
+AC_SUBST(MAKE)dnl
+AC_SUBST(MPE_CFLAGS)dnl
+AC_SUBST(MPICH_VERSION)dnl
+AC_SUBST(MPIR_HOME)dnl
+AC_SUBST(MPI_FOBJECTS)dnl
+AC_SUBST(MPIFDEP)dnl
+AC_SUBST(MPILIBNAME)dnl
+AC_SUBST(MPICC)dnl
+AC_SUBST(MPIF77)dnl
+AC_SUBST(MPICPLUSPLUS)dnl
+AC_SUBST(MPIRUN)dnl
+AC_SUBST(MPIRUNMVBACK)dnl
+AC_SUBST(OPTFLAGS)dnl
+AC_SUBST(OPTFLAGSC)dnl
+AC_SUBST(OPTFLAGSF)dnl
+AC_SUBST(VPATH)dnl
+AC_SUBST(HAS_MPI2)dnl
+AC_SUBST(DEVICE)
+MPICH_VERSION=""
+dnl This is used to make sure that we get the correct mpirun.
+AC_SUBST(MPICH_VERSION)dnl
+# End configuration file
+AC_OUTPUT(Makefile pt2pt/Makefile coll/Makefile topol/Makefile context/Makefile env/Makefile profile/Makefile )
+PAC_OUTPUT_EXEC(pt2pt/runtests coll/runtests topol/runtests context/runtests env/runtests profile/runtests,a+x )
+
+

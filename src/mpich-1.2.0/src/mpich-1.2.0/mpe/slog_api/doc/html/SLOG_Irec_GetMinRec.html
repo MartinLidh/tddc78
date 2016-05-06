@@ -1,0 +1,88 @@
+<HTML>
+<TITLE>SLOG_Irec_GetMinRec</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_GetMinRec"><H1>SLOG_Irec_GetMinRec</H1></A>
+Retrieve the fields for a bare minimal Interval Record 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_GetMinRec( const SLOG_intvlrec_t   *intvlrec,
+                               SLOG_rectype_t    *rectype,
+                               SLOG_intvltype_t  *intvltype,
+                               SLOG_bebit_t      *bebit_0,
+                               SLOG_bebit_t      *bebit_1,
+                               SLOG_starttime_t  *starttime,
+                               SLOG_duration_t   *duration,
+                               SLOG_nodeID_t     *orig_node_id,
+                               SLOG_cpuID_t      *orig_cpu_id,
+                               SLOG_threadID_t   *orig_thread_id,
+                               SLOG_where_t      *where,
+                         ... )
+</CODE></PRE>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>intvlrec </B> - pointer to the internal Interval record to be retrieved.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>rectype </B> - pointer to the interval record's record field which determines 
+if the record is a FIXED record or VARIABLE record, this in turns
+will determine the number of association and the number of
+sets of MPI call arguments.
+</DL>
+<DL><DT><B>intvltype </B> - pointer to interval record's interval type field.
+</DL>
+<DL><DT><B>bebit_0 </B> - pointer to interval record's first bebit.
+</DL>
+<DL><DT><B>bebit_1 </B> - pointer to interval record's second bebit.
+</DL>
+<DL><DT><B>starttime </B> - pointer to interval record's start time.
+</DL>
+<DL><DT><B>duration </B> - pointer to interval record's life time.
+</DL>
+<DL><DT><B>orig_node_id </B> - pointer to interval record's origin node ID.
+</DL>
+<DL><DT><B>orig_cpu_id </B> - pointer to interval record's origin cpu ID.
+</DL>
+<DL><DT><B>orig_thread_id </B> - pointer to interval record's origin thread ID.
+</DL>
+<DL><DT><B>orig_where </B> - pointer to interval record's where integer pointer.
+</DL>
+<DL><DT><B>...   </B> - pointers to destination task labels for Message Record ( optional ) :
+dest_node_id - pointer to interval record's destination node ID.
+dest_cpu_id - pointer to interval record's destination cpu ID.
+dest_thread_id - pointer to interval record's destination thread ID.
+</DL>
+<P>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+Since the subroutine copies all the fixed fields of the specified
+record to the input variables, the record must be non-empty.
+The subroutine can only be called __After__ retrieving the interval
+record from the SLOG file.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_irec_read.c<P>
+</BODY></HTML>

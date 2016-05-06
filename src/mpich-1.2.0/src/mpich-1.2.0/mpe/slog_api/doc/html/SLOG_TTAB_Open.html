@@ -1,0 +1,40 @@
+<HTML>
+<TITLE>SLOG_TTAB_Open</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_TTAB_Open"><H1>SLOG_TTAB_Open</H1></A>
+Creates the SLOG Thread Table, SLOG_threadinfo_table_t, and prepare it to be written to the disk. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_TTAB_Open( SLOG_STREAM  *slog )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to the SLOG_STREAM where SLOG Thread Table is located.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Include file needed </H2>
+slog_ttable.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_ttable.c<P>
+</BODY></HTML>

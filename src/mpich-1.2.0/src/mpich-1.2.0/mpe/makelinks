@@ -1,0 +1,10 @@
+#! /bin/sh
+if [ ! -s ./mpe/point.h ] ; then (cd ./mpe/ ; ln -s profiling/lib/point.h point.h >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/examples/upshot ] ; then (cd ./mpe/profiling/examples/ ; ln -s ../../bin/upshot upshot >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/nupshot/aclocal.m4 ] ; then (cd ./mpe/profiling/nupshot/ ; ln -s ../../aclocal.m4 aclocal.m4 >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/nupshot/logfiles ] ; then (cd ./mpe/profiling/nupshot/ ; ln -s ../upshot/logfiles logfiles >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/nupshot/protofix.h ] ; then (cd ./mpe/profiling/nupshot/ ; ln -s ../../../include/protofix.h protofix.h >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/upshot/bin/aclocal.m4 ] ; then (cd ./mpe/profiling/upshot/bin/ ; ln -s ../../../aclocal.m4 aclocal.m4 >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/profiling/wrappergen/aclocal.m4 ] ; then (cd ./mpe/profiling/wrappergen/ ; ln -s ../../aclocal.m4 aclocal.m4 >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/requests.h ] ; then (cd ./mpe/ ; ln -s profiling/lib/requests.h requests.h >/dev/null 2>&1 ; ) ; fi
+if [ ! -s ./mpe/aclocal.m4 ] ; then (cd ./mpe/ ; ln -s ../aclocal.m4 aclocal.m4 >/dev/null 2>&1 ; ) ; fi

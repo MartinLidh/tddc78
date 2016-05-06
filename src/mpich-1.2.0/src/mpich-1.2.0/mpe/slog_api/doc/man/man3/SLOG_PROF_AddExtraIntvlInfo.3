@@ -1,0 +1,121 @@
+.TH SLOG_PROF_AddExtraIntvlInfo 3 "8/7/1999" " " "SLOG_API"
+.SH NAME
+SLOG_PROF_AddExtraIntvlInfo \-  Add one display description of an interval to the reserved space of the SLOG Display Profile table. 
+.SH SYNOPSIS
+.nf
+int SLOG_PROF_AddExtraIntvlInfo(       SLOG_STREAM      *slog,
+                                 const SLOG_intvltype_t  intvltype,
+                                 const char *            classtype,
+                                 const char *            label,
+                                 const char *            color )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to the SLOG_STREAM where SLOG Display Profile Table is
+located.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvltype 
+- index to the interval type.
+.PD 1
+.PD 0
+.TP
+.B classtype 
+- character string for the classtype of the interval
+.PD 1
+.PD 0
+.TP
+.B label     
+- character string for the label of the interval
+.PD 1
+.PD 0
+.TP
+.B color     
+- character string for the color of the interval
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+all the input characters strings, classtype, label and color are
+allowed to contain alphanumeric, underscore, blank and tab characters.
+But tab characters, if exist, in the string are all converted to
+blanks for ease of management.
+
+
+Notes on the Addition of Extra Interval Description.
+This note is to clarify the usage of SLOG_PROF_XXX() routines
+especially while the user wants to add extra interval description
+to the logfile when the process of addition of interval records
+to the logfile has been started, for instance if one needs to
+add user marker interval records.
+
+Also, the term interval descriptor refers to an entry in
+the Display Profile, so is the term interval information,
+abbrev. as _IntvlInfo_.  These 3 terms are used interchangably.
+
+Under normal circumstances, the Display Profile table is created
+by first opening the section of the logfile for storing the table
+using SLOG_PROF_Open().  Then add the interval description using
+SLOG_PROF_AddIntvlInfo() and close the table section by
+SLOG_PROF_Close().
+
+In the case that the logfile involves interval records whose
+interval type are NOT known until the process of inserting
+of the interval records to the logfile has been started, one
+should open the SLOG_PROF_Open().  Then add the known record
+definitions using SLOG_PROF_AddIntvlInfo().  However, one should
+NOT call SLOG_PROF_Close() to close the table section.  Instead,
+SLOG_PROF_SetExtraNumOfIntvlInfos() should be called to set
+the extra number of interval description entries needed( the
+number can be greater than what one actually needs ).  Then
+when user encounters a new interval record type,
+SLOG_PROF_AddExtraIntvlInfo() can then be called to add the new
+interval record type to the Display Profile table.  This
+mechanism is very similar to that of Record Definition Table.
+Except for Record Definition Table, the above procedure has to
+be done before adding the interval record to the logfile using
+SLOG_Irec_ToOutputStream() which does NOT allow interval
+record of with unknown interval type to the Record Definition
+table.  For Display Profile, the same procedure is implmented
+to simplify the interface for user to store interval description
+information to the logfile, the interval description information
+is NOT important till logfile needs to be displayed graphically.
+
+.br
+
+
+
+.SH INCLUDE FILE NEEDED 
+slog_profile.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_profile.c

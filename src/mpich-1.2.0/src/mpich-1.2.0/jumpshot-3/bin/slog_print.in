@@ -1,0 +1,30 @@
+#!/bin/sh
+
+JAVA_HOME=@JAVA_HOME@
+GUI_HOME=@GUI_HOME@
+
+JAVA_LIBS=@JAVA_LIBS@
+JVM=@JVM@
+
+GUI_LIBDIR=${GUI_HOME}/lib
+SLOG_LIB=${GUI_LIBDIR}/slog.jar
+
+
+if [ -z "${JAVA_HOME}" ] ; then
+    echo "JAVA_HOME is NOT set!"
+    exit 1
+else
+    export JAVA_HOME
+    echo "JAVA_HOME is set. JAVA_HOME = "${JAVA_HOME}
+fi
+
+if [ -z "${GUI_LIBDIR}" -o "${GUI_LIBDIR}" = "/lib" ]; then
+    echo "GUI_LIBDIR is NOT set!"
+    exit 1
+else
+    echo "GUI_LIBDIR is set. GUI_LIBDIR = "${GUI_LIBDIR}
+fi
+
+CLASSPATH=${JAVA_LIBS}:${SLOG_LIB}:${GUI_LIBDIR}:.
+export CLASSPATH
+${JVM} -ms24m -mx30m slog_print "$@"

@@ -1,0 +1,40 @@
+.TH MPE_Fill_circle 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_Fill_circle \-  Fills a circle 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+int MPE_Fill_circle( graph, centerx, centery, radius, color )
+MPE_XGraph graph;
+int centerx, centery, radius;
+MPE_Color color;
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B graph 
+- MPE graphics handle
+.PD 1
+.PD 0
+.TP
+.B centerx 
+- horizontal center point of the circle
+.PD 1
+.PD 0
+.TP
+.B centery 
+- vertical center point of the circle
+.PD 1
+.PD 0
+.TP
+.B radius 
+- radius of the circle
+.PD 1
+.PD 0
+.TP
+.B color 
+- color of the circle
+.PD 1
+.SH LOCATION
+mpe_graphics.c

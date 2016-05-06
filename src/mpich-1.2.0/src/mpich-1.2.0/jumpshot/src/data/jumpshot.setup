@@ -1,0 +1,4 @@
+#Environment settings for Jumpshot
+#Mon Aug 25 11:31:49 1997
+COLORFILE=jumpshot.colors
+HELPFILE=jumpshot.help

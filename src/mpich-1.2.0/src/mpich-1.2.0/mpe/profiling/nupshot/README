@@ -1,0 +1,38 @@
+Nupshot README
+
+Nupshot is a performance visualization tool that displays logfiles
+in the 'alog' format (documented in alog.h), or the PICL v.1 format
+(documented in picl.h).
+
+This directory contains nupshot, a new version of upshot that uses
+Tcl and C, as opposed to the first version, which was all C, and the
+second version, which was all Tcl.
+
+To build:
+
+   ./configure
+   make
+
+Tcl 7.3 and Tk 3.6 will need to be installed on your system for
+nupshot to build properly.  The configure script will check a number
+of places for tcl and tk.  If it does not find them, add the -tcldir
+and -tkdir options to configure:
+
+   configure -tcldir=TCLDIR -tkdir=TKDIR
+
+  where
+   TCLDIR       = Directory containing tcl.  Must have lib/libtcl.a and
+                  include/tcl.h .
+   TKDIR        = Directory containing tk 3.3 or later.  Must have lib/libtk.a
+                  and include/tk.h .  May be the same as TCLDIR.
+
+More documentation is on the way.
+
+Let me know if there are any features or enhancements you would like
+to see in Nupshot.  Send these to mpi-bugs@mcs.anl.gov .
+
+Nupshot was written by Ed Karrels while a student at Argonne National
+Laboratory, under the direction of Ewing Lusk.  Additional direction and
+development were performed by William Gropp.
+
+

@@ -1,0 +1,7 @@
+*** Barrier Test ***
+All processes completed test
+[barrier]: Test 'Barrier Test 1' Passed.
+[barrier]: Test 'Barrier Test 2' Passed.
+For test suite 'barrier':
+Of 2 attempted tests, 2 passed, 0 failed.
+*** Barrier Test ***

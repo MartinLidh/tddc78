@@ -1,0 +1,50 @@
+.TH SLOG_SetFrameReservedSpace 3 "6/22/1999" " " "SLOG_API"
+.SH NAME
+SLOG_SetFrameReservedSpace \-  Set the byte size of the frame's  reserved space for SLOG file 
+.SH SYNOPSIS
+.nf
+int SLOG_SetFrameReservedSpace( SLOG_STREAM  *slog,
+                                SLOG_uint32   reserved_bytesize )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B reserved_bytesize 
+- unsigned integer to specify the reserved byte
+size of the frame.
+.PD 1
+
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to SLOG_STREAM where interval records will be stored.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The routine is one of the methods provided to reserve frame space
+for the pseudo records in the 1st pass of the logfile.  Reservation
+of the frame space is only necessary if the completed interval records
+are arranged in increasing endtime order and there is no way that
+user can rearrange the call sequence of the start event to call
+SLOG_Irec_ReserveSpace().  When the completed interval records
+are arranged in increasing starttime order, there is no need
+to reserve space for the pseudo interval records, so this routine should
+NOT be called.  Also if user has knowledge of the start event of the
+interval record, like in an event based model where all start and end
+events are mixed and are arranged in increasing time order, one
+should call SLOG_Irec_ReserveSpace() instead of this routine
+to do frame space reservation.
+
+.SH INCLUDE FILE NEEDED 
+slog_header.h
+
+.SH LOCATION
+../src/slog_header.c

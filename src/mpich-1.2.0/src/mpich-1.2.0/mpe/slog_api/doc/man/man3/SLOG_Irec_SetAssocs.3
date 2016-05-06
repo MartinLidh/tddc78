@@ -1,0 +1,56 @@
+.TH SLOG_Irec_SetAssocs 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_SetAssocs \-  Set the association array of the interval record. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_SetAssocs(       SLOG_intvlrec_t  *intvlrec,
+                         const SLOG_STREAM      *slog,
+                         const SLOG_N_assocs_t   N_assocs,
+                         const SLOG_assoc_t     *assocs  )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal Interval record to be modified.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog  
+- pointer to the SLOG_STREAM where the Record Definition Table is 
+defined. 
+.PD 1
+.PD 0
+.TP
+.B N_assocs 
+- Number of elements in the association array.  This number will
+be checked to determine if it coincides with what is in
+Record Definition Table
+.PD 1
+.PD 0
+.TP
+.B assocs 
+- association array, array of file pointers to the associated 
+interval records of the specified interval record.
+.PD 1
+
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The subroutine appends the specified Internal Interval Record with
+the given association array.  This subroutine is meant to be called
+once for each interval record written to the slogfile.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+.SH LOCATION
+../src/slog_irec_write.c

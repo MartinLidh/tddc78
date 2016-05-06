@@ -1,0 +1,60 @@
+#! /bin/sh
+#
+# This shell script updates the MPI version of the Chameleon performance
+# tests by copying them from the tools.n/comm/examples/perf directory
+#
+#
+echo The mpptest code has now diverged from the old PETSc 1 version.
+echo The MPI version is now the official version.
+exit 1
+#
+/bin/cp /home/gropp/tools.n/comm/examples/perf/*.c .
+/bin/cp /home/gropp/tools.n/comm/rate.c .
+/bin/cp /home/gropp/tools.n/system/getopts.c .
+/bin/cp /home/gropp/tools.n/testing/*.[ch] .
+/bin/cp /home/gropp/tools.n/comm/examples/angst/stress.c .
+chmod ug+w *.[ch]
+echo "Converting mpptest from Chameleon to MPI..."
+/home/gropp/tools.n/bin/inlinecomm -main -quiet -mpi mpptest.c
+/home/gropp/tools.n/bin/inlinecomm -main -quiet -mpi goptest.c
+/home/gropp/tools.n/bin/inlinecomm -main -quiet -mpi stress.c
+for file in gopf.c grph.c ovlap.c pair.c pattern.c util.c getopts.c \
+	rate.c tstauto.c ; do
+    echo "Converting $file from Chameleon to MPI..."
+    /home/gropp/tools.n/bin/inlinecomm -quiet -mpi $file
+done
+for file in *.c ; do
+    echo "Replacing MPI comments with code in $file..."
+    /bin/rm -f .tmp1
+    sed -e 's%/\* #MPI_INIT# \*/%MPI_Init( \&argc, \&argv );\
+MPI_Comm_size( MPI_COMM_WORLD, \&__NUMNODES );\
+MPI_Comm_rank( MPI_COMM_WORLD, \&__MYPROCID );%g' \
+        -e 's%/\* #MALLOC DECL# \*/%#if HAVE_STDLIB_H\
+#include <stdlib.h>\
+#endif%g' \
+	-e 's%/\* #MPI_FINALIZE# \*/%MPI_Finalize();%g' \
+	-e '/#NONMPI_START#/,/#NONMPI_END#/d' $file > .tmp1
+    /bin/rm -f $file
+    mv .tmp1 $file
+done
+cat > daytime.c <<.
+#include <sys/types.h>
+#include <time.h>
+#include <sys/time.h>        /*I <sys/time.h>  I*/
+long SYhhmmtoSec( s )
+char *s;
+{
+struct tm TM;
+sscanf( s, "%d:%d", &TM.tm_hour, &TM.tm_min );
+return 60 * (TM.tm_min + 60 * TM.tm_hour);
+}
+void SYGetDayTime( tp )
+struct timeval *tp;
+{
+gettimeofday( tp, (struct timezone *)0 );
+}
+.
+
+#echo "Modify mpptest.c to contain an MPI_Init and MPI_Finalize"
+#echo "Modify all programs with malloc to declare it with stdlib.h or"
+#echo "an explicit declaration"

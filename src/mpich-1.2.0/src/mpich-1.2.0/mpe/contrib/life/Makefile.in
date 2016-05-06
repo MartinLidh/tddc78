@@ -1,0 +1,33 @@
+
+##### User configurable options #####
+
+CC          = @CC@
+CLINKER     = $(CC)
+OPTFLAGS    = @OPTFLAGS@ -g
+LIB_PATH    = -L@MPE_LIBPATH@ -lmpe @X_LIB@ @MPI_LIBS@
+MPE_DIR     = @MPE_HOME@
+LOG_LIB     = -L@MPE_LIBPATH@ @LOGLIB@ @X_LIB@
+PROF_LIB    = -L@MPE_LIBPATH@ @PROFLIB@ @X_LIB@
+INCLUDE_DIR = @INCLUDEDIR@ -I$(MPE_DIR)
+LDFLAGS     = @OPTFLAGS@
+
+### End User configurable options ###
+
+CFLAGS  =  @MPE_CFLAGS@ $(OPTFLAGS) $(INCLUDE_DIR) 
+EXECS =  life_g
+
+default: $(EXECS)
+
+life_g:	life_g.o $(MPE_DIR)/mpe.h
+	$(CLINKER) $(LDFLAGS) $(OPTFLAGS)  -o life_g life_g.o \
+	$(LIB_PATH) -lm
+
+clean:
+	/bin/rm -f *.o *~ PI* $(EXECS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $*.c
+.f.o:
+	$(F77) $(FFLAGS) -c $*.f
+
+

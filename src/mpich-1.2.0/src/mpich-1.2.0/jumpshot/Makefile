@@ -1,0 +1,18 @@
+# Generated automatically from Makefile.in by configure.
+MAKE=make --no-print-directory
+SHELL=/bin/sh
+
+all:
+	cd src/code; $(MAKE)
+
+clean:
+	cd src/code; $(MAKE) clean
+
+rmlib:
+	cd src/code; $(MAKE) rmlib
+
+distclean:
+	cd src/code; $(MAKE) distclean
+
+configure: configure.in
+	autoconf

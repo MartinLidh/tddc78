@@ -1,0 +1,31 @@
+.TH SLOG_Irec_Copy 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_Copy \-  Copy the content of the specified interval record  to a newly allocated one and return it.   (SLOG_intvlrec_t's Copy constructor) 
+.SH SYNOPSIS
+.nf
+SLOG_intvlrec_t *SLOG_Irec_Copy( const SLOG_intvlrec_t *src )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B src 
+- pointer to constant SLOG_intvlrec_t to be copied.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- dest, pointer to the newly allocated SLOG_intvlrec_t, 
+interval record data structure.
+.PD 1
+
+.SH USAGE NOTES ON THIS ROUTINE 
+This routine is similar to SLOG_Irec_Create(), except it uses
+the content of the given SLOG_intvlrec_t to create/copy a new one.
+The memory can be deallocated by SLOG_Irec_Free().
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+.SH LOCATION
+../src/slog_irec_common.c

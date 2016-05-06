@@ -1,0 +1,260 @@
+Jumpshot-Graphical Visualization Tool for SLOG files
+====================================================
+
+***************
+Jumpshot Window
+***************
+The first main window shows up when "jumpshot" is executed
+
+In the top window menu bar, there are 4 pull-down menus.  They
+are FILE, DISPLAY, SYSTEM and HELP menus.
+
+FILE
+ New Frame       - Open a new Jumpshot Window
+ Select Logfile  - Opens up a window that allows you to select a logfile
+                   to view.
+ Exit            - Quit Jumpshot
+
+DISPLAY
+ Select type of display jumpshot should show.
+ Currenyly, only the Time Lines display is usable.  Mountain display has been
+ disabled.
+
+SYSTEM  
+ - Select look and feel of choice. Certain look and feel may not be
+   supported by the JVM that you are using.  
+ - Enable or disable tool tips. Tool tips are small descriptions that
+   become visible when user places mouse over some region like a button,
+   window, etc.
+
+HELP
+ Manual          - Opens a window containing this document
+ About           - Gives a short description of Jumpshot
+
+
+Also there are LOGFILE panel and Read button.
+
+LOGFILE 
+ Contains name of loaded logfile
+
+READ
+ Read in the logfile for processing
+
+
+****************************
+View & Frame Selector Window
+****************************
+After the READ button in the Jumpshot window has been pressed, the window
+titled "View & Frame Selector" will show up.
+
+In this window, you have a Graphical Frame Preview Selector which has
+two pull-down menus, FILE and GRAPH.  The Graphical Preview contains
+a simple graph of event count versus the duration of the whole logfile.
+
+Read the description of various options in GUI/src/GraphicPreview/README
+
+File
+ View Statistics - Open the UTE statistics viewer
+ Close           - Close the View & Frame Window
+
+Graph
+ Type  - Graphical preview's display type
+   Bar   - ( default ), cummulative Histograms
+   Line  - curves
+
+ Rescale - rescaling of Y-axis
+   On    - automatic rescaling of y-axis
+   Off   - retains the current scale of the y-axis
+
+Data Sets
+ All     - display all data sets
+ None    - clears all data sets in the graph
+
+Zoom
+ In      - magnify the view around selected view point
+ Out     - demagnify the view around selected view point
+ Reset   - reset the magnification to the orginal scale
+
+Legend
+ Display - display the legend for each data set.
+ Hide    - hide the Legend dialog box
+
+
+In the Graphical Preview, there is a Red Line which marks the middle of
+the frame to be displayed and also marks the view point to be used as
+a reference point during zoom in and out.
+
+In this window, there are 2 sets of radio buttons to define the properties
+of the frame to be displayed.  One is titled as "Connectivity Options"
+which currently only allow "Disconnected States", and the other one is
+titled as "View Options" which currently allows 3 possible views -
+Application View, Thread View and Processor View.
+
+Application View: MPI rank ID is used as Y axis label in the displayed
+                  frame later.
+
+Thread View     : MPI rank ID and logic thread ID, i.e. local thread ID,
+                  are used as the Y axis label in the displayed frame.
+                  Currently the 2 integers are encoded as one in the Y
+                  axis label through the equation :
+                  thread_Y_label = rank_ID * 1000 + logic_thread_ID.
+
+Processor View  : Node ID and local cpu ID are used as the Y axis label
+                  in the displayed frame.  Currently the 2 integers are
+                  encoded as one in the Y axis label through the equation:
+                  processor_Y_label = node_ID * 1000 + local_CPU_ID.
+
+Below these, there are buttons and textfield that allow user to manuelly
+select frame to display.  It is particularly important when the number
+of the pixels in the Graphical Preview is less than the number of
+frames available in the logfile.  In this case, the frame buttons are used
+to fine tune the frame of logfile that user wishes to view.
+
+The PREVIOUS frame button decrements the frame index.
+The NEXT     frame button increments the frame index.
+The only way to display a frame is to click on the display button.
+Then a Time Line Window with the properties selected will pop up.
+
+Also the textfield next to "Current frame =" under the Frame Information
+panel allows one to directly type in a frame index to view.  The Red
+Line Marker in the Graphical Preview and the Frame Buttons will be updated
+according.  The frame index should be between 0 and ( Number of frames - 1 ).
+
+The "View Statistics" option under the FILE pull-down menu will
+invoke the statistical viewer to process the *.tsv file.  Read the
+~/ibm_doc/README.viewstat for further detail.
+
+*****************
+Time Lines Window
+*****************
+
+Zoom Operations:
+---------------
+IN, OUT          - These buttons are used to zoom in and out horizontally
+                   Zooming out of the frame __before__ zooming in will
+                   produce unreasonable result.
+
+RESET            - Reset the time range of the displayed frame to the 
+                   default range.
+
+Miscellaneous Operations:
+------------------------
+PRINT            - Clicking on this button will bring up the 'Print Dialog' 
+                   window where you will be able to choose printer-related 
+                   options, and print display of this window.
+                   It is NOT working yet.
+
+OPTIONS          - Clicking on this button will bring up the 'Options' window
+
+Hidden Operations:
+-----------------
+Y-axis LABEL     - Double Clicking on label will bring up 'Adjust Process'
+                   window.
+
+SCROLL BAR       - Use to move forward or backward in time.
+                   Usually, one scrolls by dragging the scroll bar by 
+                   clicking on the empty space in the direction where 
+                   one wants scroll bar to move to.  Clicking on the 
+                   arrows in the scroll bar will only move scroll bar 
+                   1 pixel at a time.
+
+KEYBOARD KEYS
+
+Z or z           - Set the center of the Zoom operation.  
+                   Lock Zoom at point where mouse is positioned
+
+T or t	         - Set a time marker at point where mouse is positioned
+
+MOUSE BUTTON     - Clicking of any mouse button on a specific state instance 
+                   on display will bring up 'State Info' Window which displays
+                   information on that state instance. Clicking on this window
+                   will dispose it.
+                 - Clicking of any mouse button on the circle at origin of a 
+                   message will open up a window containing information on that
+                   message. Clicking on this window will dispose it.
+
+**************
+Options Window
+**************
+
+LINE DISPLAY     - Turn off/on zoom lock line and elapsed time line. These are
+                   vertical lines that you see in Display Window.
+
+DISPLAY OPTIONS  - Add/Cut time lines or mountain ranges to/from display window
+                   Again Mountains range is NOT usable.
+
+ZOOM & TIME      - Zoom Factor: Length of display is multiplied by this value
+                   when you zoom in. Lenght of display is divided by this value
+                   when you zoom out.
+	           From and To are starting and ending times in viewport 
+                   respectively.
+                   To change these values edit and press enter.
+
+NESTING          - Nest Factor: Measure of difference between heights of 
+                   successive nested levels. Larger the value larger the
+                   difference. To change value edit and press enter.
+                   DO OPTIMAL NESTING: Calculates most appropriate nest factor
+                   and implements it.
+
+*********************
+Adjust Process Window
+*********************
+
+This window contains options used to manipulate processes.
+
+SCROLLBAR        - This scrollbar is used to move current process forward and
+                   backward in time. 
+
+FORWARD/BACKWARD - This button is used to determine direction in which current
+                   process is to be moved
+
+RESET            - This causes the process to take up its original position in
+                   time.
+
+DISPLAY          - This checkbox controls display status of selected process.
+                   A process can be selected from 'AVAILABLE' list.
+
+SWAP             - This causes selected process to be swapped with current 
+                   process.
+
+DELETE           - Selected process is deleted. Deleted process is removed from
+                   'AVAILABLE' list and placed in 'DELETED' list.
+
+INSERT           - Causes selected process from 'DELETED' list to be placed 
+                   just above selected process from 'AVAILABLE' list.
+
+
+*****************
+State Definitions
+*****************
+
+Intially below Display Window, process states region contains buttons for
+each state and messages. This region can be attached to any of the 4 sides of
+Display Window. It can also be torn away from Display Window and made to form
+its own window.
+
+ALL STATES ON	 - Turn on all possible states 
+
+ALL STATES OFF	 - Turn off all possible states
+
+[State]          - Clicking on button for any state will show histogram
+                   window for that state. 
+
+checkbox         - Use this to enable/disable this state's display.
+
+**********************
+state histogram Window
+**********************
+
+This window contains information on associated state. The histogram
+given is the plot of number of state instances (y-axis) versus duration in 
+seconds (x-axis).
+
+**********
+Known Bugs
+**********
+1. If Process States region is torn away from Display Window it forms its own
+   window. Now if Time Lines Window is closed State Definitions window will not 
+   close. To close it you will have to click on the close icon present on the
+   window (provided by windows manager). This happens due to a bug in JToolBar,
+   which is an object in java.

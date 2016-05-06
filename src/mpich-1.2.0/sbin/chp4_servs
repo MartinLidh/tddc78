@@ -1,0 +1,110 @@
+#! /bin/sh
+#
+# Start the p4_server for the machines in the given file, or the current 
+# machines table
+defport=1234
+MPIR_HOME=/home/TDDB78/mpich-1.2.0/
+LARCH=solaris
+machineDir=/home/TDDB78/mpich-1.2.0//share
+bindir=/home/TDDB78/mpich-1.2.0//bin
+do_script=/bin/sh
+run_dir=$HOME
+server_name=serv_p4
+for arg in "$@" ; do
+    case $arg in 
+	-help)
+	echo "$0 [ -port=n ] [ -hosts=filename ] [ -arch=name ] [-hunt] [-kill]"
+	echo "   [ -pgm=server_program ] [ -startdir=directory ]"
+	exit 1
+	;;
+	
+	-port=*)
+	defport=`echo $arg | sed 's/-port=//'`
+	;;
+	
+	-startdir=*)
+	run_dir=`echo A$arg | sed 's/A-startdir=//'`
+	;;
+
+	-hosts=*)
+	filename=`echo $arg | sed 's/-hosts=//'`
+	;;
+
+	-pgm=*)
+	server_name=`echo A$arg | sed 's/A-pgm=//'`
+	;;
+
+	-arch=*)
+	LARCH=`echo $arg | sed 's/-arch=//'`
+	;;
+
+	-hunt)
+	do_hunt=1
+	;;
+
+	-kill)
+	do_kill=1
+	echo "Kill not implemented..."
+	exit 1
+	;;
+		
+	-echo)
+	set -x
+	;;
+
+	-trial)
+	do_script=cat
+	;;
+
+	*)
+	echo "Unrecognized argument $arg"
+	exit 1
+	;;
+    esac
+done
+if [ -z "$filename" ] ; then
+    if [ -z "$LARCH" ] ; then 
+        LARCH=`$MPIR_HOME/bin/tarch`
+    fi
+    filename=$machineDir/machines.$LARCH
+fi
+if [ ! -s $filename ] ; then 
+    echo "Can not find file $filename containing machines"
+    exit 1
+fi
+# Change to the startup dir
+cd $run_dir
+#
+serverloc=$bindir/$server_name
+#
+/bin/rm -f .tmp1
+sed -e 's/^\([^:]*\):.*$/\1/g' -e '/^#/d' $filename > .tmp1
+if test "$do_kill" = 1 ; then	
+    /bin/rm -f .tmp
+    awk '{     printf( "ssh %s %c(ps auxww | grep serv_p4 | grep -v grep | awk %c{printf(%ckill -2 %%s\\n%c, \\$2);}%c -)%c\n", $1, 34, 39, 34, 34, 39, 34 );
+    }' .tmp1 > .tmp
+    $do_script .tmp
+#    /bin/rm -f .tmp
+elif test "$do_hunt" = 1 ; then
+    # We'd like to send the rsh's to sh, but doing so failed (cat foo | sh
+    # would read part of the file and exit).
+    /bin/rm -f .tmp
+    awk '{ printf( "echo %s\n", $1 );
+printf( "ssh %s %c(ps auxww | grep serv_p4 | grep -v grep | grep -v ssh )%c\n", $1, 34, 34 );
+	}' .tmp1 > .tmp
+     $do_script .tmp
+     /bin/rm -f .tmp
+else
+    # Using machine[$1] == "" allows use to capture duplicates in the
+    # list of machines before starting servers on them
+    echo "$defport $serverloc" | awk '{ if (NR==1) { PORT=$1;SERV=$2;} else {
+	if (machine[$1]=="") {
+	    machine[$1]=PORT;
+	    printf( "ssh %s %s -o -p %s &\n", $1, SERV, PORT );
+	    printf( "echo starting %s on %s with %s\n", SERV, $1, PORT );
+	}}}' - .tmp1 | $do_script
+fi
+/bin/rm -f .tmp1
+
+
+

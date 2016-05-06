@@ -1,0 +1,17 @@
+SHELL = /bin/sh
+#
+# Update the install if you change this!
+upshot: upshot.in
+	if [ -z "@wishloc@" ] ; then \
+	    echo "Upshot requires the tk wish shell" ; \
+	else \
+	/bin/rm -f upshot ; \
+	cat upshot.in | sed \
+	  -e "s%\#wishloc\#%@wishloc@%g" \
+	  -e "s%\#TK_VERSION\#%@TK_VERSION@%g" \
+	  -e "s%\#BITMAP_DIR\#%@UPSHOT_HOME@/bitmaps%g" > \
+	    upshot;\
+	chmod 775 upshot ; \
+	fi
+clean:
+	/bin/rm -f upshot 

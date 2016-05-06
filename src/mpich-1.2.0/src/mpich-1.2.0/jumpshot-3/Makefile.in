@@ -1,0 +1,14 @@
+MAKE=@MAKE@
+SHELL=/bin/sh
+
+all:	
+	cd src; $(MAKE)
+
+clean:
+	cd src; $(MAKE) clean
+
+rmlib:
+	cd src; $(MAKE) rmlib
+
+distclean:
+	cd src; $(MAKE) distclean

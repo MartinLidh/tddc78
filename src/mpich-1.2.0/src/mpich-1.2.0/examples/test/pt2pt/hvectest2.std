@@ -1,0 +1,9 @@
+*** Testing struct type for vectors (MPI_UB) ***
+Status info: source = 1, tag = 2001, count = 10
+Status info: source = 1, tag = 2001, count = 10
+Status info: source = 1, tag = 2001, count = 10
+Status info: source = 1, tag = 2001, count = 10
+Status info: source = 1, tag = 2001, count = 10
+Status info: source = 1, tag = 2001, count = 10
+All processes completed test
+*** Testing struct type for vectors (MPI_UB) ***

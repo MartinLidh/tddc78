@@ -1,0 +1,58 @@
+#! /bin/sh
+#
+#    Starts up xman with the tools manual pages
+#
+if [ -z "$MPIDIR" ] ; then MPIDIR="/home/TDDB78/mpich-1.2.0/" ; fi
+#
+# Start the appropriate program
+program="xman -notopbox -helpfile $MPIDIR/man/mpiman.help"
+docdir=man
+mankind=UNIX
+MANPATH=$MPIDIR/$docdir
+export MANPATH
+#
+for arg in "$@" ; do
+    case $arg in 
+	-echo)
+	set -x
+	;;
+	-xmosaic)
+	program="xmosaic $MPIDIR/www/index.html"
+	docdir=www
+	mankind=HTML
+	;;
+	-mosaic)
+	program="mosaic $MPIDIR/www/index.html"
+	docdir=www
+	mankind=HTML
+	;;
+	-netscape)
+	program="netscape $MPIDIR/www/index.html"
+	docdir=www
+	mankind=HTML
+	;;
+	-xman)
+	program="xman -notopbox -helpfile $MPIDIR/man/mpiman.help"
+	docdir=man
+	MANPATH=$MPIDIR/$docdir
+	export MANPATH
+	mankind=UNIX
+	;;
+	-man)
+	program=man
+	docdir=man
+	MANPATH=$MPIDIR/$docdir
+	export MANPATH
+	mankind=UNIX
+	;;
+	*)
+	args="$args $arg"
+	;;
+    esac
+done
+if [ ! -d $MPIDIR/$docdir ] ; then
+    echo "You do not have $mankind manpages installed"
+    exit 1
+fi
+$program $args
+

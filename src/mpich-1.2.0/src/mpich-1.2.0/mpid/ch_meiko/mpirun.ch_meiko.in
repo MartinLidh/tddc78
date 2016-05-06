@@ -1,0 +1,26 @@
+#! /bin/sh
+if [ "$MPIR_HOME" = "" ] ; then 
+    MPIR_HOME=#MPIR_HOME#
+fi
+if [ "$MPIR_HOME" = "#""MPIR_HOME""#" ] ; then
+    MPIR_HOME=`pwd`/..
+fi
+if [ "#MPIRUN_BIN#" = "#""MPIRUN_BIN""#" ] ; then 
+    MPIRUN_HOME=$MPIR_HOME/bin
+else
+    MPIRUN_HOME=#MPIRUN_BIN#
+fi
+if [ "$argsset" = "" ] ; then
+   . $MPIRUN_HOME/mpirun.args
+   argsset=1
+fi
+# Note that the file /opt/MEIKOcs2/<machinename>/machine.des contains
+# detailed information on the structure of the machine (i.e., 
+# which nodes have disks, vector boards, etc).
+if [ "$debugger" != "" ] ;  then
+    $Show "totalview prun -a -n$np $progname $cmdLineArgs"
+    exitstatus=$?
+else
+    $Show ${MEIKO_RUN} -n $np $progname $cmdLineArgs  
+    exitstatus=$?
+fi

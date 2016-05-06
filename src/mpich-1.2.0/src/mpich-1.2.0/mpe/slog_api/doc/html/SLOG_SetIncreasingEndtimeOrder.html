@@ -1,0 +1,21 @@
+<HTML>
+<TITLE>SLOG_SetIncreasingEndtimeOrder</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_SetIncreasingEndtimeOrder"><H1>SLOG_SetIncreasingEndtimeOrder</H1></A>
+Set the flag for the interval records will be arranged in increasing endtime order.  That means there will be a second pass of the logfile and the endtime of the interval will be used to determine endtime of the frame. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_SetIncreasingEndtimeOrder( SLOG_STREAM  *slog )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to SLOG_STREAM where interval records will be stored.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Include File Needed </H2>
+slog_header.h
+<P><B>Location:</B>../src/slog_header.c<P>
+</BODY></HTML>

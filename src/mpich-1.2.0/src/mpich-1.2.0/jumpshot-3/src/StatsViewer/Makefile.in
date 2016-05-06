@@ -1,0 +1,43 @@
+
+SHELL = /bin/sh
+
+JC         = @JC@
+JAR        = @JAR@
+JAVA_LIBS  = @JAVA_LIBS@
+SWING_LIBS = @SWING_LIBS@
+
+GUI_HOME   = ../..
+GUI_LIBDIR = $(GUI_HOME)/lib
+
+STATS_LIB = statsviewer.jar
+
+SRC = Graph_data.java StatPlotr.java StatTimeInterface.java \
+      StatView_FileFilter.java Stat_ColorChooser.java \
+      Stat_File_Parser.java Stat_Graph.java Stat_Graph_Title.java \
+      StatisticsViewer.java Statistics_Data.java
+
+OBJ  = $(SRC:.java=.class)
+
+.SUFFIXES:      .java .class
+
+CLASSPATH = $(JAVA_LIBS):$(SWING_LIBS):.
+
+JFLAGS = -classpath $(CLASSPATH) @JFLAGS@
+
+ALL:	CLASSFILES $(STATS_LIB)
+
+CLASSFILES: $(SRC)
+	$(JC) $(JFLAGS) $?
+
+$(STATS_LIB): $(OBJ)
+	$(JAR) cvf $@ *.class
+	mv -f $@ $(GUI_LIBDIR)
+
+clean:
+	rm -f $(OBJ) $(STATS_LIB) *.class core
+
+rmlib:
+	rm -f $(GUI_LIBDIR)/$(STATS_LIB)
+
+distclean: clean rmlib
+	rm -f *.java.*

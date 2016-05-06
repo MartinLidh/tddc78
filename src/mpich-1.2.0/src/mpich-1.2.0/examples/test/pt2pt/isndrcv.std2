@@ -1,0 +1,27 @@
+**** Testing MPI_Isend and MPI_Irecv ****
+[isndrcv]: Test 'Send-Receive Test, Type 0' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 1' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 2' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 3' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 4' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 5' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 6' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 7' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 8' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 9' Passed.
+[isndrcv]: Test 'Send-Receive Test, Type 10' Passed.
+[isndrcv]: Test 'Tag Selectivity Test' Passed.
+[isndrcv]: Test 'NULL Communicator Test' Passed.
+[isndrcv]: Test 'Invalid Count Test' Passed.
+[isndrcv]: Test 'Invalid Type Test' Passed.
+[isndrcv]: Test 'Invalid Tag Test' Passed.
+[isndrcv]: Test 'Invalid Destination Test' Passed.
+For test suite 'isndrcv':
+Of 17 attempted tests, 17 passed, 0 failed.
+0 - MPI_ISEND : Null communicator
+0 - MPI_ISEND : Invalid count argument is -1
+0 - MPI_ISEND : Datatype is MPI_TYPE_NULL
+0 - MPI_ISEND : Invalid message tag -1
+0 - MPI_ISEND : Invalid rank 300
+All processes completed test
+**** Testing MPI_Isend and MPI_Irecv ****

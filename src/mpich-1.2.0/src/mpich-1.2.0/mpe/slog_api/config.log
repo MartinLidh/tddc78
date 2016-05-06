@@ -1,0 +1,56 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:523: checking how to run the C preprocessor
+configure:544: cc -E  conftest.c >/dev/null 2>conftest.out
+configure:587: checking for unistd.h
+configure:597: cc -E  conftest.c >/dev/null 2>conftest.out
+configure:816: checking gnumake
+configure:842: checking BSD 4.4 make
+configure:866: checking OSF V3 make
+configure:890: checking for virtual path format
+configure:927: checking whether ln -s works
+configure:950: checking for gcc
+configure:1027: checking whether the C compiler (/home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris ) works
+configure:1041: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris   conftest.c  1>&5
+configure:1061: checking whether the C compiler (/home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris ) is a cross-compiler
+configure:1066: checking whether we are using GNU C
+configure:1075: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -E conftest.c
+configure:1120: checking for ranlib
+configure:1149: checking for ar
+configure:1185: checking whether byte ordering is bigendian
+configure:1203: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris  conftest.c 1>&5
+"configure", line 1198: undefined symbol: bogus
+"configure", line 1198: syntax error before or at: endian
+cc: acomp failed for conftest.c
+configure: failed program was:
+#line 1192 "configure"
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/param.h>
+int main() {
+
+#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
+ bogus endian macros
+#endif
+; return 0; }
+configure:1251: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris   conftest.c  1>&5
+configure: failed program was:
+#line 1238 "configure"
+#include "confdefs.h"
+main () {
+  /* Are we little or big endian?  From Harbison&Steele.  */
+  union
+  {
+    long l;
+    char c[sizeof (long)];
+  } u;
+  u.l = 1;
+  exit (u.c[sizeof (long) - 1] == 1);
+}
+configure:1276: checking for working const
+configure:1330: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -c -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris  conftest.c 1>&5
+configure:1414: checking for working alloca.h
+configure:1426: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris -DHAVE_SLOGCONF_H   conftest.c  1>&5
+configure:1447: checking for alloca
+configure:1475: /home/TDDB78/src/mpich-1.2.0/lib/../bin/mpicc -o conftest -DNOWHERE -DCHECKTIMEORDER -DCOMPRESSION   -DMPI_solaris -DHAVE_SLOGCONF_H   conftest.c  1>&5

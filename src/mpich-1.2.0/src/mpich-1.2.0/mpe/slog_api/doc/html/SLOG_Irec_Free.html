@@ -1,0 +1,21 @@
+<HTML>
+<TITLE>SLOG_Irec_Free</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_Free"><H1>SLOG_Irec_Free</H1></A>
+Deallocate the given interval record data structure, i.e.  free the memory associated with it. (SLOG_intvlrec_t's destructor) 
+<H2>Synopsis</H2>
+<PRE><CODE>
+void SLOG_Irec_Free( SLOG_intvlrec_t *irec )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>irec </B> - pointer to the interval record data structure to be erased/freed.
+</DL>
+<P>
+<H2>Usage Notes on this routine </H2>
+Free the memory allocated by SLOG_Irec_Create(), SLOG_Irec_Copy() and
+other related routines.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P><B>Location:</B>../src/slog_irec_common.c<P>
+</BODY></HTML>

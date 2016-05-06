@@ -1,0 +1,43 @@
+<HTML>
+<TITLE>SLOG_Irec_SetArgs</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_SetArgs"><H1>SLOG_Irec_SetArgs</H1></A>
+Set the argument part of the interval record. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_SetArgs(       SLOG_intvlrec_t  *intvlrec,
+                       const SLOG_STREAM      *slog,
+                       const SLOG_N_args_t     N_args,
+                       const SLOG_arg_t       *args )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>intvlrec </B> - pointer to the internal interval record to be modified.
+</DL>
+<P>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>slog  </B> - pointer to the SLOG_STREAM where the Record Definition Table 
+is defined.
+</DL>
+<DL><DT><B>N_args </B> - Number of elements in the argument array.  This number will
+be checked to determine if it coincides with what is in
+Record Definition Table
+</DL>
+<DL><DT><B>args </B> - argument array, array of arguments of the specified interval record.
+</DL>
+<P>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+The subroutine appends the specified Internal Interval with argument
+array.  For Fixed interval record, the subroutine is meant to called
+once for each specified interval record.  For variable interval
+record, the subroutine can be called as many times as needed.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P><B>Location:</B>../src/slog_irec_write.c<P>
+</BODY></HTML>

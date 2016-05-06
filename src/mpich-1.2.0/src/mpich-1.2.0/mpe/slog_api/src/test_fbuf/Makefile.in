@@ -1,0 +1,42 @@
+#  (C) 1993 by Argonne National Laboratory and Mississipi State University.
+#      All rights reserved.  See COPYRIGHT in top-level directory.
+#
+
+##### User configurable options #####
+CC           = @CC@
+CLINKER      = $(CC)
+AR           = @AR@ cr
+RANLIB       = @RANLIB@
+MAKE         = @MAKE@
+INC_DIR      = -I./ -I../
+OPTFLAGS     = @OPTFLAGS@
+SLOG_CFLAGS  = @CFLAGS@
+MPICH        = @MPICH@
+
+### End User configurable options ###
+SHELL = /bin/sh
+
+@VPATH@
+
+CFLAGS =  $(SLOG_CFLAGS ) $(OPTFLAGS) $(INCLUDE_DIR) 
+
+MAIN_SRC   = fbuf_readfile.c fbuf_writefile.c
+MAIN_OBJ   = $(MAIN_SRC:.c=.o)
+MAIN_EXE   = $(MAIN_OBJ:.o=)
+
+AUX_SRC    = ../bswp_fileio.c ../fbuf.c elem.c
+AUX_OBJ    = $(AUX_SRC:.c=.o)
+
+.SUFFIXES:	.c .o .h
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< $(INC_DIR)
+
+.o:
+	$(CC) $(CFLAGS) -o $@ $< $(AUX_OBJ)
+
+all:	$(AUX_OBJ) $(MAIN_OBJ) $(MAIN_EXE)
+
+clean:
+	/bin/rm -f *~ core $(AUX_OBJ) $(MAIN_OBJ) $(MAIN_EXE)
+

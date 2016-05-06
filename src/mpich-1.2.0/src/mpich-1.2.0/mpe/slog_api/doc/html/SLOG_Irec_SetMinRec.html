@@ -1,0 +1,88 @@
+<HTML>
+<TITLE>SLOG_Irec_SetMinRec</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_Irec_SetMinRec"><H1>SLOG_Irec_SetMinRec</H1></A>
+Set the fields for a bare minimal Interval Record 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_Irec_SetMinRec(       SLOG_intvlrec_t  *intvlrec,
+                         const SLOG_rectype_t    rectype,
+                         const SLOG_intvltype_t  intvltype,
+                         const SLOG_bebit_t      bebit_0,
+                         const SLOG_bebit_t      bebit_1,
+                         const SLOG_starttime_t  starttime,
+                         const SLOG_duration_t   duration,
+                         const SLOG_nodeID_t     orig_node_id,
+                         const SLOG_cpuID_t      orig_cpu_id,
+                         const SLOG_threadID_t   orig_thread_id,
+                         const SLOG_where_t      where,
+                         ... )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>intvlrec </B> - pointer to the internal interval record to be modified.
+</DL>
+<P>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>rectype </B> - interval record's record field which determines if the
+record is a FIXED record or VARIABLE record, this in turns
+will determine the number of association and the number of 
+sets of MPI call arguments. 
+</DL>
+<DL><DT><B>intvltype </B> - interval record's interval type field.
+</DL>
+<DL><DT><B>bebit_0 </B> - interval record's first bebit.
+</DL>
+<DL><DT><B>bebit_1 </B> - interval record's second bebit.
+</DL>
+<DL><DT><B>starttime </B> - interval record's start time.
+</DL>
+<DL><DT><B>duration </B> - interval record's life time.
+</DL>
+<DL><DT><B>orig_node_id </B> - interval record's origin node ID.
+</DL>
+<DL><DT><B>orig_cpu_id </B> - interval record's origin cpu ID.
+</DL>
+<DL><DT><B>orig_thread_id </B> - interval record's origin thread ID.
+</DL>
+<DL><DT><B>where </B> - interval record's where integer pointer.
+</DL>
+<DL><DT><B>...   </B> - destination task labels for Message Record ( optional ) :
+dest_node_id - interval record's destination node ID.
+dest_cpu_id - interval record's destination cpu ID.
+dest_thread_id - interval record's destination thread ID.
+</DL>
+<P>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+The subroutine initializes an allocated internal interval
+record data structure.   So the routine must be called before
+appending the record to the SLOG file.   The rectype may be
+a Message Record type.
+<P>
+<H2>Include File Needed </H2>
+slog.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_irec_write.c<P>
+</BODY></HTML>

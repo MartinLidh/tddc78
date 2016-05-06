@@ -1,0 +1,277 @@
+#! /bin/sh
+DoLink=1
+DoCompile=0
+show_compile=0
+show_link=0
+MPILOG=
+Show=eval
+allargs=
+compileargs=
+linkargs=
+linkobjs=
+gettinglinkarg=0
+HasDashC=0
+UsesPmpi=0
+verbose=0
+proflib=-lpmpich
+proflibfullname=/home/TDDB78/mpich-1.2.0//lib/libpmpich.a
+F77BASE="f77"
+F77="${MPICH_F77-$F77BASE}"
+FLINKERBASE="f77"
+F77LINKER="${MPICH_F77LINKER-$FLINKERBASE}"
+UseSharedLib=${MPICH_USE_SHLIB-no}
+for arg in "$@" ; do
+#    echo procssing arg $arg
+    # Special processing for -o name
+    if [ $gettinglinkarg = 1 ] ; then
+	linkargs="$linkargs $arg"
+	gettinglinkarg=0
+	outputfilename="$arg"
+	continue
+    fi
+    case "$arg" in 
+	-c)
+	# If -c is NOT specified, then we need to perform a link step.
+	allargs="$allargs $arg"
+	compileargs="$compileargs $arg"
+        # If -o was set, then we need to move the output file option
+        # to the compile line (note that this is non-standard, and should
+        # not be used in portable codes)
+        if [ $DoLink = 1 -a -n "$outputfilename" ] ; then
+	    compileargs="$compileargs -o $outputfilename"
+        fi
+	DoLink=0
+	HasDashC=1
+	;;
+        -o)
+	# Need to link
+	allargs="$allargs $arg"
+        if [ $HasDashC = 1 ] ; then
+            # Some BUT NOT ALL compilers support -o with -c.  Allow
+            # the user to make use of the feature, IF IT EXISTS.
+            compileargs="$compileargs $arg"	
+        else
+	    linkargs="$linkargs $arg"
+	    compileargs="$compileargs -c"
+	    # Still need to add the target of the -o
+	    gettinglinkarg=1
+	    DoLink=1
+        fi
+	;;
+	-mpilog)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+		MPILOG="-lfmpich -llmpi -lmpe"
+	else
+	    echo "-mpilog requires the MPE libraries"
+	fi
+	;;
+	-mpitrace)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+   	    MPILOG="-lfmpich -ltmpi"
+	else
+	    echo "-mpitrace requires the MPE libraries"
+	fi
+	;;
+	-mpianim)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+	    MPILOG="-lfmpich -lampi -lmpe"
+	else
+	    echo "-mpianim requires the MPE libraries"
+	fi
+	;;
+	-echo)
+	set -x
+	;;
+	-show)
+	Show=echo
+	;;
+	-fc=*)
+	F77=`echo A$arg | sed -e 's/A-fc=//g'`
+	F77LINKER="$F77"
+	;;
+	-compile_info)
+	show_compile=1
+	DoLink=0
+	Show=echo
+	;;
+	-link_info)
+	show_link=1
+	Show=echo
+	;;
+	-shlib)
+        UseSharedLib=yes
+	;;
+	-noshlib)
+        UseSharedLib=no
+	;;
+	-v)
+	verbose=1
+	compileargs="$compileargs -v"
+	linkargs="$linkargs -v"
+	;;
+	-l*)
+	# This SHOULD be the -l<lib> argument.  Only for the linker
+	linkargs="$linkargs $arg"
+	allargs="$allargs $arg"
+	;;
+	-help)
+	echo "This is a program to compile or link MPI programs"
+	echo "In addition, the following special options are supported"
+	echo "    -mpilog    - Build version that generate MPE log files"
+	echo "    -mpitrace  - Build version that generates traces"
+	echo "    -mpianim   - Build version that generates real-time"
+	echo "                 animation"
+	echo "    -fc=pgm    - Change the program to use to compile and link"
+        echo "                 MPI programs.  WARNING! The program that you"
+        echo "                 choose MUST be compatible with the MPICH "
+        echo "                 libraries.  If you have trouble, you should"
+        echo "                 reconfigure and rebuild MPICH, selecting"
+        echo "                 this compiler."
+	echo "    -show      - Show the commands that would be used without"
+	echo "                 runnning them"
+	echo "    -compile_info - Show how to compile a program"
+	echo "    -link_info - Show how to link a program"
+	echo "    -help      - Give this help"
+	echo "    -echo      - Show exactly what this program is doing."
+	echo "                 This option should normally not be used."
+	echo "This should be used just like the usual Fortran compiler"
+	echo "For example,"
+	echo "   $0 -c foo.f "
+	echo "and"
+	echo "   $0 -o foo foo.o"
+	echo "Combining compilation and linking in a single command"
+	echo "   $0 -o foo foo.f"
+	echo "may not work on some systems, and is not recommended."
+	exit 1
+	;;
+        #*\"*) 
+	#allargs="$allargs `echo $arg | sed 's/\"/\\\"/g'`"
+	#compileargs="$compileargs `echo $arg | sed 's/\"/\\\"/g'`"
+	#linkargs="$linkargs `echo $arg | sed 's/\"/\\\"/g'`"
+	#;;
+	# Unrecognized args.  Because we do an eval, we need to
+	# carefully quote any args that contain quotes.
+        *\"*) 
+	qarg="'"$arg"'"
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *\'*) 
+	qarg='\"'"$arg"'\"'
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *) allargs="$allargs $arg"
+	if [ -s "$arg" ] ; then
+	    ext=`expr "$arg" : '.*\(\..*\)'`
+	    if [ "$ext" = ".f" -o "$ext" = ".F" -o \
+		 "$ext" = ".for" -o "$ext" = ".FOR" ] ; then
+	        DoCompile=1
+	        compileargs="$compileargs $arg"
+	        fname=`basename $arg $ext`
+	        linkobjs="$linkobjs $fname.o"
+	    elif [ "$ext" = ".o" ] ; then
+		if [ $HasDashC = 1 ] ; then
+	            compileargs="$compileargs $arg"
+                else
+	            DoLink=1
+	            linkobjs="$linkobjs $arg"
+                fi
+	    else
+	        compileargs="$compileargs $arg"
+	        linkargs="$linkargs $arg"
+	    fi
+	else
+            compileargs="$compileargs $arg"
+	    linkargs="$linkargs $arg"
+	fi
+	;;
+    esac
+done
+#
+# Take care of mpif.h; try to add the link if necessary
+finc="-I/home/TDDB78/mpich-1.2.0//include"
+added_link=0
+if [ -z "$finc" ] ; then
+    # -r is true if we can read the file, which is what we want
+    if [ ! -r mpif.h ] ; then
+        #echo "Adding a symbolic link for mpif.h"
+	trap "$Show /bin/rm mpif.h" 0
+	$Show ln -s /home/TDDB78/mpich-1.2.0//include/mpif.h mpif.h
+        added_link=1
+    fi
+fi
+status=0
+if [ $DoCompile = 1 -o $show_compile = 1 ] ; then 
+    if [ $HasDashC != 1 ] ; then
+        compileargs="-c $compileargs"
+    fi
+    $Show $F77 $finc   $compileargs
+    status=$?
+    if [ $status != 0 ] ; then 
+	exit $status
+    fi
+fi
+if [ $DoLink = 1 -o $show_link = 1 ] ; then
+    # If the profiling library doesn't exist, or MPICH_NO_PROF environment
+    # variable is set, skip the profiling library.
+    if [ -n "$MPICH_NO_PROF" -o ! -s "$proflibfullname" ] ; then
+        proflib=""
+    fi
+    # Add this just in case we are building with shared libraries
+    if [ -s /home/TDDB78/mpich-1.2.0//lib/libmpichf.a ] ; then
+        farglib="-lmpichf"
+    fi
+    # See the comment in mpicc about UseSharedLib
+    # Also, don't use if the shared libraries don't exist yet
+    # (because -lmpichfarg.a won't exist yet)
+    if [ "ignore" != "ignore" -a $UseSharedLib = "yes" -a \
+	-s /home/TDDB78/mpich-1.2.0//lib/lib@MPILIBNAMEfarg.a ] ; then
+	# We also add a library containing MPI_Init and the routines
+        # that it uses to call getarg/iarg.  
+	flibpath="-L/home/TDDB78/mpich-1.2.0//lib/shared" 
+        if [ -n "" ] ; then
+	    flibpath="/home/TDDB78/mpich-1.2.0//lib/shared $flibpath"
+	fi
+	if [ -n "" ] ; then
+	    flibpath="-L $flibpath"
+ 	    if [ -n "" ] ; then
+	        flibpath=" $flibpath"
+	    fi
+	fi
+	farglib="-lmpichfarg $farglib" 
+    fi
+    if [ -n "$MPILOG" ] ; then
+        $Show $F77LINKER    $flibpath -L/home/TDDB78/mpich-1.2.0//lib $linkobjs $MPILOG $linkargs $proflib -lmpich $proflib $farglib  -lsocket -lnsl -lnsl -laio   
+    else
+        $Show $F77LINKER    $flibpath -L/home/TDDB78/mpich-1.2.0//lib $linkobjs $linkargs $proflib -lmpich $proflib $farglib  -lsocket -lnsl -lnsl -laio   
+    fi
+    status=$?
+fi
+#
+# If we added the link, remove it.
+if [ $added_link = 1 ] ; then
+    $Show rm mpif.h
+    trap 0
+fi
+exit $status

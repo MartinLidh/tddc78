@@ -1,0 +1,56 @@
+.TH SLOG_Irec_SetArgs 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_SetArgs \-  Set the argument part of the interval record. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_SetArgs(       SLOG_intvlrec_t  *intvlrec,
+                       const SLOG_STREAM      *slog,
+                       const SLOG_N_args_t     N_args,
+                       const SLOG_arg_t       *args )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal interval record to be modified.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog  
+- pointer to the SLOG_STREAM where the Record Definition Table 
+is defined.
+.PD 1
+.PD 0
+.TP
+.B N_args 
+- Number of elements in the argument array.  This number will
+be checked to determine if it coincides with what is in
+Record Definition Table
+.PD 1
+.PD 0
+.TP
+.B args 
+- argument array, array of arguments of the specified interval record.
+.PD 1
+
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The subroutine appends the specified Internal Interval with argument
+array.  For Fixed interval record, the subroutine is meant to called
+once for each specified interval record.  For variable interval
+record, the subroutine can be called as many times as needed.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+.SH LOCATION
+../src/slog_irec_write.c

@@ -1,0 +1,14 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:690: checking for f95
+configure:750: checking for a BSD compatible install
+configure:800: checking whether ln -s works
+configure:825: checking for ar
+configure:859: checking gnumake
+configure:886: checking for virtual path format
+configure:923: checking for module suffix
+configure:955: checking for case of module names
+configure:972: checking for module directory path flag
+configure:1023: checking that the compiler f90 accepts .f90 suffix
+rm: conftest*: No such file or directory

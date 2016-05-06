@@ -1,0 +1,77 @@
+#! /bin/sh
+#
+# This script gathers up all of the files needed for building the doc
+# report
+#
+# Create the report with
+# configure ... >& config.log 
+# doc/port -nobanner -author="My Name" -dotest -config=config.log
+# unless you can't run on this system, when you might do 
+# -noperf 
+# instead of -dotest.
+#
+# You can also run the tests and performance tests later, and do
+# doc/portperf 
+# and
+# doc/porttest -testsdone
+# to update the data for those sections
+# You can run the tests with special switches with
+#
+# make testing TESTARGS='-margs="-paragonname raptor"'
+# for example
+tarfile=doc.tar
+for arg in "$@" ; do
+    case $arg in 
+	-file=*)
+	tarfile=`echo A$arg | sed 's/A-file=//g'`
+	;;
+	-echo)
+	set -x
+	;;
+	-help|-u|-usage)
+	echo "docgather [ -file=name ] "
+	echo "Gather up the files used to create a document about porting."
+	echo "A tar file, with name given by -file, is created in the top"
+	echo "directory.  The default name is $tarfile ."
+	exit 1
+	;;
+	*)
+	echo "Unrecognized argument $arg"
+	exit 1
+	;;
+    esac
+done
+#
+cd doc
+files=
+for file in doc.tar doc1.tex doc1perf.tex doc1make.tex doc1make.log \
+	doc1test.tex long.eps short.eps docmake portperf ; do
+    if [ -f $file ] ; then
+	files="$files $file"
+    fi
+done
+#
+# If the graphics file long.eps is NOT present, then we may still need to
+# build the graphics output with 
+#   doc/portperf -plotonly -testdir=./
+# before generating the final output.  This ensures that we have the
+# necessary data
+#
+if [ ! -f long.eps ] ; then 
+    # Gather the source files for the plots
+    for file in short-data.gpl short.gpl long-data.gpl long.gpl maketst.log \
+	short.err long.err ; do
+	if [ -f ../examples/perftest/$file ] ; then
+	     cp ../examples/perftest/$file .
+	     files="$files $file"
+        fi
+    done
+fi
+if tar cf $tarfile $files ; then
+    mv $tarfile ..
+else
+    echo "Creation of tar file `pwd`/$tarfile failed"
+    echo "Check that there is enough disk space"
+    df   .
+fi
+echo "The file $tarfile contains the files needed to create a report."

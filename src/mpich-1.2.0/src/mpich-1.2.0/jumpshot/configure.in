@@ -1,0 +1,291 @@
+#! /bin/sh
+dnl
+dnl Caching is usually WRONG for systems with cross-mounted file systems
+dnl (the cache file may correspond to a different system).  Since configure
+dnl is not on a performance-critical path, go for robustness over speed.
+dnl
+define([AC_CACHE_LOAD], )dnl
+define([AC_CACHE_SAVE], )dnl
+dnl
+dnl
+AC_INIT()
+TEMP_VERSION=""
+JUMPSCRIPT=""
+GEN_BINDIR=""
+#
+AC_ARG_ENABLE(echo, [--enable-echo                      - Turn on strong echoing.  The default is enable=no.] ,set -x)
+#
+AC_ARG_ENABLE(debug, [--enable-debug                     -- This option turns on the debugging flags, -g, and uses jdb to run the code.  The default is enable=on], ,enable_debug=no)
+#
+AC_ARG_WITH(bindir, [--with-bindir=GEN_BINDIR           - This is a bin directory where jumpshot's executable will be located.  If not specified, then jumpshot's executable will be placed in jumpshot/bin only.], GEN_BINDIR=$withval)
+#
+AC_ARG_WITH(jumpshot_home,   [--with-jumpshot_home=JUMP_HOME - This is the path of the top-level directory where jumpshot is located.  Without this directory, you can not configure jumpshot.], JUMPSHOT_HOME=$withval, echo "You need to specify the top-level directory where jumpshot is located!" ; exit 1)
+#
+if test ! -d "$JUMPSHOT_HOME" ; then
+    if test -s src/code/jumpshot.java ; then 
+        JUMPSHOT_HOME=`pwd`
+    fi
+fi
+#
+if test -z "$JUMPSHOT_HOME" ; then 
+    AC_MSG_ERROR("You need to specify the top-level directory where jumpshot is located!")
+fi
+#
+if test ! -d "$JUMPSHOT_HOME" ; then
+    AC_MSG_ERROR("***$JUMPSHOT_HOME is not a valid directory - cannot continue")
+fi
+#
+AC_ARG_WITH(java, [--with-java=JAVA_HOME              - The path of JAVA's top-level directory.  If this option is not given, then configure will try to locate java for you.  ], JAVA_HOME=$withval, JAVA_HOME="")
+# 
+AC_ARG_WITH(java_version, [--with-java_version=VERSION         - The version of JAVA that you will be using.  If this option is not given, then configure will try to locate the version for you ], VERSION=$withval, VERSION="")
+#
+AC_ARG_WITH(jflags, [--with-jflags=JFLAGS          -- supply java compiler flags, e.g. optimization flags, -O, to the java compiler], JFLAGS="$withval")
+#
+# Append "-g" to JFLAGS if enable_debug=yes
+if test $enable_debug = "yes"; then
+    if test -z "`echo $JFLAGS | grep "\-g"`"; then
+        JFLAGS="-g $JFLAGS"
+    fi
+fi
+#
+if test ! -d $JUMPSHOT_HOME/bin ; then
+    mkdir $JUMPSHOT_HOME/bin
+fi
+#
+subdir=""
+AC_CANONICAL_HOST
+case "$host" in
+    mips-sgi-irix*)
+	if test -d "/software/irix" ; then
+	    subdir="irix"
+	elif test -d "/software/irix-6" ; then
+	    subdir="irix-6"
+	fi
+	;;
+    *linux*)
+	if test -d "/software/linux" ; then
+	    subdir="linux"
+	fi
+	;;
+   *solaris*)
+	if test -d "/software/solaris" ; then
+	    subdir="solaris"
+	elif test -d "/software/solaris-2" ; then
+	    subdir="solaris-2"
+	fi
+	;;
+    *sun4*)
+	if test -d "/software/sun4" ; then
+	    subdir="sun4"
+	fi
+	;;
+   *aix*)
+	if test -d "/software/aix-4" ; then
+	    subdir="aix-4"
+	fi
+	;;
+   *rs6000*)
+	if test -d "/software/aix-4" ; then
+	    subdir="aix-4"
+	fi
+	;;
+   *freebsd*)
+	if test -d "/software/freebsd" ; then
+	    subdir="freebsd"
+	fi
+esac
+
+if test -z "$subdir" ; then
+    if test -d "/software/common" ; then
+        subdir="common"
+    fi
+fi
+
+if test -z "$JAVA_HOME" ; then
+for dir in $PATH \
+    /usr \
+    /usr/jdk* \
+    /usr/java* \
+    /usr/local \
+    /usr/local/jdk* \
+    /usr/local/java* \
+    /usr/contrib \
+    /usr/contrib/jdk* \
+    /usr/contrib/java* \
+    $HOME/jdk* \
+    $HOME/java* \
+    /opt/jdk* \
+    /opt/java* \
+    /opt/local \
+    /opt/local/jdk* \
+    /opt/local/java* \
+    /usr/bin \
+    /Tools/jdk* \
+    /usr/jdk* \
+    /usr/java* \
+    /software/$subdir/apps/packages/jdk* \
+    /software/$subdir/apps/packages/java* \
+    /software/$subdir/com/packages/jdk* \
+    /software/$subdir/com/packages/java* \
+    /local/encap/jdk* \
+    /local/encap/java* ; do
+    if test -d $dir ; then
+        java_type1=`echo $dir | grep 'java-workshop*'`
+        java_type2=`echo $dir | grep 'java*'`
+        java_type3=`echo $dir | grep 'jdk*'`	    
+        if test -n "$java_type1"; then
+	    if test -d "$dir/JDK/bin" ; then
+	        if test -x "$dir/JDK/bin/java" -a "$dir/JDK/bin/jre" ; then
+		    # try running with -version
+		    if $dir/JDK/bin/java -version >/dev/null 2>&1 ; then
+   	                JAVA_HOME="$dir/JDK"
+	                break
+		    fi
+	        fi
+	    fi
+        elif test -n "$java_type2" -o "$java_type3" ; then
+	    if test -x "$dir/bin/java" -a "$dir/bin/jre" ; then
+	        if $dir/bin/java -version >/dev/null 2>&1 ; then 
+  	            JAVA_HOME="$dir"
+	            break
+		fi
+	    fi
+	fi
+    fi
+done
+fi
+
+# CHECK if SWING library is there
+if test -z "$SWING_LIBS"; then
+    SWING_LIBS="$JUMPSHOT_HOME/swing/swing.jar"
+fi
+
+SWING_LIBRARIES=`echo $SWING_LIBS | sed 's/:/ /g'`
+for library in $SWING_LIBRARIES ; do
+    if test ! -f "$library"; then
+        echo "**** $library in \$SWING_LIBS does NOT exist!"
+        echo "     hence CLASSPATH cannot be set"
+        exit 1
+    fi
+done
+
+if test -z "$JAVA_HOME" ; then
+    AC_MSG_WARN("Cannot find JAVA!")
+    AC_MSG_ERROR("Please put JAVA in your path and reconfigure")
+fi
+
+# CHECK the version of Java used
+if test -z "$VERSION" ; then
+    VERSION=`$JAVA_HOME/bin/java -version 2>&1`
+    if test -z "$VERSION" ; then 
+        echo "Cannot determine version of java"
+        echo "Using the bin/jumpshot script to execute JUMPSHOT"
+        echo "Jumpshot-2 is designed to be used with Java 1.1"
+    else 
+        echo "Java is $VERSION"
+        echo "Checking Java"
+        IsJava10=`echo $VERSION | grep 1.0`
+        IsJava11=`echo $VERSION | grep 1.1`
+        IsJava12=`echo $VERSION | grep 1.2`
+        IsJava13=`echo $VERSION | grep 1.3`
+# if it is not Java 1.1, exit!  
+        if test -z "$IsJava11" ; then
+            if test -n "$IsJava12" -o -n "$IsJava13" ; then
+               echo "**** Java $VERSION is incompatible with Jumpshot-2 !"
+               echo "     Jumpshot-2 is designed to be used with Java 1.1"
+            elif test -n "$IsJava10" ; then
+               echo "**** Java $VERSION is too old to be used with Jumpshot-2 !"
+               echo "     Jumpshot-2 is designed to be used with Java 1.1"
+            fi
+            exit 1
+        fi
+    fi
+    JUMPSCRIPT="build/unix/bin/jumpshot"	
+fi
+
+if test -f "$JAVA_HOME/lib/classes.zip" ; then
+    JAVA_LIBS="$JAVA_HOME/lib/rt.jar:$JAVA_HOME/lib/classes.zip:$JAVA_HOME/classes"
+else
+    echo "**** $JAVA_HOME/lib/classes.zip does NOT exist"
+    echo "     JAVA_LIBS cannot be set, neither can CLASSPATH !"
+    exit 1
+fi
+
+JC="$JAVA_HOME/bin/javac"
+JAR="$JAVA_HOME/bin/jar"
+if test $enable_debug = "yes"; then
+    JVM="$JAVA_HOME/bin/jdb"
+else
+    JVM="$JAVA_HOME/bin/java"
+fi
+
+for exe in "$JC" "$JAR" "$JVM" ; do
+    if test ! -x "$exe" ; then
+        echo "**** $exe does NOT exist, check JAVA_HOME = $JAVA_HOME"
+        exit 1
+    fi
+done
+
+AC_SUBST(JAVA_HOME)
+AC_SUBST(JAVA_LIBS)
+AC_SUBST(JFLAGS)
+AC_SUBST(JC)
+AC_SUBST(JAR)
+AC_SUBST(JVM)
+AC_SUBST(SWING_LIBS)
+AC_SUBST(JUMPSHOT_HOME)
+
+# Fixup for make
+MAKE=${MAKE:-make}
+PAC_MAKE_IS_GNUMAKE
+PAC_MAKE_IS_BSD44
+PAC_MAKE_IS_OSF
+PAC_MAKE_VPATH
+AC_SUBST(MAKE)
+
+#echo "JAVA_HOME  = |$JAVA_HOME|"
+#echo "JAVA_LIBS  = |$JAVA_LIBS|"
+#echo "JFLAGS     = |$JFLAGS|"
+#echo "JC         = |$JC|"
+#echo "JAR        = |$JAR|"
+#echo "JVM        = |$JVM|"
+#echo "SWING_LIBS = |$SWING_LIBS|"
+#echo "JUMP_HOME  = |$JUMPSHOT_HOME|"
+#echo "JUMPSCRIPT = |$JUMPSCRIPT|"
+
+# In case of a VPATH build, we need to create the src directory before
+# invoking ac_OUTPUT
+if test ! -d src ; then mkdir src ; fi
+# JUMPSCRIPT is more difficult.  Try to create the default directories 
+# for it, at least
+if test ! -d build ; then mkdir build ; fi
+if test ! -d build/unix ; then mkdir build/unix ; fi
+AC_OUTPUT(Makefile src/code/Makefile $JUMPSCRIPT)
+
+if test -f "$JUMPSCRIPT" ; then
+    chmod a+x $JUMPSCRIPT
+else
+    AC_MSG_ERROR("***$JUMPSCRIPT is not a valid file - Make sure you have")
+    AC_MSG_ERROR("   configured with a valid JUMPSHOT home directory")
+fi
+#
+if test -z "$GEN_BINDIR" ; then
+    if test -f $JUMPSHOT_HOME/bin/jumpshot ; then
+        /bin/rm -f $JUMPSHOT_HOME/bin/jumpshot
+    fi
+    echo "Jumpshot's executable will be located in $JUMPSHOT_HOME/bin"
+    echo "Make sure you set your path to include this directory!"
+    cp $JUMPSCRIPT $JUMPSHOT_HOME/bin
+else
+    if test -f $GEN_BINDIR/jumpshot ; then
+        /bin/rm -f $GEN_BINDIR/jumpshot
+    fi
+    if test -f $JUMPSHOT_HOME/bin/jumpshot ; then
+        /bin/rm -f $JUMPSHOT_HOME/bin/jumpshot
+    fi
+    echo "Jumpshot's executable will be located in $GEN_BINDIR"
+    echo "and $JUMPSHOT_HOME/bin"
+    echo "Make sure you set your path to include at least one of these directories!"
+    cp $JUMPSCRIPT $GEN_BINDIR
+    cp $JUMPSCRIPT $JUMPSHOT_HOME/bin
+fi

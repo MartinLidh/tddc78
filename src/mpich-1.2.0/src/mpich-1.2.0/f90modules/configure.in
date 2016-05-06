@@ -1,0 +1,257 @@
+dnl
+dnl Caching is usually WRONG for systems with cross-mounted file systems
+dnl (the cache file may correspond to a different system).  Since configure
+dnl is not on a performance-critical path, go for robustness over speed.
+dnl
+define([AC_CACHE_LOAD], )dnl
+define([AC_CACHE_SAVE], )dnl
+dnl
+dnl
+AC_INIT()
+
+mpif_ok=0
+is_mpich=0
+
+dnl Check for options
+AC_ARG_ENABLE(echo, [
+   --enable-echo                      Turn on strong echoing.  The default 
+                                      is enable=no.] ,set -x)
+AC_ARG_WITH(mpich,[
+   --with-mpich[=mpichbuilddir]       select mpich as the MPI in the 
+                                      specified directory],[
+if test "$withval" != "yes" -a "$withval" != "no" ; then 
+    MPIINCDIR="$withval/include"
+    mpif_ok=1
+    is_mpich=0
+else
+    # Are we in an MPICH build?
+    # We can't use a relative directory path because we may be in
+    # a VPATH build.  In that case, we use MPIR_HOME
+    if test -z "$MPIR_HOME" ; then MPIR_HOME=".." ; fi
+    if test -s $MPIR_HOME/include/mpif.h.in -a \
+	    -s $MPIR_HOME/src/env/nerrmsg.c ; then
+        MPIINCDIR=../include
+        mpif_ok=1
+        is_mpich=1
+    else
+        # Look for mpif90
+        AC_PATH_PROG(MPIF90,mpif90)
+        if test -n "$MPIF90" ; then
+	    MPIINCDIR=`dirname $MPIF90`
+            if test -s $MPIINCDIR/include/mpif.h ; then
+	        MPIINCDIR=$incdir/include
+                mpif_ok=1
+                is_mpich=1
+            fi
+	fi
+    fi
+    if test $mpif_ok != 1 ; then
+	echo "Could not find MPICH include files!"
+    fi
+fi])
+
+AC_ARG_WITH(typelist,[
+   --with-typelist=string             select the types to support.  The list
+                                      is in the form 
+            --with-typelist=integer,real,real8,complex],[
+if test -n "$withval" ; then
+    withval=`echo $withval | sed -e 's/,/ /g'`    
+    TYPELIST="-types=\"$withval\""
+fi])
+AC_SUBST(TYPELIST)
+
+if test -z "$MPIINCDIR" ; then
+    if test -s /usr/include/mpif.h ; then
+	MPIINCDIR="/usr/include"
+    elif test -s /usr/local/include/mpif.h ; then
+	MPIINCDIR="/usr/local/include"
+    else
+	AC_MSG_WARN([Could not find mpif.h])
+    fi
+fi
+#
+# We depend on mpif.h including the address_kind and offset_kind values.
+# If not, we'll need to add them.  We'll test this when we find f90.
+AC_SUBST(MPIINCDIR)
+#
+# Directory for building the library in
+if test -z "$libbuild_dir" ; then
+    libbuild_dir="lib"
+    if test ! -d $libbuild_dir ; then mkdir $libbuild_dir ; fi
+fi
+AC_SUBST(libbuild_dir)
+# Include directories for building (and containing the module files.
+# Note that the actual modules go into includedir/f90base and
+# includedir/f90choice if no directories are picked
+if test -z "$includebuild_dir" ; then
+    includebuild_dir="include"
+    if test ! -d $includebuild_dir ; then mkdir $includebuild_dir ; fi
+fi
+AC_SUBST(includebuild_dir)
+
+if test -z "$includechoice_dir" ; then
+    includechoice_dir='${includedir}/f90choice'
+fi
+if test -z "$includenochoice_dir" ; then
+    includenochoice_dir='${includedir}/f90base'
+fi
+AC_SUBST(includechoice_dir)
+AC_SUBST(includenochoice_dir)
+
+# The library name:
+if test -z "$MPIMODLIBNAME" ; then
+    if test $is_mpich = 1 ; then
+	MPIMODLIBNAME="mpichf90"
+    else
+        MPIMODLIBNAME="mpif90"
+    fi
+fi
+AC_SUBST(MPIMODLIBNAME)
+# The library name for the no-choice library
+if test -z "$MPIMODLIBNAMENC" ; then
+    if test $is_mpich = 1 ; then
+	MPIMODLIBNAMENC="mpichf90nc"
+    else
+        MPIMODLIBNAMENC="mpif90nc"
+    fi
+fi
+AC_SUBST(MPIMODLIBNAMENC)
+
+dnl Checks for programs.
+dnl If F90 is already defined, it will use that instead
+AC_CHECK_PROGS(F90,f95 f90 xlf90)
+if test -z "$F90LINKER" ; then F90LINKER="$F90" ; fi
+AC_SUBST(F90LINKER)
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_CHECK_PROGS(AR,ar)
+# Add options to ar
+AR="$AR cr"
+
+dnl Check for program behavior
+MAKE=${MAKE:-make}
+PAC_MAKE_IS_GNUMAKE
+PAC_MAKE_VPATH
+AC_SUBST(MAKE)
+
+AC_MSG_CHECKING(for module suffix)
+rm -f conftest*
+cat >conftest.f <<EOF
+	module conftest
+        integer n
+        parameter (n=1)
+        end module conftest
+EOF
+# SGI and absoft compilers generates module name in upper case!
+testname="conftest"
+modcase="lower"
+if $F90 -c conftest.f > conftest.out 2>&1 ; then
+    MOD=`ls conftest* | grep -v conftest.f | grep -v conftest.o`
+    MOD=`echo $MOD | sed -e 's/conftest\.//g'`
+    if test -z "$MOD" ; then
+	MOD=`ls CONFTEST* | grep -v CONFTEST.f | grep -v CONFTEST.o`
+        MOD=`echo $MOD | sed -e 's/CONFTEST\.//g'`
+	if test -n "$MOD" ; then
+	    testname="CONFTEST"
+	    modcase="upper"
+	fi
+    fi
+    if test -z "$MOD" ; then 
+        AC_MSG_RESULT(unknown)
+    else
+        AC_MSG_RESULT($MOD)
+    fi
+else
+    AC_MSG_RESULT(unknown)
+fi
+AC_SUBST(MOD)
+AC_MSG_CHECKING(for case of module names)
+if test "$modcase" = "lower" ; then
+    AC_MSG_RESULT(lower)
+    MPIMOD="mpi"
+    MPICONSTMOD="mpi_constants"
+else
+    AC_MSG_RESULT(upper)
+    MPIMOD="MPI"
+    MPICONSTMOD="MPI_CONSTANTS"
+fi
+AC_SUBST(MPIMOD)
+AC_SUBST(MPICONSTMOD)
+
+# Check for module include path (some use -I, some (Solaris) use -M, some 
+# (absoft) use -p).
+# Use the module made above
+AC_MSG_CHECKING(for module directory path flag)
+madedir=0
+if test ! -d conf ; then mkdir conf ; madedir=1; fi
+cp $testname.$MOD conf
+rm -f conftest* CONFTEST*
+cat >conftest1.f <<EOF
+	program main
+        use conftest
+	print *, n
+	end
+EOF
+if $F90 -c -Iconf conftest1.f > conftest.out 2>&1 ; then
+    MODDIRFLAG="-I"
+    AC_MSG_RESULT(-I)
+elif $F90 -c -Mconf conftest1.f >> conftest.out 2>&1 ; then
+    MODDIRFLAG="-M"
+    AC_MSG_RESULT(-M)
+elif $F90 -c -pconf conftest1.f >> conftest.out 2>&1 ; then
+    MODDIRFLAG="-p"
+    AC_MSG_RESULT(-p)
+else
+    AC_MSG_RESULT(unknown)
+fi
+AC_SUBST(MODDIRFLAG)
+rm -f conftest* conf/conftest* conf/CONFTEST* CONFTEST*
+if test $madedir = 1 ; then rmdir conf ; fi
+
+if test $mpif_ok != 1 ; then
+    # This is set if we are building with MPICH; the mpif file may not
+    # be ready yet.
+    AC_MSG_CHECKING([for mpif.h exists and contains KIND values])
+    rm -f conftest*
+    cat >conftest.f <<EOF
+        program main
+        include 'mpif.h'
+        integer (kind=MPI_OFFSET_KIND) a
+        integer (kind=MPI_ADDRESS_KIND) b
+        end
+EOF
+    if $F90 -I$MPIINCDIR -c conftest.f > conftest.out 2>&1 ; then
+        AC_MSG_RESULT(yes)
+    else
+        if test -s conftest.out ; then cat conftest.out >> config.log ; fi
+        AC_MSG_RESULT([no! Check config.log for error messages])
+    fi
+    rm -f conftest*
+fi
+
+# Check for Fortran suffix
+AC_MSG_CHECKING(that the compiler $F90 accepts .f90 suffix)
+rm conftest*
+cat >conftest.f90 <<EOF
+          program main
+          end
+EOF
+if $F90 $F90FLAGS -c conftest.f90 > conftest.out 2>&1 ; then
+    F90SUFFIX="f90"
+    AC_MSG_RESULT(yes)
+else
+    F90SUFFIX="f"
+    AC_MSG_RESULT(no)
+fi
+rm conftest*
+AC_SUBST(F90SUFFIX)
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile)

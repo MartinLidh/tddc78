@@ -1,0 +1,387 @@
+		      MPE (MultiProcessing Environment)
+                      ---------------------------------
+
+
+I.  INTRODUCTION
+----------------
+
+The main benefit the MultiProcessing Environment library (mpe) offers is a set
+of routines that will create logfiles from MPI programs which can be examined
+by Jumpshot or upshot.  These logfiles can be created manually by inserting 
+calls to mpe routines in your code, automatically by linking with the 
+appropriate MPE libraries, or by combining the two methods.  Currently, the 
+mpe library offers 3 profiling libraries.
+
+	1) Tracing Library - Trace all MPI calls.  Each MPI call is preceded
+by a line that contains the rank in MPI_COMM_WORLD of the calling process, and
+followed by another line indicating that the call has completed.  Most send
+and receive routines also indicate the values of count, tag, and partner
+(destination for sends, source for receives).  Output is to standard output.
+
+	2)  Animation Library - This is a simple form of real-time program
+animation and requires X window routines.  
+
+	3)  Logging Library - This is the most useful profiling library and
+is the most widely used.  Logfiles (files of timestamped events) are generated
+and can be analyzed with graphical tools such as Jumpshot (preferrably) or 
+upshot.
+
+II. CONFIGURE OPTIONS
+----------------------
+
+The mpe library can be configured and installed as an extension of your
+current MPI implementation, or automatically during MPICH's configure and make
+process.  The only requirement is that you configure with a specific MPI
+implementation switch.  Currently, we have configured the mpe library to work 
+with MPICH, SGI's MPI, IBM's MPI, and CRAY's MPI (not thoroughly tested).  
+There are 3 types of configure options or switches.
+
+	1)  MPI implementation switch (mandatory)
+	2)  Generic configure flags (mandatory/optional)
+	3)  User option switches/flags (optional)
+
+By typing 'configure --help', a list of flags/switches can be viewed.
+
+Specific MPI implementation switches:
+--with-mpich=dir		Specifies the top-level directory where MPICH 
+				(version 1.0.13 or later) was installed.
+
+--with-mpichdev=subdir		Specifies the subdirectory of which
+				architecture/device you wish to use.
+
+--with-lam=subdir               Specifies the top-level install directory
+                                where LAM is installed
+
+--with-sp			Specifies use of the native IBM POE/MPI
+				implementation.
+
+--with-sgi			Specifies use of the native SGI MPI 
+				implementation.
+
+--with-sgi64			Specifies use of the native SGI MPI 
+				implementation, forcing it to compile in 64 
+				bit mode.
+
+--with-cray			Specifies use of the native Cray MPI 
+				implementation.
+
+The following is not a complete list but some of the more common ones.
+Generic flags:
+-prefix=DIR			Specifies the destination install directory 
+				for the mpeinstall script.  If configuring
+				with MPICH, it must be the same install
+				directory as the one given as an option to the
+				MPICH configure or the mpiinstall script in the
+				mpich/util directory.  If omitted, and -prefix
+				was given as an option to the MPICH configure,
+				then this directory will be automatically
+				configured.  The mpeinstall script installs 
+				into DIR only the required libraries and 
+				include files, and a small subset of the 
+				examples. See section V for a more 
+				comprehensive discussion about the mpeinstall
+				script.
+	
+-libdir=DIR			Specifies the top-level directory where the
+				MPE libraries will be installed.  If this 
+				directory does not exist, it will be created.
+				This flag is mandatory when not using MPICH 
+				and irrelevant when using MPICH.
+
+-bindir=DIR			This flag is only relevant if you will be 
+				installing JUMPSHOT along with the MPE
+				library.  This directory will be passed to 
+				JUMPSHOT's configure and will be where 
+				JUMPSHOT's executable will be installed.  If 
+				configuring with MPICH, this is automatically
+				configured for you.  If not, and this flag is 
+				omitted, this directory will be 
+				$libdir/../bin.  If this directory does not 
+				exist, it will be created.
+
+--x-includes=DIR		This is an optional flag which specifies that
+				X include files are in DIR.  If omitted,
+				configure will attempt to locate them.
+
+--x-libraries=DIR		This is an optional flag which specifies that
+				X library files are in DIR.  If omitted,
+				configure will attempt to locate them.
+
+User Option Switches:
+--enable-echo			This switch will turn on strong echoing.  The 
+				default is enable=no.
+
+--enable-mpe_graphics		This switch will allow the MPE graphics 
+				routines to be built.  If disabled, then the 
+				MPE routines that make use of X11 graphics 
+				will not be built.  This is appropriate for 
+				systems that either do not have the X11 
+				include files or that do not support X11 
+				graphics.  The default is enable=yes.
+
+--enable-f77			This switch will allow the compilation of 
+				routines that require a Fortran compiler.  If 
+				configuring with MPICH, the configure in the 
+				top-level MPICH directory will choose the 
+				appropriate value for you.  However, it can be
+				overridden.  The default is enable=yes.
+
+--enable-jumpshot		This switch will allow the configuration of 
+				the graphical tool JUMPSHOT.  The default for 
+				this option is enable=yes.  If this option is 
+				enabled and you are not configuring with 
+				MPICH, then you will also need to supply the 
+				directory path where JUMPSHOT has already 
+			        been installed.
+
+--with-tcldir=TCL_DIR		This switch specifies that tcl is located in
+				TCL_DIR.  This can only be version 7 and 
+				TCL_DIR must have lib/libtcl.a and 
+				include/tcl.h.  These files are only used for 
+				nupshot.  If this switch is omitted, configure
+				will attempt to locate these files.
+
+
+--with-tkdir=TK_DIR		This switch specifies that tk is located in
+				TK_DIR.  This can only be version 3 if you
+				want to use nupshot and TK_DIR must have
+				lib/libtcl.a and include tk.h.  This may be
+				the same as TCL_DIR.  If this switch is 
+				omitted, configure will attempt to locate these
+				files.
+
+--with-wishloc=WISHLOC		This switch specifies the name of tcl/tk wish
+				executable.  If this switch is omitted, 
+				configure will attempt to locate a version.  
+				This is used only for nupshot and upshot.  
+				Note: Because tcl and tk keep changing in 
+				incompatible ways, we will soon be dropping 
+				support for any tool that uses tcl/tk.  The 
+				newest version of upshot, JUMPSHOT, is 
+				written in Java.
+
+--with-jumpshot_home=JUMP_DIR	This switch specifies the path of the
+				top-level directory where JUMPSHOT is 
+				installed.  When configuring with MPICH, this
+				option is automaticaly configured by default.
+				However, it can be overridden here.  If not
+				configuring with MPICH, then you need to 
+				specify the JUMP_DIR in order to configure 
+				JUMPSHOT along with the MPE library.
+
+--with-jumpshot_opts=JUMP_OPTS	This option allows you to pass specific
+				options to the JUMPSHOT configure.  
+				Unfortunately, because of the way 
+				'autoconf 2.12' processes multiple arguments
+				with 'AC_ARG_WITH', only 1 option may be
+				passed to JUMPSHOT's configure.  If more 
+				options are required, then configure JUMPSHOT
+				separately.  To view the JUMPSHOT options, go 
+				to the JUMPSHOT top-level directory and type
+				configure --help or read the INSTALL in that
+				directory.
+
+III. INSTALLATION INSTRUCTIONS
+-------------------------------  
+
+As noted earlier, the MPE library can be installed as part of the MPICH
+configure or as an extension of an existing MPI implementation.  Below is 
+instructions and examples for each type of installation. 
+
+A)  Configuring as part of the MPICH configure	  
+In this MPE installation, no switches and flags are required.  The configure 
+in the MPICH directory will locate the necessary information and pass it to
+the MPE and JUMPSHOT configures.  If no options are given, then the MPE 
+library and the graphical tool JUMPSHOT will automatically get configured.
+However, the user can choose to override this by configuring MPICH with the 
+following options:
+
+	-mpe_opts=MPE_OPTS
+	-jumpshot_opts=JUMP_OPTS 
+
+where MPE_OPTS is one or more of the choices in section II (jumpshot options 
+are discussed in the INSTALL in the jumpshot directory).  Multiple uses of
+-mpe_opts is allowed to specify several options for the MPE configure.
+However, multiple uses of -jumpshot_opts is not allowed.  Thus, only one
+option can be passed JUMPSHOT's configure.  
+	
+Example 1:  Configure MPICH with tcldir and tkdir given as options to the mpe  
+	    configure
+	
+	    In the top-level MPICH directory, 
+		1) ./configure <MPICH options> \ 
+			-mpe_opts=--with-tcldir=<path of tcldir> \
+			-mpe_otps= --with-tkdir=<path of tkdir>
+
+                2) make
+
+Example 2:  Configure MPICH with MPE and JUMPSHOT with an install directory
+
+	    In the top-level MPICH directory,
+		1) ./configure <MPICH options> -prefix=<install directory> 
+
+		2) make
+
+	    *This is useful if you wish to install MPICH, MPE library, and
+             JUMPSHOT in a public place so that others may use it.  To install
+	     all 3 packages into the install directory, 
+			
+		In the top-level MPICH directory,
+			make install
+
+Example 3:  Configure MPICH with MPE and without JUMPSHOT*
+
+	    In the top-level MPICH directory,
+		1) ./configure <MPICH options> -mpe_opts=--enable-jumpshot=no
+
+		2) make
+
+	    *The JUMPSHOT configure is invoked through the MPE configure.  
+	     Thus, the way in which to disable the configuration of JUMPSHOT 
+	     is through a configure option to the MPE configure.
+
+Example 4:  Configure MPICH without MPE and JUMPSHOT
+	   
+	    In the top-level MPICH directory,
+		1) ./configure <MPICH options> -nompe
+
+		2) make
+
+	    - It should be noted here that after MPICH is configured, it is
+	      possible to configure MPE and JUMPSHOT without reconfiguring
+	      MPICH.  Or, if MPICH needs to be reconfigured, there is often
+	      no need to reconfigure the MPE library or JUMPSHOT.
+
+B) Configuring as part of an existing MPI implementation
+In this MPE installation, a specific MPI implementation switch is necessary.
+Also, if the MPI implementation is not MPICH, then the generic flag -libdir 
+is mandatory.
+
+Example 1:  Configure MPE with SGI's MPI and without JUMPSHOT*
+
+	    In the MPE top-level directory,
+		1) ./configure --with-sgi -libdir=<directory path of libdir> or
+		   ./configure --with-sgi64 -libdir=<directory path of libdir>
+
+		2) make
+
+	    *By not specifying --with-jumpshot_home (and not using MPICH),
+	     JUMPSHOT does not get configured
+
+Example 2:  Configure MPE with IBM's MPI and JUMPSHOT
+ 
+	    In the MPE top-level directory,
+	        1) ./configure --with-sp -libdir=<directory path of libdir> \
+	                  --with-jumpshot_home=<directory path of jumpshot>
+
+		2) make
+
+	    - By not specifing -bindir=DIR, the jumpshot executable will be
+	      located in libdir/../bin.  If specification of a particular bin
+	      directory is desired, then configure as follows
+
+	    In the MPE top-level directory,
+	        1) ./configure --with-sp -libdir=<directory path of libdir> \
+	                  --with-jumpshot_home=<directory path of jumpshot> \
+			  -bindir=<directory path of bindir>
+
+		2) make
+
+Example 3:  Configure MPE with an existing MPICH implementation and with
+	    JUMPSHOT*
+
+	    In the MPE top-level directory,
+	        1) ./configure --with-mpich=<top-level install dir for MPICH> \
+	                  --with-mpichdev=<library subdirectory for MPICH> \
+			
+		2) make  
+	    *If your MPICH implementation has a mpich/jumpshot subdirectory, 
+	     there is no need to configure --with-jumpshot_home.  If not, then
+	     this is a necessary configure option.
+
+Example 4:  Configure MPE with SGI's MPI and pass options to JUMPSHOT's 
+	    configure
+
+	    In the MPE top-level directory,
+	        1) ./configure --with-sgi -libdir=<directory path of libdir> \
+	                  --with-jumpshot_home=<directory path of jumpshot> \
+			  --with-jumpshot_opts=<jumpshot option>
+
+		2) make
+
+Example 5:  Configure MPE with LAM's MPI 
+
+	    In the MPE top-level directory,
+            1)  ./configure --with-lam=<top-level LAM install directory> \
+	               --with-libdir=<directory path of libdir> 
+
+	    2)  make
+
+	    This will configure and make the MPE library.  In order to use 
+            the MPE libraries, you will need to link them into your programs.
+            For example, in the 'config-defs' file in LAM's subdirectory 
+            ../examples,
+	    add the following:
+
+		MPE_DIR = -L<path where you just installed mpe libraries>
+	        PROFLIB = -lmpe -L$(LAMHOME)/lib -lpmpi
+	        LOGLIB  = -llmpi $(PROFLIB)
+
+	    Then add these variables to the compilation lines in the 
+	    Makefiles for the programs you wish to profile.  For example,
+	    in the Makefile in the ../examples/trivial, if you wish to
+	    profile trivial.c, then the compilation line would be as
+            follows:
+trivialc: trivial.c
+	$(CC) $(CFLAGS) -o trivialc trivial.c $(LDFLAGS) -L$(MPE_DIR) $(LOGLIB)	
+	   Currently, we do not support profiling LAM's Fortran library.
+	   However, we are working on it.
+
+IV.  EXAMPLE PROGRAMS
+----------------------
+
+As previously noted, the MPE library is composed of 3 different profiling
+libraries.  Each MPI implementation requires a slightly different way in which
+to link with these libraries.  During configure, the link path and appropriate
+libraries are determined and assigned to variables.  These variables are 
+substituted in the Makefile in the mpe/contrib/test directory.  The following is
+a list of these variables:
+
+	LOG_LIB   =  link path needed to link with the logging library
+	TRACE_LIB =  link path needed to link with the tracing library
+	ANIM_LIB  =  link path needed to link with the animation library
+
+In the  mpe/test directory there is a variable FLIB_PATH which is the link
+path needed to link fortran programs with the logging library.
+
+During make, a small C program 'cpi' (in the mpe/contrib/test directory) will
+be linked with each of the above libraries.  In the output from Make, a
+message will be written regarding the success of each attempted link test.
+Also, in the mpe/test directory a small Fortran program 'fpi' will be linked
+with logging library using FLIB_PATH.  The success of this link test will also
+be included in the Make output.  If the link tests were successful, then these
+library paths should be used for your programs as well.   
+
+The following example programs are also included in the mpe/contrib directory:
+
+	In mpe/contrib/mandel is a Mandelbrot program that uses the MPE
+	graphics package.  
+
+	In mpe/contrib/mastermind is a program for solving the Mastermind
+	puzzle in parallel.
+
+These programs should work on all MPI implementations, but have not been
+extensively tested.
+
+V.  MPEINSTALL
+--------------
+
+A 'mpeinstall' script is created during configuration.  If configuring with
+MPICH, then the 'mpiinstall' script invokes the 'mpeinstall' script.  However,
+'mpeinstall' can also be used by itself.  This is only optional and is of use
+only if you wish to install the MPE library in a public place so that others
+may use it.  Installation will consist of an include, lib, bin, and example
+subdirectories.  If JUMPSHOT was configured, the mpeinstall script will
+place a jumpshot executable in the bin directory.  
+
+

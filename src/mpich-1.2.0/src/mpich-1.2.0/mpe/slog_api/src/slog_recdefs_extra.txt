@@ -1,0 +1,35 @@
+/*N SLOG_EXTRA_RECDEFS
+
+    Notes on the Addition of Extra Record Definitions
+        This note is to clarify the usage of SLOG_RDEF_XXX() routines
+        especially while the user wants to add extra record definitions
+        to the logfile when the process of addition of interval records 
+        to the logfile has been started, for instance if one needs to
+        add user marker interval records.
+
+        Under normal circumstances, the record definition table is created
+        by first opening the section of the logfile for storing the table
+        using SLOG_RDEF_Open().  Then add the record definition using
+        SLOG_RDEF_AddRecDef() and close the table section by
+        SLOG_RDEF_Close().
+
+        In the case that the logfile involves interval records whose
+        interval type are NOT known until the process of inserting
+        of the interval records to the logfile has been started, one 
+        should open the SLOG_RDEF_Open().  Then add the known record 
+        definitions using SLOG_RDEF_AddRecDef().  However, one should
+        NOT call SLOG_RDEF_Close() to close the table section.  Instead,
+        SLOG_RDEF_SetExtraNumOfRecDefs() should be called to set
+        the extra number of record definition entries needed( the
+        number can be greater than what one actually needs ).  Then
+        when user encounters a new interval record type, 
+        SLOG_RDEF_AddExtraRecDef() can then be called to add the new
+        interval record type to the record definition table.  This
+        has to be done before adding the interval record to the logfile
+        using SLOG_Irec_ToOutputStream() which does NOT allow interval
+        record of with unknown interval type to the record definition
+        table.
+
+.n
+
+N*/

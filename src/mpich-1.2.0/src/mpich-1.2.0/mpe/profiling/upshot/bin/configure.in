@@ -1,0 +1,129 @@
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during Tk installation
+dnl	to configure the system for the local environment.
+
+progname="`echo $0 | sed 's:^\./\./:\./:'`"
+print_error() {
+    echo "*# $*" 2>&1 ;
+    }
+print_usage() {
+cat <<.
+Usage: ${progname} [-wish=WISH]
+
+where
+   WISH         = Name of tcl/tk wish executable.  Configure will attempt
+                  to find a version of wish for you, but if there is
+                  no wish in your path or you need to use a different version,
+                  use this option.  Used only for the display tools 
+                  (nupshot and upshot).  tk 3.x or 4.x required for upshot.
+.
+}
+
+
+for arg
+do
+  case $arg in
+ 
+   -wish=* | --tkdir=*)
+      wishloc="`echo $arg|sed 's/-*wish=//'`"
+     ;;
+ 
+    -echo | --echo)
+      set -x
+      ;;
+ 
+   *)
+      echo "Unrecognized argument $arg"
+      exit 1
+     ;;
+ esac
+done
+
+AC_INIT(upshot.in)
+
+# A problem.  Some systems use an NFS automounter.  This can generate
+# paths of the form /tmp_mnt/... . On SOME systems, that path is
+# not recognized, and you need to strip off the /tmp_mnt. On others, 
+# it IS recognized, so you need to leave it in.  Grumble.
+# The real problem is that OTHER nodes on the same MFS system may not
+# be able to find a directory based on a /tmp_mnt/... name.
+#
+# It is WRONG to use $PWD, since that is maintained only by the C shell,
+# and if we use it, we may find the 'wrong' directory.  To test this, we
+# try writing a file to the directory and then looking for it in the 
+# current directory
+UPSHOT_TRIAL=$PWD
+if test "$UPSHOT_TRIAL" != "" -a -d "$UPSHOT_TRIAL" ; then 
+    if test -r $UPSHOT_TRIAL/.foo ; then
+        /bin/rm -f $UPSHOT_TRIAL/.foo
+	/bin/rm -f .foo
+    fi
+    if test -r $UPSHOT_TRIAL/.foo -o -r .foo ; then
+	UPSHOT_TRIAL=
+    else
+	echo "test" > $UPSHOT_TRIAL/.foo
+	if test ! -r .foo ; then
+	    UPSHOT_TRIAL=
+	fi
+	/bin/rm -f $UPSHOT_TRIAL/.foo
+    fi
+fi
+if test "$UPSHOT_TRIAL" = "" ; then
+    UPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+fi
+#
+# First, test the PWD is sensible
+if test ! -r $UPSHOT_TRIAL/Makefile.in ; then
+    # PWD must be messed up
+    UPSHOT_TRIAL=`pwd`
+    if test ! -r $UPSHOT_TRIAL/Makefile.in ; then
+	print_error "Cannot determine the root directory!" 
+        exit 1
+    fi
+    UPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+    if test ! -d $UPSHOT_TRIAL ; then 
+        print_error "Warning: your default path uses the automounter; this may"
+        print_error "cause some problems if you use other NFS-connected systems."
+        UPSHOT_TRIAL=`pwd`
+    fi
+fi
+if test -z "$UPSHOT_TRIAL" ; then
+    UPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+    if test ! -d $UPSHOT_TRIAL ; then 
+        print_error "Warning: your default path uses the automounter; this may"
+        print_error "cause some problems if you use other NFS-connected systems."
+        UPSHOT_TRIAL=`pwd`
+    fi
+fi
+UPSHOT_HOME=$UPSHOT_TRIAL
+AC_SUBST(UPSHOT_HOME)
+
+dnl AC_INIT(upshot)
+
+#
+# Look for wish (the tcl/tk windowing shell; this is used by the new
+# Upshot
+#
+if test -z "$wishloc" ; then
+    PAC_FIND_WISH
+fi
+#
+# Test that wish exists
+if test -n "$wishloc" ; then
+   namelen=`expr "$wishloc" : ".*"`
+   if test $namelen -gt 26 ; then
+	print_error "The path for wish, $wishloc, may be too long"
+        print_error "for some Unix systems to accept as a command interpreter."
+	print_error "This may cause problems when using upshot."
+        print_error "(Some systems limit the length to 26 characters!)"
+   fi
+   if test ! -x $wishloc ; then
+       wishloc=
+   fi
+fi
+if test -z "$wishloc" ; then
+    print_error "Could not find executable wish (needed for Upshot)"
+fi
+
+AC_SUBST(wishloc)
+AC_OUTPUT(Makefile)

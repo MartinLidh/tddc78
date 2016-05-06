@@ -1,0 +1,7 @@
+**** Testing MPI_Bsend and MPI_Recv (4) ****
+All processes completed test
+[bsendtest]: Test 'Overtaking Test (Buffered Send -> Normal Receive)' Passed.
+[bsendtest]: Test 'Overtaking Test (Buffered Isend -> Normal Receive)' Passed.
+For test suite 'bsendtest':
+Of 2 attempted tests, 2 passed, 0 failed.
+**** Testing MPI_Bsend and MPI_Recv (4) ****

@@ -1,0 +1,198 @@
+-1 0 0 0 0 0 Me
+-2 0 0 64 0 0
+-3 0 0 4 0 0
+-4 0 0 1 0 0
+-5 0 0 0 0 0
+-6 0 0 0 0 302
+-7 0 0 0 0 5505275
+-8 0 0 1 0 0
+-11 0 0 0 0 0
+-13 0 2 3 0 0 : MPI_Allgather
+-13 0 4 5 0 0 : MPI_Allgatherv
+-13 0 6 7 0 0 purple:vlines3 MPI_Allreduce
+-13 0 8 9 0 0 : MPI_Alltoall
+-13 0 10 11 0 0 : MPI_Alltoallv
+-13 0 12 13 0 0 yellow:dimple3 MPI_Barrier
+-13 0 14 15 0 0 cyan:boxes MPI_Bcast
+-13 0 16 17 0 0 : MPI_Gather
+-13 0 18 19 0 0 : MPI_Gatherv
+-13 0 20 21 0 0 : MPI_Op_create
+-13 0 22 23 0 0 : MPI_Op_free
+-13 0 24 25 0 0 : MPI_Reduce_scatter
+-13 0 26 27 0 0 purple:2x2 MPI_Reduce
+-13 0 28 29 0 0 : MPI_Scan
+-13 0 30 31 0 0 : MPI_Scatter
+-13 0 32 33 0 0 : MPI_Scatterv
+-13 0 34 35 0 0 : MPI_Attr_delete
+-13 0 36 37 0 0 : MPI_Attr_get
+-13 0 38 39 0 0 : MPI_Attr_put
+-13 0 40 41 0 0 : MPI_Comm_compare
+-13 0 42 43 0 0 : MPI_Comm_create
+-13 0 44 45 0 0 : MPI_Comm_dup
+-13 0 46 47 0 0 : MPI_Comm_free
+-13 0 48 49 0 0 : MPI_Comm_group
+-13 0 50 51 0 0 : MPI_Comm_rank
+-13 0 52 53 0 0 : MPI_Comm_remote_group
+-13 0 54 55 0 0 : MPI_Comm_remote_size
+-13 0 56 57 0 0 : MPI_Comm_size
+-13 0 58 59 0 0 : MPI_Comm_split
+-13 0 60 61 0 0 : MPI_Comm_test_inter
+-13 0 62 63 0 0 : MPI_Group_compare
+-13 0 64 65 0 0 : MPI_Group_difference
+-13 0 66 67 0 0 : MPI_Group_excl
+-13 0 68 69 0 0 : MPI_Group_free
+-13 0 70 71 0 0 : MPI_Group_incl
+-13 0 72 73 0 0 : MPI_Group_intersection
+-13 0 74 75 0 0 : MPI_Group_rank
+-13 0 76 77 0 0 : MPI_Group_range_excl
+-13 0 78 79 0 0 : MPI_Group_range_incl
+-13 0 80 81 0 0 : MPI_Group_size
+-13 0 82 83 0 0 : MPI_Group_translate_ranks
+-13 0 84 85 0 0 : MPI_Group_union
+-13 0 86 87 0 0 : MPI_Intercomm_create
+-13 0 88 89 0 0 : MPI_Intercomm_merge
+-13 0 90 91 0 0 : MPI_Keyval_create
+-13 0 92 93 0 0 : MPI_Keyval_free
+-13 0 94 95 0 0 : MPI_Abort
+-13 0 96 97 0 0 : MPI_Error_class
+-13 0 98 99 0 0 : MPI_Errhandler_create
+-13 0 100 101 0 0 : MPI_Errhandler_free
+-13 0 102 103 0 0 : MPI_Errhandler_get
+-13 0 104 105 0 0 : MPI_Error_string
+-13 0 106 107 0 0 : MPI_Errhandler_set
+-13 0 108 109 0 0 : MPI_Get_processor_name
+-13 0 110 111 0 0 : MPI_Initialized
+-13 0 112 113 0 0 : MPI_Wtick
+-13 0 114 115 0 0 : MPI_Wtime
+-13 0 116 117 0 0 : MPI_Address
+-13 0 118 119 0 0 blue:gray3 MPI_Bsend
+-13 0 120 121 0 0 : MPI_Bsend_init
+-13 0 122 123 0 0 : MPI_Buffer_attach
+-13 0 124 125 0 0 : MPI_Buffer_detach
+-13 0 126 127 0 0 : MPI_Cancel
+-13 0 128 129 0 0 : MPI_Request_free
+-13 0 130 131 0 0 : MPI_Recv_init
+-13 0 132 133 0 0 blue:gray3 MPI_Send_init
+-13 0 134 135 0 0 : MPI_Get_elements
+-13 0 136 137 0 0 : MPI_Get_count
+-13 0 138 139 0 0 : MPI_Ibsend
+-13 0 140 141 0 0 seagreen:gray MPI_Iprobe
+-13 0 142 143 0 0 springgreen:gray MPI_Irecv
+-13 0 144 145 0 0 : MPI_Irsend
+-13 0 146 147 0 0 skyblue:gray MPI_Isend
+-13 0 148 149 0 0 seagreen:gray MPI_Issend
+-13 0 150 151 0 0 : MPI_Pack
+-13 0 152 153 0 0 : MPI_Pack_size
+-13 0 154 155 0 0 seagreen:gray MPI_Probe
+-13 0 156 157 0 0 green:light_gray MPI_Recv
+-13 0 158 159 0 0 : MPI_Rsend
+-13 0 160 161 0 0 : MPI_Rsend_init
+-13 0 162 163 0 0 blue:gray3 MPI_Send
+-13 0 164 165 0 0 seagreen:gray MPI_Sendrecv
+-13 0 166 167 0 0 seagreen:gray MPI_Sendrecv_replace
+-13 0 168 169 0 0 deepskyblue:gray MPI_Ssend
+-13 0 170 171 0 0 deepskyblue:gray MPI_Ssend_init
+-13 0 172 173 0 0 : MPI_Start
+-13 0 174 175 0 0 : MPI_Startall
+-13 0 176 177 0 0 orange:gray MPI_Test
+-13 0 178 179 0 0 orange:gray MPI_Testall
+-13 0 180 181 0 0 orange:gray MPI_Testany
+-13 0 182 183 0 0 : MPI_Test_cancelled
+-13 0 184 185 0 0 : MPI_Testsome
+-13 0 186 187 0 0 : MPI_Type_commit
+-13 0 188 189 0 0 : MPI_Type_contiguous
+-13 0 190 191 0 0 : MPI_Type_extent
+-13 0 192 193 0 0 : MPI_Type_free
+-13 0 194 195 0 0 : MPI_Type_hindexed
+-13 0 196 197 0 0 : MPI_Type_hvector
+-13 0 198 199 0 0 : MPI_Type_indexed
+-13 0 200 201 0 0 : MPI_Type_lb
+-13 0 202 203 0 0 : MPI_Type_size
+-13 0 204 205 0 0 : MPI_Type_struct
+-13 0 206 207 0 0 : MPI_Type_ub
+-13 0 208 209 0 0 : MPI_Type_vector
+-13 0 210 211 0 0 : MPI_Unpack
+-13 0 212 213 0 0 red:black MPI_Wait
+-13 0 214 215 0 0 OrangeRed:gray MPI_Waitall
+-13 0 216 217 0 0 coral:gray MPI_Waitany
+-13 0 218 219 0 0 red:black MPI_Waitsome
+-13 0 220 221 0 0 : MPI_Cart_coords
+-13 0 222 223 0 0 : MPI_Cart_create
+-13 0 224 225 0 0 : MPI_Cart_get
+-13 0 226 227 0 0 : MPI_Cart_map
+-13 0 228 229 0 0 : MPI_Cart_rank
+-13 0 230 231 0 0 : MPI_Cart_shift
+-13 0 232 233 0 0 : MPI_Cart_sub
+-13 0 234 235 0 0 : MPI_Cartdim_get
+-13 0 236 237 0 0 : MPI_Dims_create
+-13 0 238 239 0 0 : MPI_Graph_create
+-13 0 240 241 0 0 : MPI_Graph_get
+-13 0 242 243 0 0 : MPI_Graph_map
+-13 0 244 245 0 0 : MPI_Graph_neighbors
+-13 0 246 247 0 0 : MPI_Graph_neighbors_count
+-13 0 248 249 0 0 : MPI_Graphdims_get
+-13 0 250 251 0 0 : MPI_Topo_test
+0 3 0 1 0 379 
+0 2 0 1 0 381 
+0 1 0 1 0 415 
+1 3 0 1 0 444 
+1 2 0 1 0 448 
+1 1 0 1 0 481 
+0 0 0 1 0 534 
+1 0 0 1 0 716 
+50 2 0 2 0 1281 
+50 3 0 2 0 1289 
+50 1 0 2 0 1317 
+51 2 0 2 0 1350 
+51 3 0 2 0 1357 
+51 1 0 2 0 1385 
+56 2 0 1 0 1414 
+56 3 0 1 0 1422 
+56 1 0 1 0 1447 
+57 2 0 1 0 1477 
+57 3 0 1 0 1487 
+57 1 0 1 0 1509 
+14 2 0 1 0 3960 
+14 3 0 1 0 4013 
+14 1 0 1 0 4475 
+50 0 0 2 0 15781 
+51 0 0 2 0 16043 
+56 0 0 1 0 16234 
+57 0 0 1 0 16415 
+14 0 0 1 0 3337119 
+15 3 0 1 0 3340682 
+26 3 0 1 0 3340869 
+15 2 0 1 0 3341097 
+26 2 0 1 0 3341745 
+15 0 0 1 0 3343980 
+26 0 0 1 0 3344411 
+15 1 0 1 0 3346124 
+26 1 0 1 0 3346304 
+27 1 0 1 0 3349197 
+14 1 0 2 0 3349290 
+27 3 0 1 0 3397379 
+14 3 0 2 0 3397496 
+27 2 0 1 0 3399862 
+14 2 0 2 0 3399943 
+27 0 0 1 0 3403868 
+14 0 0 2 0 4807913 
+15 3 0 2 0 4812565 
+15 2 0 2 0 4813262 
+15 0 0 2 0 4814653 
+15 1 0 2 0 4817233 
+26 3 0 2 0 4884651 
+27 3 0 2 0 4886088 
+14 3 0 3 0 4886172 
+26 2 0 2 0 4887201 
+27 2 0 2 0 4888599 
+14 2 0 3 0 4888673 
+26 1 0 2 0 4889479 
+27 1 0 2 0 4890428 
+14 1 0 3 0 4890503 
+26 0 0 2 0 5018067 
+27 0 0 2 0 5021504 
+14 0 0 3 0 5495360 
+15 2 0 3 0 5498695 
+15 3 0 3 0 5501684 
+15 0 0 3 0 5502241 º
+15 1 0 3 0 5505275 

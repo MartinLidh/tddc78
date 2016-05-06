@@ -1,0 +1,31 @@
+#! /bin/ksh
+#
+# @(#)Jumpshot Logfile Analyzer	1.1 98/08/27
+#
+PROGNAME="$(whence $0)"
+
+JUMPSHOT_HOME="$(dirname $PROGNAME)/../../.."
+
+echo "*********************************************************"
+echo "This script will work for Java 1.1. For Java 1.2 use"
+echo "other script"
+echo "*********************************************************"
+echo "Jumpshot has been installed in " $JUMPSHOT_HOME
+echo "This program requires a Java Virtual Machine to run (jre)"
+echo "JVM specified in JAVA_HOME will be used or if JAVA_HOME"
+echo "is not set the one with this installation will be used"
+echo "*********************************************************"
+
+# We explicitly do not want the environment's CLASSPATH and JAVA_HOME.
+if [ -z "${JAVA_HOME}" ] ; then
+	export JAVA_HOME="$JUMPSHOT_HOME/build/solaris/Solaris_JRE_1.1.6_03"
+	echo "JAVA_HOME environment variable not set. Using installed JVM in"
+	echo $JAVA_HOME
+else
+	export JAVA_HOME="$JAVA_HOME"
+	echo "JAVA_HOME is set. Using JVM in JAVA_HOME" $JAVA_HOME
+fi
+
+export CLASSPATH="$JAVA_HOME/lib/rt.jar:$JAVA_HOME/lib/classes.zip:$JUMPSHOT_HOME/lib/js_classes.jar:$JUMPSHOT_HOME/swing/swing.jar"
+exec "$JAVA_HOME/bin/jre" -mx500m jumpshot "$@"
+

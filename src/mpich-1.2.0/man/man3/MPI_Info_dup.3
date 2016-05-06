@@ -1,0 +1,30 @@
+.TH MPI_Info_dup 3 "1/9/1998" " " "MPI-2"
+.SH NAME
+MPI_Info_dup \-  Returns a duplicate of the info object 
+.SH SYNOPSIS
+.nf
+int MPI_Info_dup(MPI_Info info, MPI_Info *newinfo)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B info 
+- info object (handle)
+.PD 1
+
+.SH OUTPUT PARAMETERS
+.PD 0
+.TP
+.B newinfo 
+- duplicate of info object (handle)
+.PD 1
+
+.SH NOTES FOR FORTRAN
+All MPI routines in Fortran (except for 'MPI_WTIME' and 'MPI_WTICK')
+have an additional argument 'ierr' at the end of the argument list.
+'ierr' is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines and are
+invoked with the 'call' statement.
+
+All MPI objects (e.g., 'MPI_Datatype', 'MPI_Comm', 'MPI_File') are of
+type 'INTEGER' in Fortran.

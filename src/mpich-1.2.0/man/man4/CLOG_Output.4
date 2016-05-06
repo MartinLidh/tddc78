@@ -1,0 +1,13 @@
+.TH CLOG_Output 4 "11/9/1999" " " "MPE"
+.SH NAME
+CLOG_Output \-  output a block of the log. The byte ordering, if needed, will be performed in this function using the conversion routines got from Petsc. 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+
+void CLOG_output( buf )
+double *buf;
+.fi
+.SH LOCATION
+clog_merge.c

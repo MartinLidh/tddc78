@@ -1,0 +1,62 @@
+.TH SLOG_Irec_ToOutputStream 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_ToOutputStream \-  store the given interval record in the frame buffer and write it out to the disk when the frame buffer is full. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_ToOutputStream(       SLOG_STREAM      *slog,
+                              const SLOG_intvlrec_t  *irec )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to SLOG_STREAM where the interval record will be stored.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B irec 
+- pointer to constant interval record with the fields set by 
+the user before this routine is called.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The routine provides all the core management of the implementation of
+SLOG_STREAM.  Be sure to call SLOG_Irec_SetMinRec() at least once for
+the interval record to be appended to the SLOG_STREAM.  Also this routine
+can be called in either increasing starttime and endtime order depending
+if SLOG_IsIncreasingStarttimeOrder() or SLOG_IsIncreasingEndtimeOrder()
+is called.   But NOT both.  And there is time order checking code
+if user turns on the corresponding compiler flag.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_irec_write.c

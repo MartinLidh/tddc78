@@ -1,0 +1,194 @@
+       JUMPSHOT - A Graphical Visualization Tool for Parallel Programs
+       ---------------------------------------------------------------
+
+Jumpshot is a graphical tool which has evolved from Upshot and Nupshot.  It
+interprets binary clog tracefiles which displays them on a canvas object.
+This file only serves as a guide to configuring Jumpshot.  For a more detailed
+description of it's history and features, please refer to the README in this
+directory.  
+
+I.  INTRODUCTION
+----------------
+
+Jumpshot is distributed with 2 script files, jumpshot.in (for use with 
+Java 1.1.*) and jumpshot12.in (for use with Java 1.2.*), which are located in 
+the jumpshot/build/unix/bin directory.  The purpose of these script files is
+to set the CLASSPATH variable before invoking jumpshot.  In order to set the
+CLASSPATH variable, the variables JAVA_HOME and JUMPSHOT_HOME must be
+determined.  The role of configure is to determine these variables, 
+substitute them into the appropriate .in file, create the executable 
+'jumpshot' or 'jumpshot12', and place it in the appropriate bin directory.
+After setting your path to include this directory, you should be able to 
+invoke Jumpshot from any directory by typing
+	jumpshot or 
+	jumpshot <name of logfile>
+
+
+II.  CONFIGURE OPTIONS
+----------------------
+ 
+Jumpshot can be configured in 3 ways:
+
+*** As part of the MPICH configure ***
+    The configure in the MPICH directory can invoke the configure in the
+    mpich/mpe directory which can invoke the configure in the mpich/jumpshot
+    directory.  This is the default way to configure MPICH but can be
+    overridden by configuring MPICH with the -nompe option.
+
+*** As part of the MPE configure ***
+    The configure in the MPE directory can invoke the configure in the
+    JUMPSHOT directory.  This is not the default (assuming the mpe library was
+    not configured during the MPICH configure) and the configure option
+    --with-jumpshot_home=JUMP_HOME must be given.
+
+*** By itself ***
+    Jumpshot can be configured by typing 'configure <configure options>' in
+    this directory.
+
+By typing 'configure --help', a list of flags/switches can be viewed.
+
+Mandatory configure flags/switches:
+--with-bindir=DIR			This is the directory where jumpshot's
+					executable will be located.  Without
+					this flag, jumpshot can not be	
+					configured.
+	
+--with-jumpshot_home=JUMP_HOME		This is the path of the top-level
+					directory where jumpshot is located.
+					Without this directory, jumpshot can 
+					not be configured.
+
+Optional configure flags/switches:
+--enable-echo				This switch witll turn on strong 
+					echoing.  The default is enable=no.
+
+--with-arch_bindir=DIR			This is an optional directory where
+					jumpshot's executable will be located.
+					For example, when configuring with
+					MPICH, this will be the 
+					build/ARCH/DEVICE/bin directory.
+
+--with-java=DIR				Specifies the path of JAVA's top-level
+					directory.  If omitted, then configure
+					will attempt to locate java.
+
+--with-java_version=VERSION		Specifies the version of JAVA.  If
+					omitted, then configure will attempt
+					to locate your java's version.
+
+III.  INSTALLATION INSTRUCTIONS
+-------------------------------
+
+As noted above, JUMPSHOT can be installed as part of MPICH's configure, MPE's
+configure, or by itself.  Below is instructions and examples for each type of
+installation.  
+
+A)  Configuring as part of the MPICH configure
+In this JUMPSHOT installation, no switches and flags are required.  The
+configure in the MPICH directory will locate the necessary information and
+pass it to the JUMPSHOT configure.  If not options are given, JUMPSHOT will
+automatically get configured.  However, the user can choose to override this
+by configuring MPICH with the following options:
+
+	-mpe_opts=MPE_OPTS
+	-jumpshot_opts=JUMP_OPTS
+
+where JUMP_OPTS is one or more of the choices in section II (mpe options are 
+discussed in the README in the MPE directory).  Multiple uses of
+-jumpshot_opts is not allowed to specify more than one option for JUMPSHOT's
+configure. 
+
+Example 1:  Configure MPICH with the MPE library and JUMPSHOT
+	    In the top-level MPICH directory,
+		1) ./configure <MPICH configure options>
+
+		2) make
+
+Example 2:  Configure MPICH without the MPE library and with JUMPSHOT
+	    - Currently, if MPICH is configured without the MPE library, then
+	      JUMPSHOT does not get configured (since the MPE configure invokes
+	      JUMPSHOT's configure).  The following is the steps that need to
+              be taken in order to configure MPICH and JUMPSHOT without the
+	      MPE library.
+
+	    In the top-level MPICH directory,
+		1) ./configure <MPICH configure options> -nompe
+
+		2) make
+
+	    In the mpich/jumpshot directory,
+		./configure --with-bindir=<directory path of mpich/bin> \
+			  --with-arch_bindir=<directory path of
+					      mpich/build/ARCH/DEVICE/bin> \
+			  --with-jumpshot_home=<directory path of jumpshot> 
+
+Example 3:  Configure MPICH with the MPE library and with java's directory
+	    given as an option to jumpshot's configure
+
+	    In the top-level MPICH directory,
+		1)  ./configure <MPICH configure options> \
+	            -jumpshot_opts=--with-jumpshot_opts=--with-java=<directory path of java> 
+
+                2)  make
+	    - It is necessary to include --with-jumpshot_opts since MPICH's
+	      configure will strip off -jumpshot_opts and MPE's configure
+	      will strip off --with-jumpshot_opts and pass the option to 
+	      JUMPSHOT's configure.
+
+Example 4:  Configure MPICH with the MPE library and override the option
+	    jumpshot_home in the JUMPSHOT configure
+	
+	    In the top-level MPICH directory,
+		1)  ./configure <MPICH configure options> \
+	            -jumpshot-opts="--with-jumpshot_opts=--with-jumpshot_home=DIR"
+
+		2) make
+
+B)  Configuring as part of the MPE configure
+
+Example 1:  Configure the MPE library with JUMPSHOT and MPICH's MPI
+	
+	    In the top-level MPE directory,
+		1)  ./configure --with-mpich=<top-level install dir for MPICH> \
+	                    --with-mpichdev=<library subdirectory for MPICH> 
+
+		2)  make
+
+	    with SGI's MPI
+		./configure --with-sgi -libdir=<directory path of libdir> \
+		--with-jumpshot_home=<directory path of jumpshot>
+
+Example 2:  Configure the MPE library without JUMPSHOT and IBM's MPI
+	
+	    In the top-level MPE directory,
+		1)  ./configure --with-sp -libdir=<directory path of libdir> \
+	                      --enable-jumpshot=no
+
+		2)  make
+
+Example 3:  Configure the MPE library with java and version given as options
+	    to JUMPSHOT's configure
+
+	    In the top-level MPE directory,
+		1)  ./configure <MPI implementation switch> \
+	           --with-jumpshot_opts="--with-java=<directory path of java> \
+	                              --with-java_version=VERSION"
+
+		2)  make
+
+C)  Configure JUMPSHOT by itself
+
+Example 1:  Configure JUMPSHOT
+
+	    In the top-level JUMPSHOT directory,
+		./configure -bindir=<directory path of bindir> \
+	                  --with-jumpshot_home=<directory path of jumpshot>
+
+Example 2:  Configure JUMPSHOT with strong echoing
+	
+	    In the top-level JUMPSHOT directory,
+		./configure -bindir=<directory path of bindir> \
+	                  --with-jumpshot_home=<directory path of jumpshot> \
+			  --enable-echo=yes
+
+		

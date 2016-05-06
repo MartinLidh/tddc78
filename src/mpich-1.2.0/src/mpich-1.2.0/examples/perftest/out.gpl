@@ -1,0 +1,7 @@
+set xlabel "Size (bytes)"
+set ylabel "time (us)"
+set title "Comm Perf for MPI (ent4000.ida.liu.se) type blocking"
+plot 'mppout.gpl' using 4:5 with lines,\
+0.000000+0.000000*x with dots
+pause -1 "Press <return> to continue"
+clear

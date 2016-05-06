@@ -1,0 +1,6 @@
+**** Testing large numbers of messages ****
+Blocking sends: 128 512 2048
+Unexpected recvs: 128 512 2048
+Synchronous sends: 128 512 2048
+No errors
+**** Testing large numbers of messages ****

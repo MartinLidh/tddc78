@@ -1,0 +1,190 @@
+***********************************
+* Last revised: September 5, 1998 *
+* Omer Ahmed Zaki                 *
+***********************************
+
+Jumpshot - Graphical Visualization Tool for Parallel Programs
+=============================================================
+
+Programmer's Documentation
+==========================
+
+Jumpshot has evolved from the earlier Nupshot which was written using Tcl/Tk. It 
+is written in Java. A number of useful features have been added. These are 
+described in the user's manual.
+
+Basic working of Jumpshot
+-------------------------
+
+Jumpshot is written to visualize clog tracefiles which are binary. The file to 
+be read is passed onto the Jumpshot object as a command line parameter which 
+passes it along to the Mainwin object. The file could also be selected using 
+FileDialog object in Mainwin. 
+
+The entire working of Jumpshot could be divided into 2 phases:
+
+Phase 1: Reading of the clog file
+---------------------------------
+Having got the filename, readLogFile () method of Mainwin creates an instance
+of ClogReader object. The ClogReader object is the one that does all the
+reading of the clog file and produces the appropriate data structures. Once 
+the ClogReader object is created it traverses through the clog file reading 
+a block of data at a time. It takes each block and separates out the header 
+and RAW record or CLOG_STATE record pairs. Each of these pairs of records are 
+then passed onto a RecordHandler object which sifts out the needed information.
+This information obtained by RecordHandler is then used to construct the 
+data structures. This way the entire clog file is read and in the end the 
+ClogReader object returns the RecordHandler object to Mainwin.
+
+Now all the relevant information from the Clog File is in data structures 
+contained in RecordHandler object. Having received RecordHandler, Mainwin now 
+begins the next phase.
+
+Phase 2:Displaying the data
+---------------------------
+A new object ClogDisplay is now created by Mainwin and the data structures 
+passed to it. ClogDisplay is responsible for all drawing, printing and 
+manipulating of clog data. A frame is now setup by ClogDisplay with buttons and
+TextFields. States belonging to the required time zone (and ahead and behind of 
+time zone for smooth scrolling) are drawn onto 3 offscreen images. All these 
+images are drawn on a Canvas (ProgramCanvas) which is placed in a JViewport 
+Container. JViewport container allows us to view a small part of this Canvas. 
+The reason we use JViewport container is that it allows smooth scrolling. 
+Scrolling is controlled by a scrollbar called hbar. JViewport container is 
+attached to our ClogDisplay Frame.
+
+Some Important Points and Solutions:
+------------------------------------
+
+1. Explanation on Image handling
+-------------------------------------
+There are a number of ways in which the states can be drawn and shown. Whatever 
+the method may be, it has to provide immediate or at least fast enough access to 
+any part of the drawing. We could use buttons or scrollbars to control 
+horizontal movement. It was agreed upon to use a scrollbar.
+
+Approach 1: One simple approach would be to draw all the states on one canvas. 
+            This canvas could then be placed in a JViewport Container. With the 
+            help of methods provided by JViewport container we could scroll to 
+            different parts of the canvas and view the region we want. This 
+            approach has 2 major drawbacks.
+
+            1. The size of a Canvas in Java version 1.1 is limited to short 
+               dimensions, that is its x and y dimensions can range from 
+               0 .. 32767. This limits the area we can draw in. In most cases, 
+               the data to be drawn will be well beyond these limits due to the 
+               length of the states itself or as a consequence of zooming. Thus, 
+               this approach is not feasible.
+
+            2. Even if our data fits into the canvas, using a large canvas would
+               occupy a lot of memory. Also it was found that for a large canvas
+               scrolling becomes extremely slow.
+
+Approach 2: At any given time the user would view only a part of the data.
+            It was thus suggested to draw only that part which the user is
+            interested in and also some amount on either sides. Drawing
+            extra on either sides would facilitate smooth scrolling and
+            while the user sees one part the other parts could be drawn by
+            a separate thread. This way memory would not be a constraint
+            as less of it will be needed. There will also be no short
+            integer limits to drawing. 
+
+Approach 2 is being followed in Jumpshot.
+
+Instead of drawing on a Canvas object directly we draw into 3 offscreen images 
+in memory implemented as a circular buffer. Each of these 3 offscreen image is 3 
+times the length of the viewport. While one image is under the viewport the 
+other two (before and after images) can be drawn by a separate thread. All three 
+images are drawn onto a canvas side by side. This canvas itself is placed in a 
+JViewport container. Now, when we scroll over the central image and reach a 
+certain distance into another image, the other image could become the the 
+central image and the next ahead or backward image could be drawn. This way one 
+could traverse through the entire time line. Also if the user jumped more that a 
+image distance, we could recompute the values and draw a totally fresh image. 
+CentralizeH () method in ProgramCanvas class does precisely the above. When it 
+is called it searches the circular buffer for the previous image. If it is not 
+present it draws it. It also searches for the next ahead image. If it is
+not there it draws that also. This way at any given time we have an image that 
+we see and its previous and ahead siblings.
+
+The reason each of image is 3 times the length of the viewport is to make the 
+scrolling smooth.
+
+To control drawing of images appropriately, we use a horizontal scrollbar 
+called hbar in ClogDisplay object. This scrollbar represents the entire time 
+line relatively.
+
+Changing the appearance of Arrows (radii, color, etc.)
+------------------------------------------------------
+For modifying the appearance of arrows open file MyImage.java. In the class 
+MyImage see the region at the start where variables are being declared. There 
+will be group of variables under the header: 'Configuration variables for the 
+arrows.' Change the required variable here.
+
+Changing background color of images on which states are drawn
+---------------------------------------------------------------------
+For better contrast the variable 'normImgBColor' has been set to Color.black. 
+This defines the background color of the image on which the states are drawn. 
+
+During Printing however, this color changes to Color.lightGray and is defined by 
+'printImgBColor'. Both these variables can be found in ClogDisplay.java
+
+To add a Button or something to any of the Frames or Dialogs
+------------------------------------------------------------
+Doing this is relatively simple in Java. Obtain the class which defines the 
+desired frame or Dialog you are interested in. Now, place the button or other 
+object at the right place. This is generally done in the setupPanels method. To 
+harness the events generated when the button is used, add the event handler code 
+to the appropriate method. For instance, for button events public void 
+ActionPerformed () method is used. See any book on Java Version 1.1 events for a 
+better understanding.
+
+Interpreting color names given in logfiles
+------------------------------------------
+In Java colors are defined by their RGB values. In the logfiles however, colors 
+are specified by their X names. So, in Jumpshot these names are translated to 
+RGB values. At present a file Jumpshot.colors is used to give us the information 
+about these X Colors. The file contains X color names alongwith RGB values. 
+ColorUtil object reads from this file and makes a data structure of colors. 
+Whenever a color name is found in clog file getColor () method of ColorUtil 
+object returns the RGB value. If however, a color name is to be resolved that 
+was not present in Jumpshot.colors, a default color will be returned. At present 
+Color.pink is the default value.
+
+Setup Files required by Jumpshot
+--------------------------------
+The following files are needed by Jumpshot to function normally. 
+All these files should be present in directory ......data/
+Mainwin object looks in this directory for these files.
+
+1. Jumpshot.setup: This ASCII file is meant to provide values to configure 
+   Jumpshot. As of now, it contains 2 filenames-
+   - COLORFILE, which is the name of the file containing X Colors along with
+     corresponding RGB values.
+   - HELPFILE, which is the name of the file containing On line Help information.
+
+   In future, other variables could be added. These values are accessed using 
+   Property sets in Java. See Properties object for more information.
+   Mainwin.java contains the code to access these variables.
+
+2. jumpshot.help: This ASCII file contains online help information.
+
+3. jumpshot.colors: This ASCII file contains X Colors alongwith their RGB values. 
+   Each color should be specified on a unique line. 
+   [Color Name]........   [Red Value] [Green Value] [Blue Value]
+
+   The code for reading these colors is present in ColorUtil.java.
+
+Location of class code
+----------------------
+Not all classes in Jumpshot are present in files having their name with the 
+.java extension. In certain file like Dlgs.java and Structs.java, several class 
+files have been placed. This was done as these classes were small and numerous 
+and having separate files for each would be hard to keep track of. These classes 
+are instantiated often by classes in separate files. This is no problem. 
+However, during compilation of the entire code, java compiler complains and says 
+that each class that is called by another class in a separate file should be in 
+a unique file. Fortunately, this is only a warning and the code works normally. 
+Generally during compiling about 20 odd warnings are generated which can be 
+overlooked for now. In future if the need be each class could be in a separate 
+file.

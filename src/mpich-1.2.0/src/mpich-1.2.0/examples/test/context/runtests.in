@@ -1,0 +1,225 @@
+#! /bin/sh
+#
+# Run some of the tests.  If any arguments are provided, pass them to the
+# test programs.
+#
+# -mvhome is needed for the ANL SP, and is ignored by others
+args=@MPIRUNARGS@
+device=@DEVICE@
+if [ "$device" = "ch_p4mpd" ] ; then
+    args=""
+fi
+STOPFILE=$HOME/.stopmpichtests
+#
+# Some people don't include "." in their path (! in case an ls trojan horse,
+# I guess - if someone does that to you, you have bigger problems).  This
+# code tests to see if you have a path to mpirun; if not, it tries ./mpirun.
+#
+# One particular problem is having multiple mpiruns in the path.  An
+# absolute path for mpirun will fix many problems
+mpirun="@MPIRUN@"
+if [ -z "$MPICH_USE_LIB_MPIRUN" -a ! -x "$mpirun" ] ; then
+    IFS="${IFS= 	}"; saveifs="$IFS"; IFS="${IFS}:"
+    for dir in $PATH ; do 
+        if [ -x $dir/mpirun ] ; then
+	    if [ -n "@MPICH_VERSION@" ] ; then
+		# Test that we've found the correct mpirun
+		if strings $dir/mpirun | grep "MPIRUN for MPICH" > /dev/null ; then
+		    :
+		else
+		    # echo "$dir/mpirun isn't for MPICH"
+		    continue
+		fi
+	    fi
+            mpirun="mpirun"
+            break
+        fi
+    done
+    IFS="$saveifs"
+fi
+if [ -z "$mpirun" -a -x "./mpirun" ] ; then
+    mpirun=./mpirun
+fi
+#
+# Here is the location of the MPICH version of mpirun
+if [ -z "$mpirun" -a -x @LIB_DIR@/bin/mpirun ] ; then 
+    mpirun="@LIB_DIR@/bin/mpirun"
+fi
+if [ -z "$mpirun" ] ; then
+    echo "No mpirun in path.  Testing can not proceed."
+    exit 1
+fi
+#
+#
+test_mpi2=@HAS_MPI2@
+runtests=1
+quiet=0
+makeeach=0
+MAKE="@MAKE@"
+for arg in "$@" ; do
+    case $arg in 
+	-checkonly )
+	runtests=0
+	;;
+        -margs=*)
+	margs=`echo $arg | sed 's/-margs=//'`
+	args="$args $margs"
+	;;
+	-small)
+	makeeach=1
+	;;
+	-quiet)
+	shift
+	quiet=1
+	;;
+	-help|-u)
+	echo "runtests [-checkonly] [-margs='...']"
+	echo "run tests in this directory.  If -checkonly set, just run"
+	echo "the differences check (do NO rerun the test programs)."
+	echo "If -margs is used, these options are passed to mpirun."
+	echo "If -small is used, the examples are built, run, and deleted."
+	exit 1
+	;;
+	*)
+	if test -n "$arg" ; then
+   	    echo "runtests: Unknown argument ($arg)"
+	    exit 1
+        fi
+	;;
+    esac
+done
+
+MakeExe() {
+    if [ -s $STOPFILE ] ; then 
+        echo "Found stopfile; exiting"
+	exit 0
+    fi
+    if [ ! -x $1 ] ; then
+	$MAKE $1
+        if [ ! -x $1 ] ; then 
+	    echo "Could not build executable $1; aborting tests"
+	    exit 1
+        fi
+    fi
+}
+CleanExe() {
+    if [ $makeeach = 1 ] ; then
+	/bin/rm $1 $1.o
+    fi
+}
+# Output marker
+OutTime() {
+    if [ $quiet = 0 ] ; then
+	if [ -z "$hostname" ] ; then
+	    hostname=`hostname`
+	fi
+	d=`date`
+	echo "$hostname : $d"
+    fi
+}
+
+# Runtest pgm-name np marker-test args outfiles
+RunTest() {
+    OutTime
+    testfiles="$testfiles $1.out"
+    /bin/rm -f $1.out
+    MakeExe $1
+    mname=$3
+    if [ -z "$mname" ] ; then mname="*** $1 ***" ; fi
+    echo "$mname" >> $1.out
+    echo "$mname"
+    mvarg=""
+    if [ -n "$5" ] ; then rm -f $5 ; 
+	if [ "$device" != "ch_p4mpd" ] ; then
+            if [ -n "@MPIRUNMVBACK@" ] ; then mvarg="@MPIRUNMVBACK@ $5" ; fi 
+	fi
+    fi
+    $mpirun $args -np $2 $mvarg $1 $4 </dev/null >> $1.out 2>&1
+    if [ -n "$5" ] ; then cat $5 >> $1.out ; rm -f $5 ; fi
+    echo "$mname" >> $1.out
+    #CheckOutput $1
+    CleanExe $1
+}
+# If the programs are not available, run make.
+if [ ! -x attrt -a $makeeach = 0 -a $runtests = 1 ] ; then
+    $MAKE default
+fi
+
+testfiles=""
+if [ $runtests = 1 ] ; then
+
+#
+# Run Fortran tests ONLY if Fortran available
+if [ @HAS_FORTRAN@ = 1 ] ; then 
+    RunTest attrtest 2 "*** Testing attributes from Fortran ***"
+
+    if [ $test_mpi2 = 1 ] ; then
+       RunTest commnamesf 1 "*** Testing Communicator Names from Fortran ***"
+    fi
+fi
+
+RunTest attrt 2 "*** Testing attributes ***"
+
+RunTest attrerr 1 "*** Testing attributes (2) ***"
+
+RunTest grouptest 4 "*** Testing Groups ***"
+
+RunTest groupcreate 4 "*** Testing Group creation ***"
+
+RunTest ictest 4 "*** Testing Intercommunicators ***"
+
+#
+# ictest2 relies on a inconsistency in the standard, to wit, that the
+# leader in both groups can be the same process.  This seems to be
+# essential in a dynamic setting, since the only process both groups can
+# access may be the single parent process (other than using client/server
+# intercommunicator creating routines, with the parent providing the common
+# information).
+#
+#testfiles="$testfiles ictest2.out"
+#/bin/rm -f ictest2.out
+#MakeExe ictest2
+#echo '*** Testing Intercommunicators (2) ***'
+#echo '*** Testing Intercommunicators (2) ***' >> ictest2.out
+#$mpirun $args -np 4 ictest2 $* >> ictest2.out 2>&1
+#echo '*** Testing Intercommunicators (2) ***' >> ictest2.out
+#CleanExe ictest2
+
+RunTest ictest3 4 "*** Testing Intercommunicators (3) ***"
+
+if [ $test_mpi2 = 1 ] ; then
+
+    RunTest commnames 2 "*** Testing Communicator Names ***"
+fi
+else
+    # Just run checks
+    testfiles=`echo *.out`
+fi
+
+echo '*** Checking for differences from expected output ***'
+/bin/rm -f context.diff
+nodiff=1
+srcdir=@srcdir@
+for file in $testfiles ; do
+    stdfile=$srcdir/`basename $file .out`.std
+    if [ -s $stdfile ] ; then
+        if diff -b $file $stdfile > /dev/null ; then
+	    true
+        else
+	    echo "Differences in `basename $file .out`" >> context.diff
+	    diff -b $file $stdfile >> context.diff
+	    nodiff=0
+	fi
+    else
+        echo "Cannot find file $stdfile to compare against for test `basename $file .out`"
+    fi
+done
+if [ -s context.diff ] ; then
+   cat context.diff
+elif [ $nodiff = 1 ] ; then
+   echo "-- No differences found; test successful"
+fi
+exit 0
+
+
+

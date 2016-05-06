@@ -1,0 +1,53 @@
+.TH SLOG_Irec_SetDestTaskLabel 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_SetDestTaskLabel \-  Set the Destination Task IDs which are  needed for a Message Record, i.e. Arrow. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_SetDestTaskLabel(       SLOG_intvlrec_t  *intvlrec,
+                                const SLOG_nodeID_t     node_id,
+                                const SLOG_cpuID_t      cpu_id,
+                                const SLOG_threadID_t   thread_id )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal Interval record to be modified.
+.PD 1
+
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B node_id 
+- interval record's extra node ID.
+.PD 1
+.PD 0
+.TP
+.B cpu_id 
+- interval record's extra cpu ID.
+.PD 1
+.PD 0
+.TP
+.B thread_id 
+- interval record's extra thread ID.
+.PD 1
+
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The subroutine appends the specified Internal Interval Record with
+the extra set of Task Labels.  This subroutine is meant to be called
+once for each "Message" or "Arrow" interval record written to the
+slogfile.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+.SH LOCATION
+../src/slog_irec_write.c

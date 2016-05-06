@@ -1,0 +1,71 @@
+#! /bin/sh
+#
+# For "inplace" usage of config.status, we need srcdir to be "."
+# Hmmmm
+CONFIG_FILES=""
+destpair=""
+for arg 
+do
+    if [ -s $arg.in ] ; then 
+        CONFIG_FILES="$CONFIG_FILES $arg" 
+    elif [ -s /home/TDDB78/src/mpich-1.2.0/$arg.in ] ; then
+        CONFIG_FILES="$CONFIG_FILES /home/TDDB78/src/mpich-1.2.0/$arg" 
+	destpair="$destpair /home/TDDB78/src/mpich-1.2.0/$arg::$arg"
+    else
+        echo "Cannot find file $arg"
+	exit 1
+    fi
+done
+export CONFIG_FILES
+PREFIX="/home/TDDB78/mpich-1.2.0/"
+#
+# I once made a suggestion to do
+#if [ -n "$PREFIX" ] ; then 
+#    /bin/rm -f .t1 
+#    cat $file | sed -e "s%@INSTALL_DIR@%$PREFIX%g" > .t1
+#    mv .t1 $file
+#fi
+# 
+# but I've lost the example that made me suggest this.
+# 
+# First, try the device/architecture specific config.status
+# Our first try is for the mpireconfig.dat in the same directory as this script
+# came from if it is specifically set.
+mydir=`echo $0 | sed 's%/[^/][^/]*$%%'`
+if [ -x $mydir/mpireconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    $mydir/mpireconfig.dat 
+elif [ -x /home/TDDB78/mpich-1.2.0//bin/mpireconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    /home/TDDB78/mpich-1.2.0//bin/mpireconfig.dat 
+elif [ -x /home/TDDB78/src/mpich-1.2.0/bin/mpireconfig.dat ] ; then
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    /home/TDDB78/src/mpich-1.2.0/bin/mpireconfig.dat 
+elif [ -x /home/TDDB78/src/mpich-1.2.0/build/solaris/ch_p4/bin/config.status ] ; then 
+    # Export the location of mpichconf.h.in
+    #CONFIG_HEADERS="/home/TDDB78/src/mpich-1.2.0/build/solaris/ch_p4/include/mpichconf.h"
+    # In fact, we DO NOT want to recreate mpichconf.h  We must
+    # suppress it by defineing CONFIG_HEADERS as empty
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    /home/TDDB78/src/mpich-1.2.0/build/solaris/ch_p4/bin/config.status
+elif [ -x /home/TDDB78/src/mpich-1.2.0/config.status ] ; then
+    # Export the location of mpichconf.h.in
+    #CONFIG_HEADERS="/home/TDDB78/src/mpich-1.2.0/mpichconf.h"
+    CONFIG_HEADERS=""
+    export CONFIG_HEADERS
+    /home/TDDB78/src/mpich-1.2.0/config.status
+else
+    echo "An mpireconfig.dat file is needed to perform a reconfig of a file"
+    exit 1
+fi
+if [ -n "$destpair" ] ; then
+    # Move created files to their final places
+    for pair in $destpair ; do
+	stmt=`echo "$pair" | sed 's/::/ /'`
+        eval mv $stmt
+    done
+fi

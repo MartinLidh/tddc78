@@ -1,0 +1,30 @@
+#! /bin/sh
+#
+# Make a tar file of the MPE code, removing the RCS files etc.
+#
+set -x
+#
+# Use tar to copy to /tmp
+if [ -d /sandbox ] ; then
+    workdir="/sandbox/$LOGNAME"
+else
+    workdir="/tmp/$LOGNAME"
+fi
+if [ ! -d $workdir/perfcopy ] ; then
+    mkdir $workdir/perfcopy
+fi
+cd $workdir/perfcopy
+cvs -d /home/MPI/cvsMaster export -D '1 minute ago' perftest
+#
+# Update a few files
+# The next copy pulls in versions of mpicc and mpirun that may
+# be useful.
+cp -rp /home/MPI/class/mpiexmpl/maint/envs $workdir/perfcopy/perftest/bin
+cp /home/MPI/mpich/bin/tarch $workdir/perfcopy/perftest
+chmod a+x $workdir/perfcopy/perftest/tarch
+#
+# rebuild the tar file
+cd $workdir/perfcopy
+tar cf - perftest | gzip > $workdir/perftest.tar.gz
+/bin/rm -rf $workdir/perfcopy &
+echo "tar file in $workdir/perftest.tar.gz"

@@ -1,0 +1,119 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:671: checking host system type
+configure:794: checking for awk
+configure:825: checking for wc
+configure:865: checking for virtual path format
+configure:1024: checking MPICH version
+configure:1624: checking for c++
+configure:1655: checking whether the C++ compiler (/home/TDDB78/src/mpich-1.2.0/bin/mpiCC  -DMPICH_SKIP_MPICXX ) works
+configure:1669: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest  -DMPICH_SKIP_MPICXX   conftest.C  1>&5
+configure:1689: checking whether the C++ compiler (/home/TDDB78/src/mpich-1.2.0/bin/mpiCC  -DMPICH_SKIP_MPICXX ) is a cross-compiler
+configure:1694: checking whether we are using GNU C++
+configure:1703: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -E conftest.C
+CC: Warning: "-E" redefines product from "object" to "source (stdout)"
+configure:1746: checking how to run the C++ preprocessor
+configure:1764: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -E  conftest.C >/dev/null 2>conftest.out
+CC: Warning: "-E" redefines product from "object" to "source (stdout)"
+configure: failed program was:
+#line 1759 "configure"
+#include "confdefs.h"
+#include <stdlib.h>
+configure:1783: checking for AIX
+/home/TDDB78/src/mpich-1.2.0/MPI-2-C++/configure: /lib/cpp: not found
+configure:1839: checking for compiler exception flags
+configure:1921: checking for throw/catch
+configure:1930: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX  conftest.C 1>&5
+configure:1975: checking for mpi.h
+configure:1985: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+configure:2009: checking for getservbyname in -lsocket
+configure:2031: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   conftest.C -lsocket   1>&5
+configure:2053: checking for gethostbyaddr in -lnsl
+configure:2075: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   conftest.C -lnsl   1>&5
+configure:2099: checking for sigwait in -lthread
+configure:2121: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   conftest.C -lthread   1>&5
+configure:2164: checking for MPI_Initialized in -lmpich
+configure:2174: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   -L..//home/TDDB78/src/mpich-1.2.0/lib conftest.C -lmpich -lsocket -lnsl -lthread 1>&5
+configure:2240: checking whether to use MPI(_ERR)_PENDING
+configure:2250: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+"configure", line 2243: Error: There is extra text on this line.
+"configure", line 2246: Error: MPI_PENDING is not defined.
+2 Error(s) detected.
+configure: failed program was:
+#line 2242 "configure"
+#include "confdefs.h"
+#include <mpi.h>)
+
+int main() {
+int yow=MPI_PENDING;
+; return 0; }
+configure:2290: checking for a BSD compatible install
+configure:2374: checking for ranlib
+configure:2403: checking for ar
+configure:2430: checking whether ln -s works
+configure:2453: checking for sh
+configure:2491: checking for bool type
+configure:2503: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+configure:2550: checking size of int
+configure:2572: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   conftest.C  1>&5
+configure:2592: checking size of MPI2CPP_BOOL_T
+configure:2614: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   conftest.C  1>&5
+configure:2646: checking type of MPI attributes
+configure:2663: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -o conftest   -DMPICH_SKIP_MPICXX -I../include   -L..//home/TDDB78/src/mpich-1.2.0/lib conftest.C -lmpich -lsocket -lnsl -lthread 1>&5
+configure:2697: checking for signal declaration
+configure:2713: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+"configure", line 2704: Error: Formal argument 2 of type extern "C" void(*)(int) in call to std::signal(int, extern "C" void(*)(int)) is being passed void(*)(int,int,sigcontext*,char*).
+"configure", line 2706: Error: signal_handler is not defined.
+"configure", line 2706: Error: Badly formed expression.
+"configure", line 2707: Warning (Anachronism): Assigning int to sigset_t.
+"configure", line 2707: Error: Cannot cast from int to sigset_t.
+4 Error(s) and 1 Warning(s) detected.
+configure: failed program was:
+#line 2699 "configure"
+#include "confdefs.h"
+#include<signal.h>
+
+int main() {
+void handler(int sig, int code, struct sigcontext *scp, char *addr);
+signal(1, handler);
+  struct sigaction n;
+  n.sa_handler= (signal_handler) handler;
+  n.sa_mask= 0;
+  n.sa_flags= 0;
+
+; return 0; }
+configure:2745: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+"configure", line 2740: Warning (Anachronism): Formal argument 2 of type extern "C" void(*)(int) in call to std::signal(int, extern "C" void(*)(int)) is being passed void(*)(int).
+1 Warning(s) detected.
+configure:2782: checking for namespace support
+configure:2824: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+configure:2855: checking for template repository
+configure:2963: checking for FORTRAN constants
+configure:2973: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+configure:2990: checking for optional FORTRAN constants
+configure:3000: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+"configure", line 2996: Error: MPI_8REAL is not defined.
+1 Error(s) detected.
+configure: failed program was:
+#line 2992 "configure"
+#include "confdefs.h"
+#include <mpi.h>
+    
+int main() {
+MPI_Datatype b = MPI_8REAL;
+; return 0; }
+configure:3030: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+configure:3067: checking for optional C constants
+configure:3077: /home/TDDB78/src/mpich-1.2.0/bin/mpiCC -c   -DMPICH_SKIP_MPICXX -I../include  conftest.C 1>&5
+"configure", line 3073: Error: MPI_UNSIGNED_LONG_LONG is not defined.
+"configure", line 3073: Error: Multiple declaration for d.
+2 Error(s) detected.
+configure: failed program was:
+#line 3069 "configure"
+#include "confdefs.h"
+#include <mpi.h>
+
+int main() {
+MPI_Datatype d = MPI_UNSIGNED_LONG_LONG; MPI_Datatype d = MPI_LONG_LONG;
+; return 0; }

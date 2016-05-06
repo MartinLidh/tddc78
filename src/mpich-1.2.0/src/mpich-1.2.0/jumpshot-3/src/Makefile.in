@@ -1,0 +1,19 @@
+
+MAKE=@MAKE@
+SHELL=/bin/sh
+
+all:
+	for dir in slog_api StatsViewer GraphicPreview main; do \
+	    ( cd $$dir ; $(MAKE) ); done
+
+clean:
+	for dir in slog_api StatsViewer GraphicPreview main; do \
+	    ( cd $$dir ; $(MAKE) clean ); done
+
+rmlib:
+	for dir in slog_api StatsViewer GraphicPreview main; do \
+	    ( cd $$dir ; $(MAKE) rmlib ); done
+
+distclean:
+	for dir in slog_api StatsViewer GraphicPreview main; do \
+	    ( cd $$dir ; $(MAKE) distclean ); done

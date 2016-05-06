@@ -1,0 +1,276 @@
+#! /bin/sh
+#
+# Run some of the tests.  If any arguments are provided, pass them to the
+# test programs.
+#
+# -mvhome is needed for the ANL SP, and is ignored by others
+args=@MPIRUNARGS@
+device=@DEVICE@
+if [ "$device" = "ch_p4mpd" ] ; then
+    args=""
+fi
+STOPFILE=$HOME/.stopmpichtests
+#
+# Some people don't include "." in their path (! in case an ls trojan horse,
+# I guess - if someone does that to you, you have bigger problems).  This
+# code tests to see if you have a path to mpirun; if not, it tries ./mpirun.
+#
+# One particular problem is having multiple mpiruns in the path.  An
+# absolute path for mpirun will fix many problems
+mpirun="@MPIRUN@"
+if [ -z "$MPICH_USE_LIB_MPIRUN" -a ! -x "$mpirun" ] ; then
+    IFS="${IFS= 	}"; saveifs="$IFS"; IFS="${IFS}:"
+    for dir in $PATH ; do 
+        if [ -x $dir/mpirun ] ; then
+	    if [ -n "@MPICH_VERSION@" ] ; then
+		# Test that we've found the correct mpirun
+		if strings $dir/mpirun | grep "MPIRUN for MPICH" > /dev/null ; then
+		    :
+		else
+		    # echo "$dir/mpirun isn't for MPICH"
+		    continue
+		fi
+	    fi
+            mpirun="mpirun"
+            break
+        fi
+    done
+    IFS="$saveifs"
+fi
+if [ -z "$mpirun" -a -x "./mpirun" ] ; then
+    mpirun=./mpirun
+fi
+#
+# Here is the location of the MPICH version of mpirun
+if [ -z "$mpirun" -a -x @LIB_DIR@/bin/mpirun ] ; then 
+    mpirun="@LIB_DIR@/bin/mpirun"
+fi
+if [ -z "$mpirun" ] ; then
+    echo "No mpirun in path.  Testing can not proceed."
+    exit 1
+fi
+#
+quiet=0
+runtests=1
+makeeach=0
+MAKE="@MAKE@"
+for arg in "$@" ; do
+    case $arg in 
+	-checkonly )
+	runtests=0
+	;;
+        -margs=*)
+	margs=`echo $arg | sed 's/-margs=//'`
+	args="$args $margs"
+	;;
+	-small)
+	makeeach=1
+	shift
+	;;
+	-quiet)
+	shift
+	quiet=1
+	;;
+	-help|-u)
+	echo "runtests [-checkonly] [-margs='...']"
+	echo "run tests in this directory.  If -checkonly set, just run"
+	echo "the differences check (do NO rerun the test programs)."
+	echo "If -margs is used, these options are passed to mpirun."
+	echo "If -small is used, the examples are built, run, and deleted."
+	exit 1
+	;;
+	*)
+	if test -n "$arg" ; then
+   	    echo "runtests: Unknown argument ($arg)"
+	    exit 1
+        fi
+	;;
+    esac
+done
+
+MakeExe() {
+    if [ -s $STOPFILE ] ; then 
+        echo "Found stopfile; exiting"
+	exit 0
+    fi
+    if [ ! -x $1 ] ; then
+	$MAKE $1
+    fi
+}
+CleanExe() {
+    if [ $makeeach = 1 ] ; then
+	/bin/rm -f $1 $1.o
+    fi
+}
+# Output marker
+OutTime() {
+    if [ $quiet = 0 ] ; then
+	if [ -z "$hostname" ] ; then
+	    hostname=`hostname`
+	fi
+	d=`date`
+	echo "$hostname : $d"
+    fi
+}
+
+# Runtest pgm-name np marker-test args outfiles
+RunTest() {
+    OutTime
+    testfiles="$testfiles $1.out"
+    /bin/rm -f $1.out
+    MakeExe $1
+    mname=$3
+    if [ -z "$mname" ] ; then mname="*** $1 ***" ; fi
+    echo "$mname" >> $1.out
+    echo "$mname"
+    mvarg=""
+    if [ -n "$5" ] ; then rm -f $5 ; 
+	if [ "$device" != "ch_p4mpd" ] ; then
+            if [ -n "@MPIRUNMVBACK@" ] ; then mvarg="@MPIRUNMVBACK@ $5" ; fi 
+        fi
+    fi
+    $mpirun $args -np $2 $mvarg $1 $4 </dev/null >> $1.out 2>&1
+    if [ -n "$5" ] ; then cat $5 >> $1.out ; rm -f $5 ; fi
+    echo "$mname" >> $1.out
+    #CheckOutput $1
+    CleanExe $1
+}
+
+# If the programs are not available, run make.
+if [ ! -x sigchk -a $makeeach = 0 -a $runtests = 1 ] ; then
+    $MAKE default
+fi
+#
+testfiles=""
+if [ $runtests = 1 ] ; then
+
+RunTest timers 1 "*** Timer tests ***"
+
+RunTest init 2 "*** MPI_Initialized tests ***"
+
+RunTest baseattr 1 "*** Basic attributes ***"
+
+RunTest gtime 1 "*** WTIME_IS_GLOBAL ***"
+
+RunTest errhand 1 "*** Tests of error handling ***"
+
+RunTest errhand2 1 "*** Tests of error handling reference counting ***"
+
+RunTest sigchk 1 "*** Tests of signals used ***"
+
+OutTime
+testfiles="$testfiles cmdline.out"
+/bin/rm -f cmdline.out
+MakeExe cmdline
+echo "*** Tests of command line handling ***"
+echo "*** Tests of command line handling ***" >> cmdline.out
+$mpirun $args -np 2 cmdline a "b c" "d'e" 'f"g" h' $* </dev/null l>> cmdline.out 2>&1
+echo "*** Tests of command line handling ***" >> cmdline.out
+CleanExe cmdline
+
+#
+# If there was a Unix standard interface to ps, we could check for orphaned
+# processes...
+if ps -ef > /dev/null 2>&1 ; then
+   PSPGM="ps -ef"
+else
+   PSPGM="ps auxww"
+fi
+OutTime
+testfiles="$testfiles aborttest.out"
+/bin/rm -f aborttest.out aborttest.p1 aborttest.p2
+MakeExe aborttest
+echo "*** Tests of MPI_Abort ***"
+echo "*** Tests of MPI_Abort ***" >> aborttest.out
+$PSPGM | grep $LOGNAME > aborttest.p1
+$mpirun $args -np 2 aborttest $* < /dev/null > /dev/null 2>&1
+$PSPGM | grep $LOGNAME > aborttest.p2
+# If there was a consistant format, we could process it ...
+ndiff="`cat aborttest.p1 | wc -l` - `cat aborttest.p2 | wc -l`"
+ndiff=`expr $ndiff`
+if test "$ndiff" = 0 ; then
+    echo "All processes aborted" >> aborttest.out    
+else
+    echo "Suspicious processes remain" >> aborttest.out
+    echo "Processes before" >> aborttest.out
+    cat aborttest.p1 >> aborttest.out
+    echo "Processes after" >> aborttest.out
+    cat aborttest.p2 >> aborttest.out
+    echo "Differences are" >> aborttest.out
+    diff -b aborttest.p1 aborttest.p2 >> aborttest.out
+fi
+echo "*** Tests of MPI_Abort ***" >> aborttest.out
+CleanExe aborttest
+
+OutTime
+/bin/rm -f aborttest.p1 aborttest.p2
+echo "*** Tests of MPI_Abort (alt) ***"
+echo "*** Tests of MPI_Abort (alt) ***" >> aborttest.out
+$PSPGM | grep $LOGNAME > aborttest.p1
+$mpirun $args -np 2 aborttest -altmaster $* > /dev/null 2>&1
+$PSPGM | grep $LOGNAME > aborttest.p2
+ndiff="`cat aborttest.p1 | wc -l` - `cat aborttest.p2 | wc -l`"
+ndiff=`expr $ndiff`
+if test "$ndiff" = 0 ; then
+    echo "All processes aborted" >> aborttest.out    
+else
+    echo "Suspicious processes remain" >> aborttest.out
+    echo "Processes before" >> aborttest.out
+    cat aborttest.p1 >> aborttest.out
+    echo "Processes after" >> aborttest.out
+    cat aborttest.p2 >> aborttest.out
+fi
+echo "*** Tests of MPI_Abort (alt) ***" >> aborttest.out
+/bin/rm -f aborttest.p1 aborttest.p2
+CleanExe aborttest
+
+#
+# Run Fortran tests ONLY if Fortran available
+if [ @HAS_FORTRAN@ = 1 ] ; then 
+
+    OutTime
+    testfiles="$testfiles errstringsf.out"
+    /bin/rm -f errstringsf.out
+    MakeExe errstringsf
+    echo "*** Tests of Fortran error strings ***"
+    echo "*** Tests of  Fortran error strings ***" >> errstringsf.out
+    $mpirun $args -np 1 errstringsf $* >> errstringsf.out 2>&1
+    echo "*** Tests of  Fortran error strings ***" >> errstringsf.out
+    CleanExe errstringsf
+
+fi
+
+else
+    # Just run checks
+    testfiles=*.out
+    if test "$testfiles" eq "*.out" ; then
+	echo "No output files remain from previous test!"
+	exit 1
+    fi
+fi
+
+#
+echo '*** Checking for differences from expected output ***'
+/bin/rm -f env.diff
+nodiff=1
+srcdir=@srcdir@
+for file in $testfiles ; do
+    stdfile=$srcdir/`basename $file .out`.std
+    if [ -s $stdfile ] ; then
+        if diff -b $file $stdfile > /dev/null ; then
+	    true
+        else
+	    echo "Differences in `basename $file .out`" >> env.diff
+	    diff -b $file $stdfile >> env.diff
+	    nodiff=0
+	fi
+    else
+        echo "Cannot find file $stdfile to compare against for test `basename $file .out`"
+    fi
+done
+if [ -s env.diff ] ; then
+   cat env.diff
+elif [ $nodiff = 1 ] ; then
+   echo "-- No differences found; test successful"
+fi
+exit 0

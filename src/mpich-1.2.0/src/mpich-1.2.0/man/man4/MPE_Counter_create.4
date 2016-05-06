@@ -1,0 +1,13 @@
+.TH MPE_Counter_create 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_Counter_create \-  create and initialize shared counter (process) 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+
+int MPE_Counter_create( oldcomm, smaller_comm, counter_comm )
+MPI_Comm  oldcomm,  *smaller_comm,  *counter_comm;
+.fi
+.SH LOCATION
+mpe_counter.c

@@ -1,0 +1,3791 @@
+#! /usr/local/bin/wish -f
+#
+# upshot in tcl/tk
+# Written by Ed Karrels, with some code borrowed from Mario Jorge Silva
+#
+
+set bitmapdir /home/TDDB78/mpich-1.2.0//build/bitmaps
+set bitmaplist {gray gray3 gray2 vlines3 dllines4 drlines4 hlines3 2x2 boxes \
+      dimple3 black white}
+set colorlist {red blue green cyan yellow magenta orange3 maroon \
+       gray25 gray75 purple4 darkgreen white black}
+set defaultFile ~/.upshot.defaults
+#
+# Get the version.  If you KNOW the version, you can just do, e.g., 
+#    set tk_version 4.1
+# Remove the patch info from the patchLevel
+if { $tk_version == ""} {
+    set tk_version [ string range $tk_patchLevel 0 2 ] }
+#set err [ catch { expr {  + 0 } } tk_version ]
+#if { $err != 0 } { set tk_version 3.6 } 
+
+proc SetGlobalVars {} {
+   global reqWidth procWidth incDraw numDHashMarks numSHashMarks
+   global ndigitsPrecD ndigitsPrecS tcl_precision programName
+   global pageWidth pageHeight pageUnits barWidth maxOverlap
+
+   set programName "upshot.tcl"
+   set reqWidth   [GetDefault initial_timeline_window_width 700]
+     # incremental drawing of time bars--slower, but more interesting
+   set incDraw    [GetDefault incremental_timeline_drawing 0]
+   set pageWidth  [GetDefault printed_width 7.5]
+   set pageHeight [GetDefault printed_height 10]
+   set pageUnits i
+   set procWidth 25
+   # distance between timelines
+
+   # with of state bars
+   # for overlapping states, first 16 wide, then 10, then 4, and hold at 4
+   set barWidth(0) 8
+   set barWidth(1) 5
+   set barWidth(2) 2
+   set maxOverlap 2
+
+     # number of hash marks on static and dynamic scales
+   set numDHashMarks 7
+   set numSHashMarks 7
+     # number of digits precision for each scale line
+     # (# of digits to the right of decimal pt.)
+   set ndigitsPrecD 3
+   set ndigitsPrecS 3
+   set tcl_precision 17
+}
+
+proc SetColors {} {
+   global blackWhite color programName fg bg timelinebg timelinefg
+   global pctDonefg pctDonebg arrowfg activebg
+
+   # if no one else cares, set #colors automatically
+   if {![info exists blackWhite]} {set blackWhite [expr \
+	 "[winfo depth .] < 4"]}
+
+   if {$blackWhite} {
+      set fg black
+      set bg white
+      set timelinebg white
+      set timelinefg black
+      set activebg black
+      set pctDonefg white
+      set pctDonebg white
+      set arrowfg black
+
+      option add *background white
+      option add *foreground black
+      option add *selectForeground white
+      option add *selectBackground black
+      option add *activeForeground white
+      option add *activeBackground $activebg
+
+   } else {
+      set fg Snow
+      set bg SteelBlue
+      set activebg SteelBlue2
+      set timelinebg gray60
+      set timelinefg red
+      set pctDonefg red
+      set pctDonebg steelblue
+      set arrowfg black
+
+      # Why doesn't GhostView like 'White' ?
+
+      option add *foreground Snow
+      option add *background SteelBlue
+      option add *activeForeground Snow
+      option add *activeBackground $activebg
+   }
+}
+
+
+proc ProcessCmdLineArgs {} {
+   global argv blackWhite logFileName
+
+   foreach parameter $argv {
+      if {$parameter == "-bw" } {
+	 #black and white screen
+	 set blackWhite 1
+      } elseif {$parameter == "-c" } {
+	 #color screen
+	 set blackWhite 0
+      } else {
+	 set logFileName $parameter
+      }
+   }
+}
+
+bind Entry <Control-Key-e> {
+   %W icursor end
+}
+bind Entry <Control-Key-a> {
+   %W icursor 0
+}
+bind Entry <Control-Key-k> {
+   %W delete insert end
+}
+bind Entry <Key-Left> {
+   %W icursor [expr [%W index insert]-1]
+}
+bind Entry <Key-Right> {
+   %W icursor [expr [%W index insert]+1]
+}
+bind Entry <Control-Key-b> {
+   %W icursor [expr [%W index insert]-1]
+}
+bind Entry <Control-Key-f> {
+   %W icursor [expr [%W index insert]+1]
+}
+bind Entry <Control-Key-d> {
+   %W delete insert
+}
+bind Entry <Control-Key-space> {
+   %W select from insert
+}
+
+
+
+proc GetDefault {index default} {
+   global defaults defaultFile
+
+   if ![info exists defaults($index)] {
+      if [file readable $defaultFile] {
+	 set fileHandle [open $defaultFile r]
+	 while {[gets $fileHandle str]>=0} {
+	    scan $str "%s %\[^\n\]" readIndex readValue
+	    set defaults($readIndex) $readValue
+	 }
+	 close $fileHandle
+      } else {
+	 # puts "Cannot read $defaultFile"
+	 return $default
+      }	
+      if [info exists defaults($index)] {
+	 return $defaults($index)
+      } else {
+	 return $default
+      }
+   } else {
+      return $defaults($index)
+   }
+}
+
+
+
+proc UpdateDefaults {{newValueList {}}} {
+      # use this function to update the list of defaults and write them
+      # out to the file
+
+   global defaults defaultFile
+
+   set numValues [expr [llength $newValueList]/2]
+   for {set i 0} {$i<$numValues} {incr i} {
+      set defaults([lindex $newValueList [expr $i*2]]) \
+	    [lindex $newValueList [expr $i*2+1]]
+   }
+
+      # if we have read rights to the file, read it
+   if [file readable $defaultFile] {
+      set fileHandle [open $defaultFile r]
+      while {[gets $fileHandle str]>=0} {
+	 scan $str "%s %s" readIndex readValue
+	 if ![info exists defaults($readIndex)] {
+	    set defaults($readIndex) $readValue
+	 }
+      }
+      close $fileHandle
+   }
+
+   if {[file exists $defaultFile] ? [file writable $defaultFile] : \
+	 [file writable [file dirname $defaultFile]]} {
+      set fileHandle [open $defaultFile w]
+      foreach idx [array names defaults] {
+	 puts $fileHandle "$idx $defaults($idx)"
+      }
+      close $fileHandle
+   }
+}
+
+
+
+proc GetUniqueWindowID {} {
+   global lastWindowID
+
+   if ![info exists lastWindowID] {
+      set lastWindowID 0
+   } else {
+      set lastWindowID [expr $lastWindowID+1]
+   }
+
+   return $lastWindowID
+}
+
+
+proc SigDigits {num start end ninterest {factor 1}} {
+   # ninterest is the number of interesting digits to leave
+   if {!($end-$start)} {
+      set ndigits 0
+   } else {
+      set ndigits [expr int($ninterest-log10($end*$factor-$start*$factor))]
+   }
+   if {$ndigits<0} {set ndigits 0}
+   return [format [format "%%.%df" $ndigits] [expr $num*$factor]]
+}
+
+
+
+proc LogFormatError {filename line lineNo} {
+   puts "Logfile format error in line $lineNo of $filename:\n$line\n\n"
+}
+
+
+proc CheckForNeededInfo {id} {
+   global setting
+
+   set needed ""
+
+   if {![info exists setting($id,numProcs)] || $setting($id,numProcs)<1} {
+      set needed "${needed}\numProcs"
+   }
+
+   if {![info exists setting($id,firstTime)]} {
+      set needed "${needed}\nfirstTime"
+   } elseif {![info exists setting($id,lastTime)] || \
+	 $setting($id,lastTime)<=$setting($id,firstTime) || \
+	 $setting($id,lastTime)==0} {
+      set needed "${needed}\nlastTime"
+   }
+
+   if {![info exists setting($id,rolloverPt)]} {
+      set needed "${needed}\nlastTime"
+   }
+
+   if "[string length $needed]>0" {
+      toplevel .infoneeded
+      wm title .infoneeded "Logfile incomplete"
+      text .infoneeded.text -wrap word
+      .infoneeded.text insert 1.0 "The logfile does not contain, or contains\
+	    invalid values for the\
+	    needed information.  The following values are\
+	    required:\n$needed"
+      button .infoneeded.b -text "Cancel" -command "destroy .infoneeded"
+      pack append .infoneeded .infoneeded.text {expand} .infoneeded.b {}
+      return 1
+   } else {
+      return 0
+   }
+}
+
+
+proc EraseArrayElements {array_name idx_header} {
+   upvar $array_name a
+
+   set pattern "^$idx_header,"
+   foreach idx [array names a] {
+      if [regexp $pattern $idx] {
+	 unset a($idx)
+      }
+   }
+}
+
+
+proc RemoveState {id stateName} {
+   global setting
+
+   set start $setting($id,states,$stateName,start)
+   set end   $setting($id,states,$stateName,end)
+
+   unset setting($id,endEvents,$end)
+   unset setting($id,startEvents,$start)
+
+   set idx [lsearch $setting($id,states,list) $stateName]
+   # puts "removing $idx ($stateName) from $setting($id,states,list)"
+   set setting($id,states,list) \
+	 [lreplace $setting($id,states,list) $idx $idx]
+
+   set idx [lsearch $setting($id,startEvents,list) $start]
+   # puts "removing $idx ($stateName) from $setting($id,startEvents,list)"
+   set setting($id,startEvents,list) \
+	 [lreplace $setting($id,startEvents,list) $idx $idx]
+
+   set idx [lsearch $setting($id,endEvents,list) $end]
+   # puts "removing $idx ($stateName) from $setting($id,endEvents,list)"
+   set setting($id,endEvents,list) \
+	 [lreplace $setting($id,endEvents,list) $idx $idx]
+   
+   EraseArrayElements setting "$id,states,$stateName"
+}	 
+
+
+proc GuessFormat {filename} {
+
+   if [regexp {.log$} $filename] {
+      return alog
+   } elseif [regexp {.trf$} $filename] {
+      return picl
+   } else {
+      return [GetDefault logfileformat alog]
+   }
+}
+
+
+proc GetVisibleRegion {id firstTime_var lastTime_var firstProc_var \
+      lastProc_var} {
+   global setting procWidth
+
+   upvar $firstTime_var firstTime
+   upvar $lastTime_var  lastTime
+   upvar $firstProc_var firstProc
+   upvar $lastProc_var  lastProc
+
+   set canvas $setting($id,tlc)
+
+   set width [winfo width $canvas]
+   set height [winfo height $canvas]
+   set scrollInfo [lindex [$canvas config -scrollregion] 4]
+
+   set canvasleft   [lindex $scrollInfo 0]
+   set canvastop    [lindex $scrollInfo 1]
+   set canvasright  [lindex $scrollInfo 2]
+   set canvasbottom [lindex $scrollInfo 3]
+
+#   puts "scroll $scrollInfo"
+
+#   puts "set firstTime expr  \
+#	 (([$canvas canvasx 0]-$canvasleft)/($canvasright-$canvasleft)*\
+#	 ($setting($id,lastTime)-$setting($id,firstTime)))/1000000.0 "
+
+   set firstTime [expr { \
+	 (([$canvas canvasx 0]-$canvasleft)/($canvasright-$canvasleft)*\
+	 ($setting($id,lastTime)-$setting($id,firstTime)))/1000000.0}]
+
+#   puts "set lastTime expr  \
+#	 (([$canvas canvasx $width]-$canvasleft)/($canvasright-$canvasleft)*\
+#	 ($setting($id,lastTime)-$setting($id,firstTime)))/1000000.0"
+
+   set lastTime [expr { \
+	 (([$canvas canvasx $width]-$canvasleft)/($canvasright-$canvasleft)*\
+	 ($setting($id,lastTime)-$setting($id,firstTime)))/1000000.0}]
+
+   set firstProc [expr { \
+	 int( ([$canvas canvasy 0]-$canvastop)/($canvasbottom-$canvastop) * \
+	 $setting($id,numProcs) + .5 )}]
+
+   set lastProc [expr { \
+	 int( ([$canvas canvasy $height]-$canvastop)/\
+	 ($canvasbottom-$canvastop) * \
+	 $setting($id,numProcs) - .5 )}]
+
+}
+
+
+proc Time2Pixel {id time} {
+   global setting
+
+   set scrollInfo [lindex [$setting($id,tlc) config -scrollregion] 4]
+
+   set canvasleft   [lindex $scrollInfo 0]
+   set canvasright  [lindex $scrollInfo 2]
+   
+   set pixel [expr {(0.0+$time) / \
+ 	 ($setting($id,lastTime)-$setting($id,firstTime)) * 1000000.0 * \
+ 	 ($canvasright - $canvasleft) + $canvasleft}]
+
+   # puts "Time $time = pixel $pixel"
+
+   return $pixel
+}
+
+
+proc Pixel2Time {id coord} {
+   global setting
+   
+   set scrollInfo [lindex [$setting($id,tlc) config -scrollregion] 4]
+   
+   set canvasleft   [lindex $scrollInfo 0]
+   set canvasright  [lindex $scrollInfo 2]
+   
+   set time [expr {((0.0+$coord-$canvasleft) / \
+ 	 ($canvasright - $canvasleft) * \
+ 	 ($setting($id,lastTime)-$setting($id,firstTime)))/ 1000000.0}]
+   
+   #   puts "pixel = $coord, time = $time"
+   
+   return $time
+}   
+
+
+
+
+proc OpenWin(main) {} {
+   global logFileName logFileFormat
+
+   wm title . "Upshot"
+
+   frame  .mainBtns -relief raised
+   button .mainBtns.load     -text "Select Logfile" \
+	 -command {fileselect SelectLogfile "Logfile:" .[GetUniqueWindowID]}
+   entry  .mainBtns.logfile  -width 30 -relief sunken
+   label .mainBtns.format -textvariable logFileFormat
+
+   if [info exists logFileName] {
+      .mainBtns.logfile insert 0 $logFileName
+      set logFileFormat [GuessFormat $logFileName]
+   } else {
+      set logFileName [GetDefault logfile ""]
+      .mainBtns.logfile insert 0 $logFileName
+      set logFileFormat [GuessFormat $logFileName]
+   }
+
+   UpdateDefaults "logfile $logFileName logfileformat $logFileFormat"
+
+   button .mainBtns.setup    -text "Setup"      -command {
+      OpenWin(timeline) .[GetUniqueWindowID] [.mainBtns.logfile get] \
+	    $logFileFormat
+   }
+   button .mainBtns.options  -text "Options"    -command \
+	 {OpenWin(options) .[GetUniqueWindowID]}
+   button .mainBtns.quit     -text "Quit"       -command \
+	 exit
+
+   pack append .mainBtns \
+	 .mainBtns.load    {left padx 10 pady 5} \
+	 .mainBtns.logfile {left expand fillx padx 30 pady 5} \
+	 .mainBtns.format  {left padx 10 pady 5} \
+	 .mainBtns.setup   {left padx 10 pady 5} \
+	 .mainBtns.options {left padx 10 pady 5} \
+	 .mainBtns.quit    {left padx 10 pady 5} 
+
+   pack append . .mainBtns {top fillx expand}
+   # so the winfo return accurate values
+   update
+   wm minsize . [winfo reqwidth .mainBtns] [winfo reqheight .mainBtns]
+   wm maxsize . 2000 [winfo height .]
+}
+
+proc SelectLogfile {file format} {
+   global logFileFormat
+
+   set logFileFormat $format
+   .mainBtns.logfile delete 0 end
+   .mainBtns.logfile insert 0 $file
+}
+
+proc OpenWin(options) {w} {
+   global reqWidth blackWhite pageWidth pageHeight incDraw tk_version
+   toplevel $w
+   wm title $w "Options"
+
+   frame $w.labels
+   frame $w.entries
+
+   if { $tk_version >= 4.0 } { set selectname "-selectcolor"
+	} else {
+	set selectname "-selector"
+	}
+
+   button $w.ok -text "OK" -command "CloseOption $w"
+   label  $w.labels.width -text "Initial screen width: " -relief raised
+   entry  $w.entries.width -relief sunken -width 10
+   label  $w.labels.pageWidth -text "Printed width: " -relief raised
+   entry  $w.entries.pageWidth -relief sunken -width 10
+   label  $w.labels.pageHeight -text "Printed height: " -relief raised
+   entry  $w.entries.pageHeight -relief sunken -width 10
+   set selectColor [expr "$blackWhite ? \"black\" : \"red\""]
+   checkbutton $w.incDraw -text "Incremental time bar drawing" \
+	 -variable incDraw \
+	 -relief raised $selectname $selectColor
+
+   $w.entries.width insert 0 $reqWidth
+   $w.entries.pageWidth insert 0 $pageWidth
+   $w.entries.pageHeight insert 0 $pageHeight
+
+   pack append $w.labels \
+	 $w.labels.width {padx 5 pady 10} \
+	 $w.labels.pageWidth {padx 5 pady 10} \
+	 $w.labels.pageHeight {padx 5 pady 10}
+   pack append $w.entries \
+	 $w.entries.width {padx 5 pady 10} \
+	 $w.entries.pageWidth {padx 5 pady 10} \
+	 $w.entries.pageHeight {padx 5 pady 10}
+   pack append $w \
+	 $w.ok      {bottom expand pady 20 padx 5} \
+	 $w.incDraw {bottom expand pady 20 padx 5} \
+	 $w.labels  {left} \
+	 $w.entries {left}
+}
+
+proc CloseOption {w} {
+   global reqWidth pageWidth pageHeight incDraw
+   set reqWidth   [$w.entries.width get]
+   set pageWidth  [$w.entries.pageWidth get]
+   set pageHeight [$w.entries.pageHeight get]
+   UpdateDefaults [list initial_timeline_window_width $reqWidth \
+	 printed_width $pageWidth printed_height $pageHeight \
+	 incremental_timeline_drawing $incDraw]
+   destroy $w
+}
+
+proc OpenWin(timeline) {w logfilename logfileformat} {
+   # pass in the name of the window to put the timelines in and the
+   # name of the logfile
+
+   global blackWhite reqWidth
+   global procWidth
+   global timelinebg setting
+   global tk_version
+
+   set timeLineCanvas $w.c
+   set setting($w,tlc) $timeLineCanvas
+   set btnFrame $w.btns
+   set scale1 $w.scale1
+   set scale2 $w.scale2
+   set legend $w.legend
+   set procNums $w.canvasFrame.procs
+   set setting($w,pnc) $procNums
+   set canvasWidth $reqWidth
+   set setting($w,logfilename) $logfilename
+
+   # make sure the logfile is readable
+   if {![file readable $logfilename]} {
+        # First, try the file with the default directory
+	set filetest [ GetDefault logfiledirectory "." ] 
+        if { [file readable $filetest/$logfilename]} {
+	    cd $filetest
+            }
+	}
+
+   if {![file readable $logfilename]} {
+      toplevel $w
+      wm title $w "Filename"
+      message $w.m -text  "\"$logfilename\" is not readable." \
+	    -justify center -aspect 400 -relief raised -borderwidth 2
+      button $w.b -text "Cancel" -command "destroy $w"
+      pack append $w $w.m {} $w.b {pady 10}
+      return
+   }
+
+   UpdateDefaults "logfile $logfilename logfileformat $logfileformat"
+
+   toplevel $w
+   
+   set status [PreprocessLog($logfileformat) $w $logfilename]
+#   set status [QuickPreprocessLog_alog $w $logfilename]
+   # read through the logfile
+
+   if $status return
+
+   # create process numbers, timeline canvas, and vertical scrollbar
+
+
+   # set the default zooming point to the upper left
+   set setting($w,mark,x) 0
+   set setting($w,mark,y) 0
+
+   $w config -cursor watch
+
+   # frame for zoom, print buttons
+   frame $btnFrame -relief raised -borderwidth 2
+   # create zoom buttons
+   AddButtons $w $btnFrame
+   # map zoom, print buttons
+
+   # create legend
+   canvas $legend -height 100 -width 100
+   CreateLegend $w $legend $canvasWidth
+
+   # create frame for holding the canvas, process numbers, and vertical
+   # scrollbar
+   frame $w.canvasFrame
+
+   set procLabelsWidth [TimeLineProcNums $w $procNums]
+
+   if { $tk_version >= 4.0 } { 
+       scrollbar $w.canvasFrame.vscroll \
+	 -orient vertical -relief sunken -command "Yscroll4 $timeLineCanvas \
+	       $procNums"
+	} else {
+       scrollbar $w.canvasFrame.vscroll \
+	 -orient vertical -relief sunken -command "Yscroll3 $timeLineCanvas \
+	       $procNums"
+	}
+
+   canvas $timeLineCanvas -scrollregion [list 0 0 $canvasWidth \
+	 [expr $setting($w,numProcs)*$procWidth]] -width $canvasWidth \
+	 -height [expr $setting($w,numProcs)*$procWidth] -relief sunken \
+	 -borderwidth 2 -bg $timelinebg
+
+   StartDrawingTime $w
+   ProcessLog($logfileformat) $w $logfilename
+#   QuickProcessLog_alog $w $logfilename
+   EndDrawingTime $w
+
+   # set title and icon name
+   wm title $w $logfilename
+   wm iconname $w timelines
+
+   pack append $w $btnFrame {top fillx} $legend {top fillx}
+
+   # pack canvas and vertical scrollbar
+   pack append $w.canvasFrame \
+	 $w.canvasFrame.vscroll {right filly} \
+	 $procNums {left filly} \
+	 $timeLineCanvas {expand fill}
+
+   # draw scale canvases
+   TimeLineScales $w $scale1 $scale2 \
+	  $canvasWidth [winfo reqwidth $w.canvasFrame.vscroll] \
+	 $procLabelsWidth
+
+   # create horizontal scrollbar
+   scrollbar $w.hscroll -orient horiz    -relief sunken \
+	 -command "$timeLineCanvas xview"
+
+   pack append $w $scale2 {bottom fillx} $w.hscroll {bottom fillx} \
+	 $scale1 {bottom fillx} $w.canvasFrame {expand fill}
+
+
+   # attach scroll bars to canvas
+   if { $tk_version >= 4.0 } { 
+       $timeLineCanvas config -xscrollcommand "UpdateHScale4 $w $w.hscroll" \
+	 -yscrollcommand "UpdateVScale4 $w.canvasFrame.vscroll $procNums"
+	} else {
+       $timeLineCanvas config -xscroll "UpdateHScale3 $w $w.hscroll" \
+	 -yscroll "UpdateVScale3 $w.canvasFrame.vscroll $procNums"
+       }
+   # need update or the 'winfo' command will not return correct information
+   ResizeLegend $w $legend $canvasWidth
+   update
+
+   set minwidth [expr [winfo reqwidth $btnFrame]]
+   set minheight [expr  "[winfo reqheight $btnFrame]+[winfo reqheight \
+	 $scale1]+[winfo reqheight $scale2]+[winfo reqheight $w.hscroll]"]
+
+   wm minsize $w $minwidth $minheight
+
+   wm maxsize $w [expr ($minwidth>2000)?($minwidth*2):2000] \
+	 [expr ($minheight>2000)?($minheight*2):2000]
+   # set 2000 pixels as the absolute limit
+
+   set stopDrawingStatesEvents 0
+
+   bind $w <Configure> "Resize $w $legend"
+   bind $timeLineCanvas <3> "
+     set setting($w,mark,x) \[$timeLineCanvas canvasx %x\]
+     set setting($w,mark,y) \[$timeLineCanvas canvasy %y\]
+     # puts \"Mark at %x %y\"
+   "
+   bind $timeLineCanvas <2>   [format "CanvasDragMark %s %s %%x %%y" \
+	 $timeLineCanvas $procNums]
+   bind $timeLineCanvas <B2-Motion> [format "CanvasDrag %s %s %%x %%y" \
+	 $timeLineCanvas $procNums]
+
+   $w config -cursor top_left_arrow
+}
+
+
+
+proc U {lista listb} {
+   if {[llength $lista]<[llength $listb]} {
+      set n [llength $listb]
+      for {set i 0} {$i<$n} {incr i} {
+	 set el [lindex $listb $i]
+	 if {[lsearch $lista $el]==-1} {
+	    lappend lista $el
+	 }
+      }
+      return $lista
+   } else {
+      set n [llength $lista]
+      for {set i 0} {$i<$n} {incr i} {
+	 set el [lindex $lista $i]
+	 if {[lsearch $listb $el]==-1} {
+	    lappend listb $el
+	 }
+      }
+      return $listb
+   }
+}
+
+
+proc N {lista listb} {
+   set list {}
+   if {[llength $lista]<[llength $listb]} {
+      set n [llength $listb]
+      for {set i 0} {$i<$n} {incr i} {
+	 set el [lindex $listb $i]
+	 if {[lsearch $lista $el]!=-1} {
+	    lappend list $el
+	 }
+      }
+   } else {
+      set n [llength $lista]
+      for {set i 0} {$i<$n} {incr i} {
+	 set el [lindex $lista $i]
+	 if {[lsearch $listb $el]!=-1} {
+	    lappend list $el
+	 }
+      }
+   }
+   return $list
+}
+
+
+
+# If the value is found, returns the index of the value
+# in the list.
+# If within the range of the list, returns the index of the
+# greatest value in the list that is less than the value.
+# If below the range of the list, returns -1.
+# If above the range of the list, return the index of the
+# last element
+#
+# pass-by-reference version -- should be faster; less latency time
+proc refbsearch {listName val} {
+   upvar $listName l
+   set end [expr [llength $l]-1]
+   set start 0
+
+   if $val<[lindex $l 0] {return -1}
+   while {$start<$end} {
+      set lookHere [expr ($end-$start+1)/2+$start]
+      if {$val<[lindex $l $lookHere]} {
+	 set end [expr $lookHere-1]
+      } else {
+	 set start $lookHere
+      }
+   }
+   return $start
+}
+
+
+
+proc max {list} {
+   if {[llength $list]==0} {return 0}
+   set x [lindex $list 0]
+   foreach element $list {
+      if {$element>$x} {
+	 set x $element
+      }
+   }
+   return $x
+}
+
+
+#Might as well document the Alog format, while we're here-
+
+#Each line:
+#  type process task data cycle timestamp [comment]
+
+#    type - nonnegative integer representing a user-defined event type
+#    process - an integer representing the process in which the event occurred
+#    task - an integer representing a different notion of task.  Usually 
+#           ignored.
+#    data - an integer representing user data for the event
+#    cycle - an integer representing a time cycle, used to distinguish
+#            between time returned by a timer that "rolls over" during
+#            the run
+#    timestamp - an integer representing (when considered in conjuction
+#                with the cycle number) a time for the event.  Upshot treats
+#                the units as microseconds
+#    comment - an optional character string representing user data.  Currently
+#              12 character maximum, will soon hopefully be any length (really!)
+
+#Reserved types:
+
+#  Type Proc Task Data          cycle Timestamp      Comment
+#  ---- ---- ---- ----          ----- ---------      -------
+#Creation data
+#    -1                                              Creator and date
+
+#Number of events in the logfile
+#    -2           #events
+
+#Number of processors in the run
+#    -3           #procs
+
+#Number of tasks used in the run
+#    -4           #tasks
+
+#Number of event types used
+#    -5           #event types
+
+#Start time of the run
+#    -6                               start time
+
+#End time of the run
+#    -7                               end time
+
+#Number of timer cycles
+#    -8           #timer cycles
+
+#Decription of event types
+#    -9           event type                         Description
+
+#printf string for event types
+#    -10          event type                         printf string
+
+#Rollover point
+#    -11                              rollover point
+
+#State definition
+#    -13     start end                               color:bitmap State name
+
+#Send message
+#    -14     size receiver    tag
+
+#Receive message
+#    -15     size sender      tag
+
+
+set alog_process_vs_pre_ratio 6
+# for the percent-done widget:  preprocessing takes about 1/6 the time
+# of processing
+
+proc PreprocessLog(alog) {id logfilename} {
+   global blackWhite setting bitmaplist colorlist alog_process_vs_pre_ratio
+   global colorNo bitmapNo
+
+   set logFileHandle [open $logfilename r]
+   set type -1
+   set lineNo 0
+   set bitmapNo 0
+   set colorNo 0
+   set setting($id,states,list) {}
+   set setting($id,startEvents,list) {}
+   set setting($id,endEvents,list) {}
+
+   StartPctDone $id \
+	 [expr [file size $logfilename]*($alog_process_vs_pre_ratio+1)]
+   # set optional percent-done widget to 0
+
+   set setting($id,rolloverPt) 0
+   set nbytes [gets $logFileHandle string]
+   # it is better to do an update of the display every 10 lines read
+   set updatecnt 0
+   while {$nbytes>=0} {
+      incr updatecnt
+      if { $updatecnt > 10 } { 
+          AddPctDone $id [expr $nbytes+1]
+          set updatecnt 0
+          }
+      incr lineNo
+      if {[scan $string "%d %d %d %d %d %lf" type proc task data cycle \
+	    timestamp]!=6} {
+	 LogFormatError $logfilename $string $lineNo
+	 return -1
+      } else {
+	 case $type in {
+	    -3		{set setting($id,numProcs)   $data}
+	    -6		{set setting($id,firstTime)  $timestamp}
+	    -7		{set setting($id,lastTime)   $timestamp}
+	    -11		{set setting($id,rolloverPt) $timestamp}
+	    -13         {Alog_StateDef $id $string $logfilename $lineNo}
+	 }
+	 if {[lsearch $setting($id,startEvents,list) $type] != -1} {
+	    set setting($id,states,$setting($id,startEvents,$type),used) 1
+	    # puts "$setting($id,startEvents,$type) used"
+	 }
+	 # case $type
+      }
+      # else !format error
+      set nbytes [gets $logFileHandle string]
+   }
+   # while reading
+
+   foreach stateName $setting($id,states,list) {
+      if {$setting($id,states,$stateName,used) == 0} {
+	 # puts "removing $stateName"
+	 RemoveState $id $stateName
+      } else {
+	 unset setting($id,states,$stateName,used)
+      }
+   }
+	    
+
+   close $logFileHandle
+
+   return [CheckForNeededInfo $id]
+}
+
+
+proc Alog_StateDef {id line logfilename lineNo} {
+   global setting colorlist bitmaplist global colorNo bitmapNo
+
+   if {[scan $line "%*d %*d %d %d %*d %*d %s %\[^\n\]" startEvt \
+	 endEvt coloring stateName]!=4} {
+      LogFormatError $logfilename $line $lineNo
+   } else {
+      if {[info exists setting($id,states,list)] && \
+	    [lsearch $setting($id,states,list) $stateName]>=0} {
+	 return
+      }
+      # stateArray(stateName) = {start event, end event, color, \
+	    bitmap}
+      set color [lindex [split $coloring :] 0]
+      if {![string length $color]} {
+	 set color [lindex $colorlist $colorNo]
+	 incr colorNo
+	 if $colorNo==[llength $colorlist] {
+	    set colorNo 0
+	 }
+      }
+      # set default color
+
+      set bitmap [lindex [split $coloring :] 1]
+      if {![string length $bitmap]} {
+	 set bitmap [lindex $bitmaplist $bitmapNo]
+	 incr bitmapNo
+	 if $bitmapNo==[llength $bitmaplist] {
+	    set bitmapNo 0
+	 }
+      }
+      # set default bitmap
+
+      lappend setting($id,states,list) $stateName
+      set setting($id,states,$stateName,start) $startEvt
+      set setting($id,states,$stateName,end) $endEvt
+      set setting($id,states,$stateName,color) $color
+      set setting($id,states,$stateName,bitmap) $bitmap
+      set setting($id,states,$stateName,used) 0
+      # per state settings
+
+      lappend setting($id,startEvents,list) $startEvt
+      set setting($id,startEvents,$startEvt) $stateName
+      lappend setting($id,endEvents,list) $endEvt
+      set setting($id,endEvents,$endEvt) $stateName
+#      puts "State $stateName defined:\
+#	    $setting($id,states,$stateName,start)\
+#	    $setting($id,states,$stateName,end)\
+#	    $setting($id,states,$stateName,color)\
+#	    $setting($id,states,$stateName,bitmap)\
+#	    setting($id,startEvents,$startEvt)=\
+#	    $setting($id,startEvents,$startEvt)\
+#	    setting($id,endEvents,$endEvt)=\
+#	    $setting($id,endEvents,$endEvt)"
+	    
+   }
+}
+
+
+
+
+proc ProcessLog(alog) {id logFileName} {
+   global setting alog_process_vs_pre_ratio
+
+   set log [open $logFileName r]
+
+   set lineNo 0
+   # line number
+
+   set nbytes [gets $log line]
+   while {$nbytes>=0} {
+      incr lineNo
+      AddPctDone $id [expr $alog_process_vs_pre_ratio*($nbytes+1)]
+      
+      if [scan $line "%d %d %d %d %d %lf" type proc task data cycle \
+	    timestamp]!=6 {
+	       LogFormatError $logFileName $line $lineNo
+      } else {
+	 if {$type>=0 || $type<-100} {
+	    if $type==-101 {
+	       scan $line "%*d %*d %*d %*d %*d %*lf %d %d" tag size
+	       DrawSend $id $proc $data $tag $size \
+		     [expr $timestamp+$cycle*$setting($id,rolloverPt)]
+		     
+	       # pass sender and receiver
+	    } elseif $type==-102 {
+	       scan $line "%*d %*d %*d %*d %*d %*lf %d %d" tag size
+	       DrawRecv $id $proc $data $tag $size \
+		     [expr $timestamp+$cycle*$setting($id,rolloverPt)]
+	       # pass receiver and sender
+	    } else {
+	       GatherEvent $id $type $proc \
+		     [expr $timestamp+$cycle*$setting($id,rolloverPt)]
+	       # gather lone events into states
+	    }
+	    # check type number
+	 }
+	 # filter out nonpositive events
+      }
+      # if !formaterror
+      set nbytes [gets $log line]
+   }
+   # while reading
+   
+   NoMoreEvents $id
+   ClosePctDone $id
+   close $log
+}
+set numTasks 6
+set picl_process_vs_pre_ratio 1.5
+
+proc PreprocessLog(picl) {id logfilename} {
+   global setting compactList verboseList numTasks picl_process_vs_pre_ratio
+   global colorlist bitmaplist
+
+   Picl_GetCompactList compactList verboseList
+   # return array of the compact forms of record types, indexed by 
+   # verbose name
+
+   set tracefile [open $logfilename r]
+   # open the tracefile
+
+   global numTasks
+
+   set maxTime 0
+   set maxProc 0
+   set nevents 0
+   set lineNo 0
+   set setting($id,hostProc) 0
+
+   StartPctDone $id \
+	 [expr [file size $logfilename]*($picl_process_vs_pre_ratio+1)]
+   # set optional percent-done widget to 0
+
+   set nchars [gets $tracefile line]
+   while {$nchars>=0} {
+      AddPctDone $id [expr $nchars+1]
+      incr lineNo
+
+      set type [lindex $line 0]
+      if [regexp "^\[a-zA-Z_\]*$" $type] {
+	 set verbose 1
+	 set type $compactList($type)
+      } else {
+	 set verbose 0
+      }
+      set clock [expr {$verbose?(1000000*[lindex $line 2]+[lindex $line 3]): \
+	    1000000*[lindex $line 1]+[lindex $line 2]}]
+      if $clock>$maxTime {
+	 set maxTime $clock
+      }
+      set node [lindex $line [expr $verbose?5:3]]
+      if $node>$maxProc {
+	 set maxProc $node
+      } elseif $node==-32768 {
+	 set setting($id,hostProc) 1
+      }
+      if $type==4 {
+	 Picl_AddState $id send
+      } elseif $type==6 {
+	 Picl_AddState $id recv
+      } elseif $type==7 {
+	 Picl_AddState $id recv_blocking
+      } elseif $type==10 {
+	 Picl_AddState $id sync
+      }
+
+      if {$type==20} {
+	 set blockType [lindex $line [expr $verbose?7:4]]
+	 if $blockType==-1 {
+	    set stateName barrier
+	 } elseif $blockType==-2 {
+	    set stateName bcast0
+	 } elseif $blockType==-3 {
+	    set stateName bcast1
+	 } elseif $blockType==-4 {
+	    set stateName globalOp
+	 } else {
+	    set stateName state_[expr $blockType%$numTasks]
+	 }
+	 Picl_AddState $id $stateName
+      }
+      set nchars [gets $tracefile line]
+   }
+
+   set setting($id,states,list) [lsort $setting($id,states,list)]
+   set i 0
+   foreach stateName [lsort $setting($id,states,list)] {
+      set setting($id,states,$stateName,color) \
+	    [lindex $colorlist [expr $i%[llength $colorlist]]]
+      set setting($id,states,$stateName,bitmap) \
+	    [lindex $bitmaplist [expr $i%[llength $bitmaplist]]]
+      incr i
+   }
+      
+   set setting($id,numProcs) [expr $maxProc+$setting($id,hostProc)+1]
+   # add one to the number of processes if a host is involved
+   set setting($id,firstTime) 0
+   set setting($id,lastTime) $maxTime
+   set setting($id,rolloverPt) 0
+}
+
+
+proc ProcessLog(picl) {id logfilename} {
+   global setting compactList verboseList numTasks picl_process_vs_pre_ratio
+
+   set tracefile [open $logfilename r]
+   set lineNo 0
+   set status(0) 0
+   set nchars [gets $tracefile line]
+   while {$nchars>=0} {
+      incr lineNo
+      AddPctDone $id [expr $picl_process_vs_pre_ratio*($nchars+1)]
+      Picl_ExtractVerbose compactList line
+      Picl_GetTypeTimeNode $id $line type time node
+      #puts "$verboseList($type): $type, time: $time, node: $node, line: $line"
+
+      Picl_ReadRecordData($verboseList($type)) $id $time $node status $line \
+	    $lineNo
+      set nchars [gets $tracefile line]
+   }
+
+   NoMoreEvents $id
+   # for the drawing stuff
+   ClosePctDone $id
+   # for the percent-done widget
+   close $tracefile
+}
+
+proc Picl_GetCompactList {compactList_name verboseList_name} {
+   upvar $compactList_name compactList
+   upvar $verboseList_name verboseList
+
+   set i 1
+   foreach type {trace_start open load send probe recv recv_blocking \
+	 recv_waking message sync compstats commstats close \
+	 trace_level trace_mark trace_message trace_stop trace_flush \
+	 trace_exit block_begin block_end trace_marks} {
+      set compactList($type) $i
+      set verboseList($i) $type
+      incr i 
+   }
+}
+
+
+
+proc Picl_ExtractVerbose {compactList_name line_name} {
+   upvar $line_name line
+   upvar $compactList_name compactList
+
+   set type [lindex $line 0]
+   if {[regexp "^\[a-zA-Z_\]*$" $type]} {
+      set line [lreplace $line 0 0 $compactList($type)]
+        # replace the verbose type
+      lremove line {1 4}
+        # remove 'clock' and 'node'
+
+      case $type in {
+	 {trace_start send recv recv_waking trace_level block_begin block_end}
+	    {lremove line {4 6 8}}
+	    # remove three verbose names
+
+	 {recv_blocking trace_mark trace_flush trace_exit}
+	    {lremove line 4}
+	 # remove one verbose name
+
+	 {open} {
+	    if {[llength $line]!=4} {
+	       lremove line {4 6}
+	    }
+	 }
+
+	 {load} {
+	    lremove line {4 5}
+	 }
+      }
+   }
+}
+
+
+
+proc Picl_AddState {id name} {
+   global bitmaplist colorList setting
+
+   if ![info exists setting($id,states,max_id)] {
+      set setting($id,states,max_id) 0
+      set setting($id,states,list) ""
+   }
+   if [lsearch $setting($id,states,list) $name]>=0 {
+      return
+   }
+
+   set state_id [expr $setting($id,states,max_id)+1]
+   set start [expr $state_id*2]
+   set end  [expr $state_id*2+1]
+   lappend setting($id,states,list) $name
+
+   set setting($id,states,$name,start) $start
+   lappend setting($id,startEvents,list) $start
+   set setting($id,startEvents,$start) $name
+
+   set setting($id,states,$name,end) $end
+   lappend setting($id,endEvents,list) $end
+   set setting($id,endEvents,$end) $name
+   # state id, start and end events
+
+   incr setting($id,states,max_id)
+
+#   puts "Add state $name: $setting($id,states,$name,start)\
+#	 $setting($id,states,$name,end)"
+}
+
+proc Picl_GetTypeTimeNode {id line type_name time_name node_name} {
+   upvar $type_name type
+   upvar $time_name time
+   upvar $node_name node
+   global setting
+
+   set type [lindex $line 0]
+   set time [expr 1000000*[lindex $line 1]+[lindex $line 2]]
+   set node [lindex $line 3]
+   if $setting($id,hostProc) {
+      incr node
+      if $node==-32767 {
+	 set node 0
+      }
+   }
+}
+
+
+
+foreach doNothingFn {trace_start open load probe message \
+      commstats close message \
+      trace_level trace_mark trace_message trace_stop trace_flush \
+      trace_exit trace_marks} {
+   proc Picl_ReadRecordData($doNothingFn) {id time node status_name \
+	 line lineNo} {}
+}
+
+
+
+proc Picl_ReadRecordData(send) {id time node status_name line lineNo} {
+   # Send events are short events in the PICL traceformat; they are not
+   # explicitly given length.  You must check for a matching 'compstats'
+   # event that may point out overhead involved in the send.  For example:
+   #   Send at 5.3 sec.
+   #   Compstat at 5.3 sec. reporting x idle time
+   #   Compstat at 5.7 sec. reporting x+.4 idle time
+   #
+   # Kind of a bass-ackwards way of doing it, but oh well...
+   # So, we want to remember that we just did a 'send', and if a 'compstat'
+   # occurs, check if the time matches the last send (or recv or sync), if so,
+   # the next compstat should tell up how much idle time we have there.
+
+   global setting
+   upvar $status_name status
+
+   set status($node,mode) send
+   set status($node,time) $time
+
+   if {[llength $line] == 7} {
+      set receiver [lindex $line 4]
+      set type [lindex $line 5]
+      set len [lindex $line 6]
+   } else {
+      puts "Error in format of line $lineNo:\n$line"
+      return -1
+      # error in the format
+   }
+
+   # record time, receiver, type, and length of message
+
+   set status($node,send,receiver) $receiver
+   set status($node,send,type) $type
+   set status($node,send,len) $len
+   GatherEvent $id $setting($id,states,send,start) $node $time
+}
+   
+
+proc Picl_ReadRecordData(recv) {id time node status_name line lineNo} {
+   # see comments for Picl_ReadRecordData(send)
+
+   global setting
+   upvar $status_name status
+
+   set status($node,mode) recv
+   set status($node,time) $time
+
+   if {[llength $line] == 7} {
+      set sender [lindex $line 4]
+      set type [lindex $line 5]
+      set len [lindex $line 6]
+   } else {
+      puts "Error in format of line $lineNo:\n$line"
+      return -1
+      # error in the format
+   }
+
+   # record time, sender, type, and length of message
+   set status($node,recv,sender) $sender
+   set status($node,recv,type) $type
+   set status($node,recv,len) $len
+   GatherEvent $id $setting($id,states,recv,start) $node $time
+}
+   
+
+proc Picl_ReadRecordData(recv_blocking) {id time node status_name line \
+      lineNo} {
+   # see comments for Picl_ReadRecordData(send)
+   global setting
+   upvar $status_name status
+
+   set status($node,mode) recv_blocking
+   set status($node,time) $time
+
+   GatherEvent $id $setting($id,states,recv_blocking,start) $node $time
+}
+   
+
+proc Picl_ReadRecordData(recv_waking) {id time node status_name line lineNo} {
+   # see comments for Picl_ReadRecordData(send)
+   global setting
+   upvar $status_name status
+
+   if {[llength $line] == 7} {
+      set sender [lindex $line 4]
+      set type [lindex $line 5]
+      set len [lindex $line 6]
+   } else {
+      puts "Error in format of line: $line"
+      return -1
+      # error in the format
+   }
+
+   # record time, sender, type, and length of message
+   DrawRecv $id $node $sender $type $len $time
+   GatherEvent $id $setting($id,states,recv_blocking,end) $node $time
+}
+
+proc Picl_ReadRecordData(block_begin) {id time node status_name line lineNo} {
+   # see comments for ReadRecordData(send)
+   global numTasks setting
+
+   if {[llength $line] == 7} {
+      set blockType [lindex $line 4]
+   } else {
+      puts "Error in format of line $lineNo:\n$line"
+      return -1
+      # error in the format
+   }
+
+   set stateNum [expr $blockType%$numTasks]
+
+   if $blockType==-1 {
+      set stateName barrier
+   } elseif $blockType==-2 {
+      set stateName bcast0
+   } elseif $blockType==-3 {
+      set stateName bcast1
+   } elseif $blockType==-4 {
+      set stateName globalOp
+   } else {
+      set stateName state_[expr $blockType%$numTasks]
+   }
+   
+   GatherEvent $id $setting($id,states,$stateName,start) $node $time
+}
+   
+
+   
+
+proc Picl_ReadRecordData(block_end) {id time node status_name line lineNo} {
+   # see comments for ReadRecordData(send)
+   global numTasks setting
+
+   if {[llength $line] == 7} {
+      set blockType [lindex $line 4]
+   } else {
+      puts "Error in format of line $lineNo:\n$line"
+      return -1
+      # error in the format
+   }
+
+   set stateNum [expr $blockType%$numTasks]
+
+   if $blockType==-1 {
+      set stateName barrier
+   } elseif $blockType==-2 {
+      set stateName bcast0
+   } elseif $blockType==-3 {
+      set stateName bcast1
+   } elseif $blockType==-4 {
+      set stateName globalOp
+   } else {
+      set stateName state_[expr $blockType%$numTasks]
+   }
+
+   GatherEvent $id $setting($id,states,$stateName,end) $node $time
+}
+
+
+   
+
+proc Picl_ReadRecordData(sync) {id time node status_name line lineNo} {
+   # see comments for Picl_ReadRecordData(send)
+   global setting
+   upvar $status_name status
+
+   set status($node,mode) sync
+   set status($node,time) $time
+
+   # record time
+   GatherEvent $id $setting($id,states,sync,start) $node $time
+}
+   
+
+proc Picl_ReadRecordData(compstats) {id time node status_name line lineNo} {
+   # see comments for Picl_ReadRecordData(send)
+   global setting
+   upvar $status_name status
+   
+   if {![info exists status($node,mode)]} {
+      # if this node has never been called, give it a resting status and
+      # null mode
+      set status($node,status) 0
+      set status($node,mode) ""
+   }
+
+   if {[lsearch {send recv sync} $status($node,mode)]>-1} {
+      # the node is in send/recv/sync mode
+      if {$status($node,status)} {
+	 # active status
+	 GatherEvent $id $setting($id,states,$status($node,mode),end) $node \
+	       $time
+	 # end the state
+	 if ![string compare $status($node,mode) send] {
+	    DrawSend $id $node $status($node,send,receiver) \
+		  $status($node,send,type) $status($node,send,len) $time
+	 } elseif ![string compare $status($node,mode) recv] {
+	    DrawRecv $id $node $status($node,recv,sender) \
+		  $status($node,recv,type) $status($node,recv,len) $time
+	 }
+
+	 set status($node,mode) ""
+	 set status($node,status) 0
+	 # clear the status
+      } elseif {$time==$status($node,time)} {
+	 # this time matches that time in the mode, thus this compstat
+	 # if meant to time this mode
+	 set status($node,status) 1
+	 # active status
+      } else {
+	 puts "compstat at $time does not match $status($node,mode) at \
+	       $status($node,time)."
+      }
+   } else {
+      # puts "compstat at $time is for what?"
+   }
+}
+set gatherEvt(proclist) ""
+proc GatherEvent {id type procnum time} {
+   # Gather single events into states
+   # one list is kept for each process (gatherEvt(0-x)), new start events
+   # are added to the end; when removed, succeeding events slide down;
+   # when drawn, the index is taken as the overlap level
+   #
+   # gatherEvt(proclist) - list of process numbers encountered
+   # gatherEvt($procnum,nstates) - size of the list of states on each \
+	 this process
+   # gatherEvt($procnum,states,x) - list of states the process is in
+   # gatherEvt($procnum,times,x) - times each of the current states started
+   global setting gatherEvt
+
+   # might need to check if the array has been created yet
+
+   # puts "GatherEvent $id $type $procnum $time"
+
+   set idx [lsearch $setting($id,startEvents,list) $type]
+   if $idx==-1 {
+      set idx [lsearch $setting($id,endEvents,list) $type]
+      if $idx==-1 {
+	 DrawEvent $id $type $procnum $time
+	 return
+      } else {
+	 set stateName $setting($id,endEvents,$type)
+	 set isStartEvent 0
+      }
+   } else {
+      set stateName $setting($id,startEvents,$type)
+      set isStartEvent 1
+   }
+   # get the state name by checking start and end event lists
+   if $isStartEvent {
+      GatherAddState $procnum $stateName $time
+
+#      puts "State added:"
+#      for {set i 0} {$i<$gatherEvt($procnum,nstates)} {incr i} {
+#	 puts "slot $i: $gatherEvt($procnum,states,$i)\
+#	       $gatherEvt($procnum,times,$i)"
+#      }
+
+      # add to the list of states that need to be finished
+   } else {
+      set idx [GatherRemoveState $procnum $stateName]
+      # state name is removed, but the time remains in $procnum,times,$idx
+      if $idx==-1 {
+	 puts "End state $stateName without start at $time"
+      } else {
+	 set startTime $gatherEvt($procnum,times,$idx)
+	 DrawTimeBar $id $stateName $startTime $time $procnum $idx
+      }
+   }
+}
+
+proc GatherAddState {procnum name time} {
+   global gatherEvt
+
+   if ![info exists gatherEvt($procnum,nstates)] {
+      lappend gatherEvt(proclist) $procnum
+      set gatherEvt($procnum,nstates) 1
+      set gatherEvt($procnum,states,0) $name
+      set gatherEvt($procnum,times,0) $time
+   } else {
+      for {set i 0} {$i<$gatherEvt($procnum,nstates)} {incr i} {
+	 if ![string compare $gatherEvt($procnum,states,$i) ""] {
+	    set gatherEvt($procnum,states,$i) $name
+	    set gatherEvt($procnum,times,$i) $time
+	    return
+	 }
+      }
+      set i $gatherEvt($procnum,nstates)
+      set gatherEvt($procnum,states,$i) $name
+      set gatherEvt($procnum,times,$i) $time
+      incr gatherEvt($procnum,nstates)
+   }
+
+#   puts "added $name to process $procnum:"
+#   for {set i 0} {$i<$gatherEvt($procnum,nstates)} {incr i} {
+#      puts "  $gatherEvt($procnum,states,$i)"
+#   }
+
+}
+
+proc GatherRemoveState {procnum name} {
+   # don't remove the time from $procnum,times,$idx
+   global gatherEvt
+
+   if ![info exists gatherEvt($procnum,nstates)] {
+      return -1
+   }
+   set i [expr $gatherEvt($procnum,nstates)-1]
+   if $i>=0 {
+      if ![string compare $gatherEvt($procnum,states,$i) $name] {
+	 incr gatherEvt($procnum,nstates) -1
+
+#   puts "removed $name from process $procnum:"
+#   for {set j 0} {$j<$gatherEvt($procnum,nstates)} {incr j} {
+#      puts "  $gatherEvt($procnum,states,$j)"
+#   }
+
+	 return $i
+      } else {
+	 for {incr i -1} {$i>=0} {incr i -1} {
+	    if ![string compare $gatherEvt($procnum,states,$i) $name] {
+	       set gatherEvt($procnum,states,$i) ""
+
+#   puts "removed $name from process $procnum:"
+#   for {set j 0} {$j<$gatherEvt($procnum,nstates)} {incr j} {
+#      puts "  $gatherEvt($procnum,states,$j)"
+#   }
+
+	       return $i
+	    }
+	 }
+	 return -1
+      }
+   }
+   return -1
+}
+
+
+proc NoMoreEvents {id} {
+   # flush the events that may still be waiting to finish
+
+   global setting gatherEvt
+
+   # go through the list for each process
+   if ![info exists gatherEvt(proclist)] return
+   foreach procnum $gatherEvt(proclist) {
+      # if it is in >0 states,
+      if $gatherEvt($procnum,nstates) {
+	 # check each of these states
+	 for {set i [expr $gatherEvt($procnum,nstates)-1]} {$i>=0} \
+	       {incr i -1} {
+	    # if the state is non-null
+	    if [string compare $gatherEvt($procnum,states,$i) ""] {
+	       DrawTimeBar $id $gatherEvt($procnum,states,$i) \
+		     $gatherEvt($procnum,times,$i) \
+		     $setting($id,lastTime) $procnum $i
+	    }
+	 }
+      }
+   }
+
+   unset gatherEvt
+}
+
+#proc DrawTimeBar {id state start end proc overlap tags} {
+#   puts "time bar from $start to $end: $id $state $proc $overlap $tags"
+#}
+proc PrintLegend {id left top right bottom} {
+   global fg bg blackWhite bitmapdir setting
+
+   set canvas $setting($id,tlc)
+   # margins
+   set marginVert 5
+   set marginHoriz 5
+   # dimensions of boxes with sample color or bitmap
+   set boxWidth 45
+   set boxHeight 15
+   set boxMiddle [expr $boxHeight/2]
+   # space between box and corresponding label
+   set spcBtwnBoxLbl 10
+   # space between label and the next box
+   set spcBtwnLblBox 20
+   # vertical spacing between rows of boxes&labels
+   set spcVert 5
+
+   if ![string compare $setting($id,states,list) {}] {
+      return 0
+   }
+
+   set ycor $top
+   foreach stateName [lsort $setting($id,states,list)] {
+      if {$blackWhite} {
+	 $canvas create rectangle $right $ycor [expr $right+$boxWidth] \
+	       [expr $ycor+$boxHeight]  -fill $fg \
+	       -outline $fg -tags [list tempPrint legend l_$stateName] \
+	       -stipple @${bitmapdir}/$setting($id,states,$stateName,bitmap)
+      } else {
+	 $canvas create rectangle $right $ycor [expr $right+45] \
+	       [expr $ycor+15] -outline $fg \
+	       -fill $setting($id,states,$stateName,color) \
+	       -tags [list tempPrint legend l_$stateName]
+      }
+      $canvas create text [expr $right+$boxWidth+$spcBtwnBoxLbl] \
+	    [expr $ycor+$boxMiddle]  -anchor w -text $stateName \
+	    -tags [list tempPrint legend l_$stateName] -fill $fg
+      #set y-coordinate of next box and label
+      set ycor [expr [lindex [$canvas bbox l_$stateName] 3]+$spcVert]
+   }
+   
+   set AddToLine {
+      lappend thisLine $stateName
+      if {$bheight>$maxHeight} {set maxHeight $bheight}
+      set availWidth [expr $availWidth-$bwidth-$spcBtwnLblBox]
+   }
+   set ResetLine {
+      lappend legendLines [list $thisLine $maxHeight]
+      set maxHeight 0
+      set availWidth $width
+      set thisLine {}
+   }
+
+   set width [expr $right-$left-2*$marginHoriz]
+   # legendLines = list of {maxHeight {0 1 2...}}
+   set legendLines {}
+   set availWidth $width
+   # maxHeight = tallest state in this line
+   set maxHeight 0
+   # thisLine = {0 1 2... (which states are in this line)}
+   set thisLine {}
+   foreach stateName [lsort $setting($id,states,list)] {
+      # get width of current box and label
+      set bwidth [expr "[lindex [$canvas bbox l_$stateName] 2]-\
+	    [lindex [$canvas bbox l_$stateName] 0]"]
+      set bheight [expr "[lindex [$canvas bbox l_$stateName] 3]-\
+	    [lindex [$canvas bbox l_$stateName] 1]"]
+      if {$availWidth>($bwidth+$spcBtwnLblBox)} {
+	 # if this state fits, good
+	 eval $AddToLine
+      } elseif {[llength $thisLine]==0} {
+	 # if this state is too long, but the only one on the line,
+	 # well, tough luck.
+	 eval $AddToLine
+	 eval $ResetLine
+      } else {
+	 # state is too long, go to next line
+	 eval $ResetLine
+	 eval $AddToLine
+      }	 
+   }
+   if {[llength $thisLine]!=0} {eval $ResetLine}
+
+   set startVert [expr $top+$spcVert-$marginVert]
+   foreach line $legendLines {
+      set startVert [expr $startVert-[lindex $line 1]-$spcVert]
+   }
+   # create border and cover up unwanted stuff
+   set border [$canvas create rectangle $left \
+	 [expr $startVert-$marginVert] $right $top \
+	 -fill $bg -outline $fg -tags {tempPrint border}]
+   # push border under the legend entries
+   $canvas lower $border legend
+   $canvas addtag legend withtag $border
+   
+   set vert $startVert
+   foreach line $legendLines {
+      set horiz [expr $left+$marginHoriz]
+      foreach stateName [lindex $line 0] {
+	 $canvas move l_$stateName \
+	       [expr $horiz-[lindex [$canvas bbox l_$stateName] 0]] \
+	       [expr $vert-[lindex [$canvas bbox l_$stateName] 1]]
+	 set horiz \
+	       [expr [lindex [$canvas bbox l_$stateName] 2]+$spcBtwnLblBox]
+      }
+      set vert [expr $vert+[lindex $line 1]+$spcVert]
+   }
+   return [expr $startVert-$marginVert]
+}
+
+
+proc PrintProcNums {id left top right bottom} {
+   global fg bg setting
+
+   set procNums $setting($id,pnc)
+   set canvas $setting($id,tlc)
+   set scrollregion [lindex [$procNums configure -scrollregion] 4]
+   set pleft  [lindex $scrollregion 0]
+   set pright [lindex $scrollregion 2]
+
+   set visibleProc [$procNums find overlapping $pleft $top $pright $bottom]
+   set offset [expr $left-$pright]
+   foreach process $visibleProc {
+      set coords [$procNums coords $process]
+      set xcoord [expr [lindex $coords 0]+$offset]
+      set ycoord [lindex $coords 1]
+      set label [lindex [$procNums itemconfigure $process -text] 4]
+      $canvas create text $xcoord $ycoord -text $label -tags \
+	    {tempPrint procNums} -fill $fg -anchor e
+   }
+   return [expr $left+$pleft-$pright]
+}
+
+proc PrintTempObjects {id} {
+   global numDHashMarks ndigitsPrecD fg bg setting
+
+   set canvas $setting($id,tlc)
+   set procNums $setting($id,pnc)
+   set left   [$canvas canvasx 0]
+   set top    [$canvas canvasy 0]
+   set right  [expr [winfo width  $canvas]+$left]
+   set bottom [expr [winfo height $canvas]+$top]
+   set topMargin 20
+   set rightMargin 20
+
+   # temporarily create border rectangle
+   $canvas create rectangle $left $top $right $bottom \
+	 -tags {tempPrint border} -outline $fg
+
+   # draw hash marks and labels
+   for {set i 0} {$i<$numDHashMarks} {incr i} {
+      set xpos [expr ($i+.5)/$numDHashMarks*($right-$left)+$left]
+      $canvas create line $xpos $bottom $xpos [expr $bottom+12] \
+	    -tags {tempPrint hashMark} -fill $fg
+      #build variable name and evaluate
+      # eval set val $[join [list scaleLabel $i] {}]
+      $canvas create text $xpos [expr $bottom+15] \
+	    -text $setting($id,scaleLabel$i) -anchor n \
+	    -tags {tempPrint label} -fill $fg
+   }
+
+   set labelBottom [lindex [$canvas bbox label] 3]
+
+   # put a cover-up rectangle so stuff under the hash marks and labels \
+	 doesn't show through
+   $canvas create rectangle $left $bottom $right $labelBottom \
+	 -fill $bg -outline $bg -tags {tempPrint coverUp}
+
+   set legendTop [PrintLegend $id $left $top $right $bottom]
+   set procNumLeft [PrintProcNums $id $left $top $right $bottom]
+
+   # create coverup for proc nums
+   $canvas create rectangle $procNumLeft $legendTop $left $labelBottom \
+	 -fill $bg -outline $bg -tags {tempPrint coverUp}
+   # create top margin
+   $canvas create rectangle $procNumLeft [expr $legendTop-$topMargin] \
+	 $right [expr $legendTop-0] -fill $bg -outline $bg\
+	 -tags {tempPrint coverUp}
+   # create right margin
+   $canvas create rectangle $right [expr $legendTop-$topMargin] \
+	 [expr $right+$rightMargin] [expr $labelBottom] -fill $bg \
+	 -outline $bg -tags {tempPrint coverUp}
+
+   # put the cover-up rectangles below anything else
+   $canvas lower coverUp border
+
+   return [list $procNumLeft [expr $legendTop-$topMargin] \
+	 [expr $right+$rightMargin] $labelBottom]
+}
+
+
+proc TrimRectangles canvas {
+   set left   [$canvas canvasx 0]
+   set top    [$canvas canvasy 0]
+   set right  [expr [winfo width  $canvas]+$left]
+   set bottom [expr [winfo height $canvas]+$top]
+
+   # get the IDs of anything that lays on the border
+   set lside [$canvas find overlapping $left $top $left $bottom]
+   set bside [$canvas find overlapping $left $bottom $right $bottom]
+   set rside [$canvas find overlapping $right $top $right $bottom]
+   set tside [$canvas find overlapping $left $top $right $top]
+   set stateBars [$canvas find withtag state]
+   #puts "lside: $lside\nbside: $bside\nrside: $rside\ntside: $tside\nstateBars: $stateBars\n"
+   set ids [U $lside [U $bside [U $rside $tside]]]
+
+   #puts "overflowing legend lines: $ids"
+   set trimList {}
+   set trimthis 0
+   foreach id $ids {
+      #puts "type: [$canvas type $id]"
+      # if the object is a state rectangle...
+      if {[$canvas type $id]=="rectangle" && \
+	    [lsearch [$canvas gettags $id] state]>=0} {
+	 # whether or not this rectangle was trimmed
+	 set coords [$canvas coords $id]
+	 #puts "coords = [$canvas coords $id]"
+	 set rleft   [lindex $coords 0]
+	 set rtop    [lindex $coords 1]
+	 set rright  [lindex $coords 2]
+	 set rbottom [lindex $coords 3]
+	 if {($rleft<$left)||($rtop<$top)||($rright>$right)||($rbottom>$bottom)} {
+	    lappend trimList [list $id $rleft $rtop $rright $rbottom]
+	    #puts "Trimmed $id from ($rleft $rtop $rright $rbottom)"
+	    if {$rleft<$left} {
+	       set rleft $left
+	    }
+	    if {$rtop<$top} {
+	       set rtop $top
+	    }
+	    if {$rright>$right} {
+	       set rright $right
+	    }
+	    if {$rbottom>$bottom} {
+	       set rbottom $bottom
+	    }
+	    #puts "     to ($rleft $rtop $rright $rbottom)"
+	    $canvas coords $id $rleft $rtop $rright $rbottom
+	 }
+      }
+   }
+   #puts "trim list: $trimList"
+   return $trimList
+}
+
+
+proc RestoreRectangles {canvas trimList} {
+   foreach rect $trimList {
+      eval $canvas coords $rect
+   }
+}
+
+
+
+proc CreateGrayColormap {id} {
+   global setting colormap
+
+   set nstates [llength $setting($id,states,list)]
+   set interval [expr {1.0 / ($nstates-1)}]
+   set level 0.0
+
+   foreach state $setting($id,states,list) {
+      set colormap($setting($id,states,$state,color)) \
+	    "$level $level $level setrgbcolor"
+      # puts "set colormap($setting($id,states,$state,color)) \
+      #    .$level $level $level setrgbcolor."
+      set level [expr {$level + $interval}]
+      if {$level > 1.0} {
+	 set level 1.0
+      }
+   }
+}
+
+
+
+
+proc PrintTimeLines {id} {
+   global prnToFile blackWhite pageHeight
+   global pageWidth pageUnits printOpts setting nocolormap
+
+   # if screen is B&W, output must be mono, otherwise set to grayscale
+   # or color
+   set colormode [expr {$blackWhite?{mono}:($printOpts($id,incolor)?\
+	 {color}:{gray})}]
+
+   set printBoundary [PrintTempObjects $id]
+
+   # trim rectangle to the visible are to cut down PostScript printing
+   # overhead
+   set trimmedRect [TrimRectangles $setting($id,tlc)]
+
+   set coords [$setting($id,tlc) bbox tempPrint]
+   set left   [lindex $printBoundary 0]
+   set top    [lindex $printBoundary 1]
+   set width  [expr [lindex $printBoundary 2]-$left]
+   set height [expr [lindex $printBoundary 3]-$top] 
+   if {$width==0 || $height==0 || $pageWidth==0 || $pageHeight==0} {
+      puts "Illegal size:\n  Canvas width: $width\n  Canvas height:\
+	    $height\n  Page width: $pageWidth\n  Page height: $pageHeight"
+   } else {
+      
+      # calculate the page size.  Make sure to abide by the most restrictive of
+      # pageHeight and pageWidth.
+
+      if {($height+0.0)/$width < $pageHeight/$pageWidth} {
+	 # wide picture
+	 set shortSide width
+	 if $printOpts($id,isLandscape) {
+	    set shortSize ${pageHeight}$pageUnits
+	 } else {
+	    set shortSize ${pageWidth}$pageUnits
+	 }
+      } else {
+	 # tall picture
+	 set shortSide height
+	 if $printOpts($id,isLandscape) {
+	    set shortSize ${pageWidth}$pageUnits
+	 } else {
+	    set shortSize ${pageHeight}$pageUnits
+	 }
+      }
+      
+      if {!$blackWhite && !$printOpts($id,incolor)} {
+	 set colormap colormap
+	 CreateGrayColormap $id
+	 # set colormap() entries
+      } else {
+	 set colormap nocolormap
+	 set nocolormap(0) 0
+      }
+	 
+      if ($printOpts($id,tofile)) {
+	 $setting($id,tlc) postscript -x $left -width $width -rotate \
+	       $printOpts($id,isLandscape) -colormap $colormap \
+	       -y $top -height $height -file $printOpts($id,filename) \
+	       -colormode $colormode -page$shortSide $shortSize
+      } else {
+	 exec lpr -C Upshot -T $setting($id,logfilename) \
+	       -P$printOpts(lprname) << [$setting($id,tlc) postscript -x \
+	       $left \
+	       -width $width -height $height  -rotate \
+	       $printOpts($id,isLandscape) -colormap $colormap \
+	       -y $top -colormode $colormode -page$shortSide $shortSize]
+      }
+   }
+   # remove border, hash marks, labels, and cover-up rectangle
+   $setting($id,tlc) delete tempPrint
+
+   # restore rectangles that were trimmed to cut down PostScript printing
+   # overhead
+
+   if {!$blackWhite && !$printOpts($id,incolor)} {
+      unset colormap
+      # release colormap() entries
+   }
+
+   RestoreRectangles $setting($id,tlc) $trimmedRect
+
+   # save into the defaults the setting just used
+   PrintCancel $id
+}
+
+
+
+proc PrintCancel id {
+   global printOpts
+   UpdateDefaults "prnToFile $printOpts($id,tofile) timeLinePrintFile \
+	 $printOpts($id,filename) printInColor $printOpts($id,incolor) \
+	 lprname $printOpts(lprname) isLandscape \
+	 $printOpts($id,isLandscape)"
+
+   destroy $id.printOpt
+}
+
+
+
+proc PrintDialog {parentWin printCommand {title "Print Options"}} {
+   global prnToFile env blackWhite printOpts
+      # printOpts:
+      #    $parentWin,tofile (boolean)
+      #    $parentWin,filename
+      #    $parentWin,incolor (boolean)
+      #    lprname
+
+   set printOpts($parentWin,tofile) [GetDefault prnToFile 0]
+   set printOpts($parentWin,filename) [GetDefault timeLinePrintFile upshot.ps]
+   set printOpts($parentWin,incolor) [GetDefault printInColor 1]
+   set printOpts($parentWin,isLandscape) [GetDefault isLandscape 1]
+   if ![info exists printOpts(lprname)] {
+      if [info exists env(PRINTER)] {
+	 set printOpts(lprname) $env(PRINTER)
+      } else {
+	 set printOpts(lprname) [GetDefault lprname ""]
+      }
+   }
+      
+   set w $parentWin.printOpt
+   toplevel $w
+   wm title $w "Print Options"
+   wm iconname $w "PrintOpts"
+
+   frame $w.printer
+   frame $w.file
+   frame $w.orientation
+   frame $w.buttons
+
+   radiobutton $w.printer.btn -text Printer: -variable \
+	 printOpts($parentWin,tofile) -value 0
+   entry $w.printer.entry -width 20 -relief sunken -textvariable \
+	 printOpts(lprname)
+   pack append $w.printer $w.printer.btn {left padx 10} \
+	 $w.printer.entry {left fill expand padx 10 pady 10 frame w}
+   
+   radiobutton $w.file.btn    -text File:    -variable \
+	 printOpts($parentWin,tofile) -value 1
+
+   entry $w.file.entry -width 20 -relief sunken -textvariable \
+	 printOpts($parentWin,filename)
+
+   pack append $w.file    $w.file.btn    {left padx 10} \
+	 $w.file.entry    {left fill expand padx 10 pady 10 frame w}
+
+   label $w.orientation.lbl -text "Orientation:"
+   radiobutton $w.orientation.portrait -text "portrait (tall)" \
+	 -variable printOpts($parentWin,isLandscape) -value 0
+   radiobutton $w.orientation.landscape -text "landscape (wide)" \
+	 -variable printOpts($parentWin,isLandscape) -value 1
+   pack append $w.orientation $w.orientation.lbl {left frame e} \
+	 $w.orientation.portrait {top frame w} \
+	 $w.orientation.landscape {top frame w}
+   if $printOpts($parentWin,isLandscape) {
+      $w.orientation.landscape select
+   } else {
+      $w.orientation.portrait select
+   }
+
+   button $w.buttons.print -text "Print" -command $printCommand
+   button $w.buttons.cancel -text "Cancel" -command "PrintCancel $parentWin"
+   pack append $w.buttons $w.buttons.print \
+	 {left padx 10 pady 20 expand frame center} \
+	 $w.buttons.cancel {left padx 10 pady 20 expand frame center}
+
+   if ($blackWhite) {
+      pack append $w $w.printer {top fillx} $w.file {top fillx} \
+	    $w.orientation {top fillx} \
+	    $w.buttons {top fillx}
+   } else {
+      frame $w.hues
+      label $w.hues.label -text "Print in:"
+      radiobutton $w.hues.bw    -text "b&w"   -variable \
+	    printOpts($parentWin,incolor) -value 0
+      radiobutton $w.hues.color -text "color" -variable \
+	    printOpts($parentWin,incolor) -value 1
+      if $printOpts($parentWin,incolor) {
+	 $w.hues.color select
+      } else {
+	 $w.hues.bw select
+      }
+      pack append $w.hues $w.hues.label {left padx 20 frame e} \
+	    $w.hues.bw    {top expand padx 10 pady 5 frame w} \
+	    $w.hues.color {top expand padx 10 pady 5 frame w}
+      pack append $w $w.printer {top fillx} $w.file {top fillx} \
+	    $w.orientation {top fillx} $w.hues {top pady 20 fillx} \
+	    $w.buttons {top fillx}
+   }
+   update
+   set minwidth [expr {[winfo reqwidth $w.printer.btn]+\
+	 [winfo reqwidth $w.printer.entry]}]
+   set minheight [expr {[winfo reqheight $w.printer] + \
+	 [winfo reqheight $w.file] + [winfo reqheight $w.buttons] + \
+	 $blackWhite?0:[winfo reqheight $w.hues]}]
+   wm minsize $w $minwidth $minheight
+}
+
+
+proc TimeLineScales {id scale1 scale2 \
+      width scrollWidth processNumWidth} {
+   global blackWhite numDHashMarks numSHashMarks ndigitsPrecS fg bg setting
+
+   # one frame for the each scale, and within each scale, one frame for
+   # all the hash marks, one frame for all the numeric labels
+   frame $scale1
+   frame $scale1.h
+   frame $scale1.l
+   frame $scale2
+   frame $scale2.h
+   frame $scale2.l
+
+   for {set i 0} {$i<$numDHashMarks} {incr i} {
+      # create canvas for each label
+      canvas $scale1.h.c$i -height 15 -width 1 -bg $fg
+      # create line in each canvas
+#      $scale1.h.c$i create line 0 0 0 14
+      # create dynamic labels 
+      # their corresponding variables will be set later
+      label $scale1.l.l$i -textvariable setting($id,scaleLabel$i)
+      # add each hash mark and label to their respective frames
+      pack append $scale1.h $scale1.h.c$i {left expand}
+      pack append $scale1.l $scale1.l.l$i {left expand}
+   }
+
+   for {set i 1} {$i<=$numSHashMarks} {incr i} {
+      # create canvas for each label
+      canvas $scale2.h.c$i -height 15 -width 1 -bg $bg
+      # create line in each canvas
+      $scale2.h.c$i create line 0 0 0 14 -fill $fg
+
+      set formatString [format "%%.%df" $ndigitsPrecS]
+      label $scale2.l.l$i -text [SigDigits \
+	    [expr {$i*($setting($id,lastTime)-$setting($id,firstTime))/ \
+	    $numDHashMarks}] \
+	    $setting($id,firstTime) $setting($id,lastTime) $ndigitsPrecS \
+	    [expr .000001]]
+
+      # add each hash mark and label to their respective frames
+      pack append $scale2.h $scale2.h.c$i {left expand frame e}
+      pack append $scale2.l $scale2.l.l$i {left expand frame e}
+   }
+
+   # soak space on either side of the dynamic scale
+   canvas $scale1.s0 -height 1 -width 15 -bg $bg
+   canvas $scale1.s1 -height 1 -width $processNumWidth -bg $bg
+
+   # soak space on either side of the static scale
+   canvas $scale2.s0 -height 1 -width 17 -bg $bg
+   canvas $scale2.s1 -height 1 -width 14 -bg $bg
+
+   pack append $scale1 $scale1.s0 {right} $scale1.s1 {left} \
+	 $scale1.h {top fillx} $scale1.l {top fillx}
+   pack append $scale2 $scale2.s0 {left} $scale2.s1 {right} \
+	 $scale2.h {top fillx} $scale2.l {top fillx}
+}
+
+
+proc scaleLabelList n {
+   for {set i 0} {$i<$n} {incr i} {
+      lappend l scaleLabel$i
+   }
+   return $l
+}
+
+#
+# tk4.0 provides ONLY two args to -xscrollcommand value: the first and last to 
+# give to the scrollbar set command.
+#
+proc UpdateHScale3 {id scrollbar totalUnits \
+      scrollUnits startUnit endUnit} {
+   global numDHashMarks ndigitsPrecD setting
+
+   set factor1 [expr ($scrollUnits+0.0)/$numDHashMarks]
+   set factor2 [expr {($setting($id,lastTime)-$setting($id,firstTime)+0.0)/ \
+	 ($totalUnits-2)/1000000}]
+
+   # set the # of sig. digits
+   set ndigits [expr {int($ndigitsPrecD-\
+	 log10($numDHashMarks*$factor1*$factor2))}]
+   if {$ndigits < 0} {set ndigits 0}
+
+   # set the variables that the dynamic scale markings represent
+   set formatString [format "%%.%df" $ndigits]
+   for {set i 0} {$i<$numDHashMarks} {incr i} {
+      set setting($id,scaleLabel$i) [format $formatString \
+	    [expr ($factor1*($i+0.5)+$startUnit)*$factor2]]
+   }
+   $scrollbar set $totalUnits $scrollUnits $startUnit $endUnit
+}
+
+proc UpdateHScale4 {id scrollbar firstFrac lastFrac } {
+   global numDHashMarks ndigitsPrecD setting
+
+#
+# Use the scrollbar information to recompute the scaling of the hashmarks
+#
+   set totalUnits [ $id.c cget -width ]
+   # puts stdout $totalUnits
+   set scrollUnits [ expr { ( $lastFrac - $firstFrac ) * $totalUnits } ]
+   set startUnit [ expr { $firstFrac * $totalUnits } ]
+   set endUnit [ expr { $lastFrac * $totalUnits } ]
+   set factor1 [expr ($scrollUnits+0.0)/$numDHashMarks]
+   set factor2 [expr {($setting($id,lastTime)-$setting($id,firstTime)+0.0)/ \
+	 ($totalUnits-2)/1000000}]
+
+   # set the # of sig. digits
+   set ndigits [expr {int($ndigitsPrecD-\
+	 log10($numDHashMarks*$factor1*$factor2))}]
+   if {$ndigits < 0} {set ndigits 0}
+
+   # set the variables that the dynamic scale markings represent
+   set formatString [format "%%.%df" $ndigits]
+   for {set i 0} {$i<$numDHashMarks} {incr i} {
+      set setting($id,scaleLabel$i) [format $formatString \
+	    [expr ($factor1*($i+0.5)+$startUnit)*$factor2]]
+   }
+   $scrollbar set $firstFrac $lastFrac
+}
+
+proc UpdateVScale3 {scrollbar procNumsCanvas totalUnits \
+      scrollUnits startUnit endUnit} {
+   $scrollbar set $totalUnits $scrollUnits $startUnit $endUnit
+}
+
+proc UpdateVScale4 {scrollbar procNumsCanvas firstFrac lastFrac } {
+   $scrollbar set $firstFrac $lastFrac
+}
+
+
+proc GetTextDimensions {canvas} {
+   set id [$canvas create text 0 0 -text "W" -anchor nw]
+   set sz0 [$canvas bbox $id]
+   $canvas delete $id
+
+   set id [$canvas create text 0 0 -text "WW\nWW" -anchor nw]
+   set sz1 [$canvas bbox $id]
+   $canvas delete $id
+
+   return [list [expr [lindex $sz1 2]-[lindex $sz0 2]] \
+	        [expr [lindex $sz1 3]-[lindex $sz0 3]]]
+}
+   
+
+proc TimeLineProcNums {id canvas} {
+   global procWidth fg bg setting
+
+   canvas $canvas -height 100 -width 100
+   set textSize [GetTextDimensions $canvas]
+   set textWidth [lindex $textSize 0]
+   set height [expr $setting($id,numProcs)*$procWidth]
+   set nchars [expr int(log10($setting($id,numProcs)))+1]
+   set width  [expr ($nchars+1)*$textWidth]
+   $canvas configure -height $height -width $width \
+	 -background $bg
+
+   # create numeric tags
+   for {set i 0} {$i<$setting($id,numProcs)} {incr i} {
+      # moveable - the tags will move with the timeline canvas, as opposed
+      # to the bounding rectangle (?)
+      $canvas create text [expr $width-($textWidth/2)] \
+	    [expr $procWidth*$i+.5*$procWidth] \
+	    -anchor e -text $i -tags moveable -fill $fg
+   }
+   $canvas config -scrollregion [list 0 0 $width $height]
+   return $width
+}
+
+
+proc CalcHeights {bins listName start end} {
+   upvar $listName l
+   # start and end are used to limit the range of state lengths
+
+   if {$end<$start} {
+      set h ""
+      for {set i 0} {$i<$bins} {incr i} {
+	 lappend h 0
+      }
+      return $h
+   }
+
+   set step [expr ($end-$start)/$bins]
+
+   # h - height of each bin
+   set h {}
+   # value of the greatet possible value in this bin
+   set mark $start
+   # index of the last element in the previous bin
+   set lastend [refbsearch l $mark]
+
+   for {set i 1} {$i<$bins} {incr i} {
+      set mark [expr $mark+$step]
+      # 'binend' - index of of last element in this bin
+      set binend  [refbsearch l $mark]
+      lappend h [expr $binend-$lastend]
+      set lastend $binend
+   }
+
+   lappend h [expr [refbsearch l $end]-$lastend]
+   # add in the height of the last bin
+   return $h
+}
+
+
+proc PolygonBoundary {canvas pointList color tags} {
+
+   set npoints [expr [llength $pointList]/2]
+   if $npoints==0 {return}
+
+   set firstx [lindex $pointList 0]
+   set firsty [lindex $pointList 1]
+   set lastx $firstx
+   set lasty $firsty
+   for {set i 1} {$i<$npoints} {incr i} {
+      set thisx [lindex $pointList [expr $i*2]]
+      set thisy [lindex $pointList [expr $i*2+1]]
+      $canvas create line $lastx $lasty $thisx $thisy -fill $color -tags $tags
+      set lastx $thisx
+      set lasty $thisy
+   }
+   $canvas create line $lastx $lasty $firstx $firsty -fill $color -tags $tags
+}
+   
+
+
+
+proc UpdateHistogram {id w canvas stateName} {
+   global lenList fg histWin bitmapdir blackWhite setting bg
+
+   if $histWin($w,dontRefresh) {return}
+
+   $canvas config -cursor watch
+
+   update
+   set left   [$canvas canvasx 0]
+   set top    [$canvas canvasy 0]
+   set histWin($w,width) [winfo width $canvas]
+   set right  [expr $histWin($w,width)+$left]
+   set bottom [expr [winfo height $canvas]+$top]
+   set nbins $histWin($w,bins)
+
+   set binList [CalcHeights $nbins lenList($w) \
+	 [expr $histWin($w,exact_start)*1000000] \
+	 [expr $histWin($w,exact_end)*1000000]]
+
+   # set scaling factor for the bin heights so 95% is always used
+   if ![max $binList] {
+      set htFactor 0
+      set step 0
+      set xcor $left
+      set ycor $bottom
+   } else {
+      set htFactor [expr ($bottom-$top)*.95/[max $binList]]
+      set step [expr ($right-$left+0.0)/$nbins]
+      set points "$left $bottom $left $bottom"
+      set xcor $left
+   }
+
+   foreach binHt $binList {
+      set ycor [expr $bottom-($binHt*$htFactor)]
+      lappend points $xcor $ycor
+      set xcor [expr $xcor+$step]
+      lappend points $xcor $ycor
+   }
+   lappend points $xcor $bottom $xcor $bottom
+   
+   $canvas delete hist
+   if {$blackWhite} {
+      set fillMethod stipple
+      set fillColor @${bitmapdir}/$setting($id,states,$stateName,bitmap)
+         # set the stipple pattern
+   } else {
+      set fillMethod fill
+      set fillColor $setting($id,states,$stateName,color)
+   }
+
+   eval $canvas create polygon $points -$fillMethod $fillColor \
+	 -tags hist
+   PolygonBoundary $canvas $points $fg hist
+   $canvas config -cursor top_left_arrow
+}
+
+proc AdjustNumBins {id w canvas stateName nbins} {
+   global histWin
+   set histWin($w,bins) $nbins
+   UpdateHistogram $id $w $canvas $stateName
+}
+
+
+proc AdjustBinStart {id w canvas stateName startScale endScale startVal} {
+   global histWin
+
+   set startVal [expr $startVal/1000000.0]
+   if {$startVal >= $histWin($w,exact_end)} {
+      set startVal [expr $histWin($w,exact_end)-.000001]
+      $startScale set [expr int($startVal*1000000)]
+   }
+   set histWin($w,start) [SigDigits $startVal $startVal \
+	 $histWin($w,end) 2]
+   set histWin($w,exact_start) [expr $startVal-.000001]
+     # don't want to lose anything
+
+   UpdateHistogram $id $w $canvas $stateName
+}
+
+proc AdjustBinEnd {id w canvas stateName startScale endScale endVal} {
+   global histWin
+
+   set endVal [expr $endVal/1000000.0]
+   if {$endVal <= $histWin($w,start)} {
+      set endVal [expr $histWin($w,start)+.000001]
+      $endScale set [expr int($endVal*1000000)]
+   }
+   set histWin($w,end) [SigDigits $endVal $histWin($w,start) $endVal 2]
+   set histWin($w,exact_end) [expr $endVal+.000001]
+     # don't want to lose anything
+   # $startScale config -to $endVal
+   UpdateHistogram $id $w $canvas $stateName
+}
+
+proc HistogramWindow {id w stateName} {
+   global histWin lenList bg fg printOpts setting activebg tk_version
+
+   set controls $w.controls
+   set totalTimeLbl $controls.ttlbl
+   set nstatesLbl $controls.nstateslbl
+   set scaleF $controls.sf
+   set start $controls.sf.start
+   set startLbl $controls.sf.start_l
+   set end   $controls.sf.end
+   set endLbl $controls.sf.end_l
+   set bins  $controls.sf.bins
+   set binCanvas $w.c
+   set hair $w.hair
+
+   set canvas $setting($id,tlc)
+   set ids [$canvas find withtag "sn_$stateName"]
+   if ![string compare $ids ""] return
+
+   set printOpts($w,tofile)   [GetDefault prnToFile 0]
+   set printOpts($w,filename) [GetDefault histogramPrintFile hist.ps]
+   set printOpts($w,incolor)  [GetDefault printInColor 1]
+
+   set region [lindex [$canvas config -scrollregion] 4]
+   set cleft [lindex $region 0]
+   set cright [lindex $region 2]
+   if {$ids==""} return
+
+   # skew
+   set s [expr {($setting($id,lastTime)-$setting($id,firstTime)+0.0)/ \
+	 ($cright-$cleft)}]
+   # offset
+   set o [expr ($setting($id,firstTime)+0.0)/$s-$cleft]
+   # usl=UnSorted period Lengths
+   set usl {}
+
+   # created unsorted list of the lengths of all the periods
+   foreach period $ids {
+      set periodBounds [$canvas coord $period]
+      lappend usl [expr "int(([lindex $periodBounds 2] - \
+	    [lindex $periodBounds 0])*$s)"].0
+        # calculate length of each state
+   }
+
+   # sort the list
+   set lenList($w) [lsort -real $usl]
+   # add up all the lengths
+
+   set totalTime [expr [join $lenList($w) +]]
+
+   toplevel $w
+   wm title $w "$stateName lengths"
+   $w config -cursor watch
+
+   set histWin($w,bins)  25
+   set histWin($w,start) [expr [lindex $lenList($w) 0]/1000000.0]
+   set histWin($w,exact_start) [lindex $lenList($w) 0]
+     # 'start' and 'end' are the printed versions,
+     # exact_start and exact_end are the actual versions
+   set histWin($w,end)   [expr ([lindex $lenList($w) \
+	 [expr [llength $lenList($w)]-1]])/1000000.0]
+   set histWin($w,exact_end) [lindex $lenList($w) \
+	 [expr [llength $lenList($w)]-1]]
+
+   set histWin($w,width) 300
+
+   frame $controls
+
+   label $nstatesLbl -anchor w -fg $fg -text "Number of $stateName states: \
+	 [llength $lenList($w)]"
+   label $totalTimeLbl -anchor w -fg $fg -text "Total time: \
+	 [format "%.5f" [expr $totalTime/1000000.0]] sec."
+   frame $scaleF -borderwidth 10
+   if { $tk_version >= 4.0 } { 
+	set scalecmd "-activebackground"
+	} else { 
+	set scalecmd "-activeforeground"
+	}
+   scale $start -orient horiz -label "Start state length" \
+	 -from [expr int([lindex $lenList($w) 0])-1 ] \
+	 -to [expr int([lindex $lenList($w) \
+	    [expr [llength $lenList($w)]-1]])+1 ] \
+	 -command "AdjustBinStart $id $w $binCanvas {$stateName} $start $end" \
+	 -sliderlength 30 -showvalue 0 $scalecmd $activebg
+   label $startLbl -anchor e -fg $fg -textvariable histWin($w,start)
+   $start set [expr int($histWin($w,start)*1000000)]
+   scale $end   -orient horiz -label "End state length" \
+	 -from [expr int([lindex $lenList($w) 0])-1] \
+	 -to [expr int([lindex $lenList($w) \
+	    [expr [llength $lenList($w)]-1]])+1] \
+	 -command "AdjustBinEnd $id $w $binCanvas {$stateName} $start $end" \
+	 -sliderlength 30 -showvalue 0 $scalecmd $activebg
+   label $endLbl   -anchor e -fg $fg -textvariable histWin($w,end)
+   $end   set [expr int($histWin($w,end)*1000000)]
+
+   frame $hair
+   label $hair.lbl -text "cursor:" -fg $fg
+   label $hair.val -textvariable histWin($w,hairline)
+   pack append $hair $hair.lbl {left} $hair.val {left}
+
+   scale $bins  -orient horiz -label "Number of bins" -from 1 -to 50 \
+	 -command "AdjustNumBins $id $w $binCanvas {$stateName}" \
+	 $scalecmd $activebg
+
+   set histWin($w,dontRefresh) 1
+   $start config -to [$end get]
+   $end   config -from [$start get]
+   $bins  set $histWin($w,bins)
+   pack append $scaleF $start {top fill expand} $startLbl {top fill frame e}\
+	 $end {top fill expand} $endLbl {top fill frame e} \
+	 $hair {bottom fill} $bins {top fill expand}
+
+   frame $w.bf
+     # button frame
+   button $w.bf.print -text "Print" -command \
+	 "PrintDialog $w \"PrintHist $w $binCanvas\" {Print Histogram}"
+   button $w.bf.close -text "Close" -command "CloseHist $w"
+   pack append $w.bf $w.bf.print {left expand} $w.bf.close {left expand}
+   canvas $binCanvas -height 300 -width $histWin($w,width) -relief sunken \
+	 -bg $bg
+
+   bind $binCanvas <Motion> "UpdateHash $w %x"
+
+   pack append $controls \
+	 $nstatesLbl {top fill frame w expand} \
+	 $totalTimeLbl {top fill frame w expand} \
+	 $scaleF {top fill expand} \
+	 $w.bf  {top fill pady 10 expand}
+	 
+   pack append $w \
+	 $controls {left filly} \
+	 $binCanvas {fill expand}
+   update
+
+   wm minsize $w [winfo reqwidth $start] [expr "[winfo reqwidth $start]+\
+	 [winfo reqwidth $end]+[winfo reqwidth $bins]"]
+   bind $w <Configure> "UpdateHistogram $id $w $binCanvas {$stateName}"
+
+   set histWin($w,dontRefresh) 0
+   UpdateHistogram $id $w $binCanvas $stateName
+   $w config -cursor top_left_arrow
+}
+
+
+proc CloseHist {w} {
+   global lenList histWin
+
+   EraseArrayElements lenList $w
+   EraseArrayElements histWin $w
+   destroy $w
+}
+
+
+proc UpdateHash {w x} {
+   global histWin
+
+   set histWin($w,hairline) [SigDigits [expr "($x.0)/$histWin($w,width)* \
+	 ($histWin($w,end)-$histWin($w,start))+$histWin($w,start)"] \
+	 $histWin($w,start) $histWin($w,end) 3]
+}
+
+
+proc PrintHist {w canvas} {
+   global histWin fg printOpts pageWidth pageHeight blackWhite pageUnits
+
+   set hashLen 10
+   set left   [$canvas canvasx 0]
+   set top    [$canvas canvasy 0]
+   set right  [expr [winfo width  $canvas]+$left]
+   set bottom [expr [winfo height $canvas]+$top]
+
+   $canvas create rectangle $left $top $right $bottom -outline $fg \
+	 -tags {tempPrint}
+   $canvas create line $left $bottom $left [expr $bottom+$hashLen] \
+	 -fill $fg -tags {tempPrint}
+   $canvas create line $right $bottom $right [expr $bottom+$hashLen] \
+	 -fill $fg -tags {tempPrint}
+   $canvas create text $left [expr $bottom+$hashLen+2] -fill $fg \
+	 -text "[SigDigits $histWin($w,start) $histWin($w,start) \
+	 $histWin($w,end) 2]" \
+	 -tags {tempPrint labels} -anchor n
+   $canvas create text $right [expr $bottom+$hashLen+2] -fill $fg \
+	 -text "[SigDigits $histWin($w,end) $histWin($w,start) \
+	 $histWin($w,end) 2]" \
+	 -tags {tempPrint labels} -anchor n
+   set lblLeft   [lindex [$canvas bbox labels] 0]
+   set lblRight  [lindex [$canvas bbox labels] 2]
+   set lblBottom [lindex [$canvas bbox labels] 3]
+   set height [expr $lblBottom-$top+$hashLen]
+   set width [expr $lblRight-$lblLeft]
+
+   # if screen is B&W, output must be mono, otherwise set to grayscale
+   # or color
+   set colormode \
+	 [expr $blackWhite?{mono}:($printOpts($w,incolor)?{color}:{gray})]
+
+   # calculate the page size.  Make sure to abide by the most restrictive of
+   # pageHeight and pageWidth.
+   if {$width/$height>$pageWidth/$pageHeight} {
+      set shortSide width
+      set shortSize ${pageWidth}$pageUnits
+   } else {
+      set shortSide height
+      set shortSize ${pageHeight}$pageUnits
+   }
+
+   if ($printOpts($w,tofile)) {
+      $canvas postscript -x $lblLeft -width $width \
+	    -y [expr $top-$hashLen] -height $height -file $printOpts($w,filename) \
+	    -colormode $colormode -page$shortSide $shortSize
+   } else {
+      exec lpr -P$printOpts(lprname) << [$canvas postscript -x $lblLeft \
+	    -width $width -height $height \
+	    -y [expr $top-$hashLen] -colormode $colormode -page$shortSide $shortSize]
+   }
+
+   $canvas delete tempPrint
+   PrintCancel $w
+}
+
+
+proc AddButtons {id btnFrame} {
+   global setting
+
+   button $btnFrame.dtlzoom  -text "Detailed Zoom"         -command \
+	 "DetailedZoom $id "
+   label  $btnFrame.hor      -text "Horizontal Zoom:"
+   button $btnFrame.hzoomin  -text "In"         -command \
+	 "Zoom $id x 2.0"
+   button $btnFrame.hzoomout -text "Out"        -command \
+	 "Zoom $id x 0.5"
+   label  $btnFrame.ver      -text "Vertical Zoom:"
+   button $btnFrame.vzoomin  -text "In"         -command \
+	 "Zoom $id y 2.0"
+   button $btnFrame.vzoomout -text "Out"        -command \
+	 "Zoom $id y 0.5"
+   button $btnFrame.print    -text "Print"      -command \
+	 "PrintDialog $id  \"PrintTimeLines $id\" {Print Timelines} "
+   button $btnFrame.reset    -text "Reset"      -command \
+	 "Zoom $id reset"
+   # close button
+   button $btnFrame.close    -text "Close"      -command \
+	 "CloseLines $id"
+
+   set setting($id,buttons) [list $btnFrame.dtlzoom \
+	 $btnFrame.hzoomin $btnFrame.hzoomout \
+	 $btnFrame.vzoomin $btnFrame.vzoomout \
+	 $btnFrame.print $btnFrame.reset \
+	 $btnFrame.close]
+
+   set setting($id,amzooming) 0
+
+   pack append $btnFrame \
+	 $btnFrame.hor        {left padx 10 pady 5} \
+	 $btnFrame.hzoomin    {left padx 10 pady 5} \
+	 $btnFrame.hzoomout   {left padx 10 pady 5} \
+	 $btnFrame.ver        {left padx 10 pady 5} \
+	 $btnFrame.vzoomin    {left padx 10 pady 5} \
+	 $btnFrame.vzoomout   {left padx 10 pady 5} \
+	 $btnFrame.dtlzoom    {left padx 10 pady 5} \
+	 $btnFrame.print      {left expand padx 20 pady 5} \
+	 $btnFrame.reset      {left expand padx 20 pady 5} \
+	 $btnFrame.close      {left expand padx 20 pady 5}
+
+}    
+
+
+proc StartDrawingTime {id} {
+   global setting reqWidth timelinefg procWidth
+
+   for {set procnum 0} {$procnum<$setting($id,numProcs)} {incr procnum} {
+      set height [expr ($procnum+.5)*$procWidth]
+      $setting($id,tlc) create line 0 $height \
+	    $reqWidth $height -width 1 -fill $timelinefg
+   }
+}
+
+
+proc EndDrawingTime {id} {
+   global setting reqWidth procWidth timelinefg maxOverlap recvWait sendWait
+
+   set overlaps {message event}
+   for {set i $maxOverlap} {$i>=0} {incr i -1} {
+      lappend overlaps overlap_$i
+   }
+   lappend overlaps timeline
+   FixOverlapLevels $id $overlaps
+   if [info exists recvWait] {
+      unset recvWait
+   }
+   if [info exists sendWait] {
+      unset sendWait
+   }
+}
+
+
+proc FixOverlapLevels {id overlapList} {
+   global setting
+
+   # puts "FixOverlapLevels $id $overlapList"
+   set reorderList ""
+   foreach tag $overlapList {
+      if [string compare [$setting($id,tlc) find withtag $tag] ""] {
+	 lappend reorderList $tag
+      }
+   }
+   # puts "reorderList: $reorderList"
+
+   if [llength $reorderList]>1 {
+      set last [lindex $reorderList 0]
+      # puts "Last = $last, reorder $reorderList"
+      foreach tag [lrange $reorderList 1 end] {
+	 # puts "Put $tag below $last"
+	 $setting($id,tlc) lower $tag $last
+	 set last $tag
+      }
+   }
+}
+
+
+proc DrawEvent {id type procnum time} {
+   global setting procWidth reqWidth fg
+
+   if ![info exists setting($id,xscale)] {
+      set setting($id,xscale) [expr {$reqWidth/($setting($id,lastTime)- \
+	    $setting($id,firstTime))}]
+   }
+   set xpos   [expr $setting($id,xscale)*$time]
+   set ypos   [expr $procWidth*($procnum+.5)]
+   $setting($id,tlc) create text $xpos $ypos -text x -tags \
+	 [list event +$type] -fill $fg
+}
+   
+
+
+proc DrawTimeBar {id stateName startTime endTime procNum \
+      overlapLevel} {
+   global setting global maxOverlap barWidth blackWhite bitmapdir fg bg \
+	 reqWidth procWidth
+
+   if $overlapLevel>$maxOverlap {set overlapLevel $maxOverlap}
+   if ![info exists setting($id,xscale)] {
+      set setting($id,xscale) [expr {$reqWidth/($setting($id,lastTime)- \
+	    $setting($id,firstTime)+0.0)}]
+   }
+
+   set center [expr $procWidth*($procNum+.5)]
+   set top    [expr $center-$barWidth($overlapLevel)]
+   set bottom [expr $center+$barWidth($overlapLevel)]
+   set left  [expr {$setting($id,xscale)*($startTime-$setting($id,firstTime))}]
+   set right  [expr {$setting($id,xscale)*($endTime-$setting($id,firstTime))}]
+
+   if {$blackWhite} {
+      $setting($id,tlc) create rectangle $left $top $right $bottom \
+	    -fill $bg -outline $bg -width 1 -tags overlap_$overlapLevel
+      $setting($id,tlc) create rectangle $left $top $right $bottom \
+	    -fill $fg -outline $fg -width 1 -tags \
+	    [list state sn_$stateName overlap_$overlapLevel] \
+	    -stipple @${bitmapdir}/$setting($id,states,$stateName,bitmap)
+   } else {
+      $setting($id,tlc) create rectangle $left $top $right $bottom \
+	    -tags [list state sn_$stateName overlap_$overlapLevel] \
+	    -fill $setting($id,states,$stateName,color) -outline $fg -width 1
+   }
+}
+
+
+
+proc DrawSend {id sender receiver tag size time} {
+   global recvWait sendWait
+
+   #puts "DrawSend from $sender to $receiver tag $tag at $time"
+
+   if [info exists recvWait($receiver,$sender,$tag)] {
+      # if a queue exists on the receiver
+      if [llength $recvWait($receiver,$sender,$tag)]>0 {
+	 #puts "filledRightAway recvWait($receiver,$sender,$tag)=\
+	       #$recvWait($receiver,$sender,$tag)"
+	 # and the queue is not empty
+	 set receiveTime [lindex $recvWait($receiver,$sender,$tag) 0]
+	 # fill the first request
+	 DrawArrow $id $sender $receiver $time $receiveTime $tag
+	 set recvWait($receiver,$sender,$tag) \
+	       [lrange $recvWait($receiver,$sender,$tag) 1 end]
+	 return
+      }
+   }
+
+   lappend sendWait($sender,$receiver,$tag) $time
+   #puts "queued sendWait($sender,$receiver,$tag) =\
+	# $sendWait($sender,$receiver,$tag)"
+}
+
+
+proc DrawRecv {id receiver sender tag size time} {
+   global recvWait sendWait
+
+   #puts "DrawRecv by $receiver from $sender tag $tag at $time"
+
+   if [info exists sendWait($sender,$receiver,$tag)] {
+      # if a queue exists on the sender
+      if [llength $sendWait($sender,$receiver,$tag)]>0 {
+	 #puts "filledRightAway sendWait($sender,$receiver,$tag) =\
+	       #$sendWait($sender,$receiver,$tag)"
+	 # and the queue is not empty
+	 set sendTime [lindex $sendWait($sender,$receiver,$tag) 0]
+	 # fill the first request
+	 DrawArrow $id $sender $receiver $sendTime $time $tag
+	 set sendWait($sender,$receiver,$tag) \
+	       [lrange $sendWait($sender,$receiver,$tag) 1 end]
+	 return
+      }
+   }
+
+   lappend recvWait($receiver,$sender,$tag) $time
+   #puts "queued recvWait($receiver,$sender,$tag) =\
+	# $recvWait($receiver,$sender,$tag)"
+}
+
+
+proc DrawArrow {id sender receiver sendTime recvTime tag} {
+   global setting procWidth reqWidth arrowfg
+
+   if ![info exists setting($id,xscale)] {
+      set setting($id,xscale) [expr {$reqWidth/($setting($id,lastTime)- \
+	    $setting($id,firstTime)+0.0)}]
+   }
+
+   set sendy [expr $procWidth*($sender+.5)]
+   set recvy [expr $procWidth*($receiver+.5)]
+   set sendx [expr {$setting($id,xscale)*($sendTime-$setting($id,firstTime))}]
+   set recvx [expr {$setting($id,xscale)*($recvTime-$setting($id,firstTime))}]
+
+   $setting($id,tlc) create line $sendx $sendy $recvx $recvy -arrow last \
+	 -fill $arrowfg -tags message
+}
+
+
+proc Yscroll3 {canvas procNums scrollval} {
+   $canvas yview $scrollval
+   $procNums yview $scrollval
+}
+
+proc Yscroll4 {canvas procNums scrollcmd scrollval} {
+#   case $scrollcmd in {
+#   {moveto} { 
+#	    set totalunits [ $canvas cget -height ] 
+#	    set scrollval [ expr { $scrollval * $totalunits } ]
+#            }
+#   {scroll} { }
+#   }
+   $canvas yview $scrollcmd $scrollval
+   $procNums yview $scrollcmd $scrollval
+}
+
+
+proc Resize {id legend} {
+   global tk_version
+   update
+   # It may be that tk_version < 4 should be using reqwidth as well.
+   # Without this, the resize is called continuously, as each call adds 4 
+   # pixels to the width of the window (probably the BORDER width, which
+   # is 2 in most places).
+   #
+   if { $tk_version >= 4.0 } { 
+        ResizeLegend $id $legend [winfo reqwidth $legend]
+	} else {
+        ResizeLegend $id $legend [winfo width $legend]
+	}
+}
+
+
+proc CloseLines {id} {
+   destroy $id
+}
+
+proc CanvasDragMark {canvas procNums x y} {
+   $canvas scan mark $x $y
+   $procNums scan mark 0 $y
+}
+
+proc CanvasDrag {canvas procNums x y} {
+   $canvas scan dragto $x $y
+   $procNums scan dragto 0 $y
+}
+
+
+proc DetailedZoom {id} {
+   # Give the user a dialog box from which to pick exactly what type of
+   # zoom he wants
+   global dzoom setting
+
+   set dzoomwin .[GetUniqueWindowID]
+
+   toplevel $dzoomwin
+   wm title $dzoomwin "Detailed zoom on $setting($id,logfilename)"
+   set timeframe $dzoomwin.time
+   set procframe $dzoomwin.proc
+   frame $timeframe -relief raised
+   frame $procframe -relief raised
+   frame $timeframe.fill -width 20
+   frame $procframe.fill -width 20
+   frame $timeframe.factor -relief raised
+   frame $timeframe.explicit -relief raised
+   frame $timeframe.factor.factor_f
+   frame $timeframe.factor.point_f
+   frame $timeframe.explicit.from_f
+   frame $timeframe.explicit.to_f
+   frame $procframe.values
+   frame $procframe.values.from_f
+   frame $procframe.values.to_f
+
+   radiobutton $timeframe.btn -text Time -variable dzoom($dzoomwin,axis) \
+	 -value 0
+   radiobutton $procframe.btn -text Processes -variable dzoom($dzoomwin,axis) \
+	 -value 1
+
+   radiobutton $timeframe.factorbtn -text Factor -variable \
+	 dzoom($dzoomwin,hzoomtype) -value 0
+   radiobutton $timeframe.explicitbtn -text "Explicit time" -variable \
+	 dzoom($dzoomwin,hzoomtype) -value 1
+
+   label $timeframe.factor.point_f.pointlbl   -text "Zoom point"
+   label $timeframe.factor.factor_f.factorlbl -text "Zoom factor"
+   label $timeframe.explicit.from_f.fromlbl -text "From"
+   label $timeframe.explicit.to_f.tolbl   -text "To"
+
+   label $procframe.values.from_f.fromlbl   -text "From"
+   label $procframe.values.to_f.tolbl       -text "To"
+
+   entry $timeframe.factor.point_f.point  -textvariable \
+	 dzoom($dzoomwin,time,point) \
+	 -relief sunken
+   entry $timeframe.factor.factor_f.factor -textvariable \
+	 dzoom($dzoomwin,time,factor) \
+	 -relief sunken
+   entry $timeframe.explicit.from_f.from   -textvariable \
+	 dzoom($dzoomwin,time,from) \
+	 -relief sunken
+   entry $timeframe.explicit.to_f.to     -textvariable \
+	 dzoom($dzoomwin,time,to) \
+	 -relief sunken
+   entry $procframe.values.from_f.zoomfrom   -textvariable \
+	 dzoom($dzoomwin,process,from) \
+	 -relief sunken
+   entry $procframe.values.to_f.zoomto     -textvariable \
+	 dzoom($dzoomwin,process,to) \
+	 -relief sunken
+   
+   button $dzoomwin.zoom -text Zoom -command \
+	 "DetailedZoomZoomit $id $dzoomwin"
+   button $dzoomwin.cancel -text Cancel -command \
+	 "DetailedZoomCancel $id $dzoomwin"
+
+   SetDetailedZoomVars $id $dzoomwin
+
+   pack append $dzoomwin \
+	 $timeframe {top frame w padx 20 pady 20} \
+	 $procframe {top frame w padx 20 pady 20} \
+	 $dzoomwin.zoom {left expand} \
+	 $dzoomwin.cancel {right expand}
+   pack append $timeframe \
+	 $timeframe.btn {top frame w} \
+	 $timeframe.fill {left} \
+	 $timeframe.factorbtn {top frame w padx 10} \
+	 $timeframe.factor {top padx 20} \
+	 $timeframe.explicitbtn {top frame w padx 10} \
+	 $timeframe.explicit {top padx 20}
+   pack append $procframe \
+	 $procframe.btn {top frame w} \
+	 $procframe.fill {left} \
+	 $procframe.values {top padx 10}
+   pack append $timeframe.factor \
+	 $timeframe.factor.factor_f {top fillx} \
+	 $timeframe.factor.point_f {top fillx}
+   pack append $timeframe.explicit \
+	 $timeframe.explicit.from_f {top fillx} \
+	 $timeframe.explicit.to_f {top fillx}
+   pack append $procframe.values \
+	 $procframe.values.from_f {top fillx} \
+	 $procframe.values.to_f {top fillx}
+
+   pack append $timeframe.factor.point_f \
+	 $timeframe.factor.point_f.pointlbl {left} \
+	 $timeframe.factor.point_f.point {right}
+   pack append $timeframe.factor.factor_f \
+	 $timeframe.factor.factor_f.factorlbl {left} \
+	 $timeframe.factor.factor_f.factor {right}
+   pack append $timeframe.explicit.from_f \
+	 $timeframe.explicit.from_f.fromlbl {left} \
+	 $timeframe.explicit.from_f.from {right}
+   pack append $timeframe.explicit.to_f \
+	 $timeframe.explicit.to_f.tolbl {left} \
+	 $timeframe.explicit.to_f.to {right}
+   pack append $procframe.values.from_f \
+	 $procframe.values.from_f.fromlbl {left} \
+	 $procframe.values.from_f.zoomfrom {right}
+   pack append $procframe.values.to_f \
+	 $procframe.values.to_f.tolbl {left} \
+	 $procframe.values.to_f.zoomto {right}
+	 
+	 
+}
+
+
+proc SetDetailedZoomVars {id dzoomwin} {
+   global setting dzoom procWidth
+
+   # get scroll region info
+
+   GetVisibleRegion $id dzoom($dzoomwin,time,from) dzoom($dzoomwin,time,to) \
+	 dzoom($dzoomwin,process,from) dzoom($dzoomwin,process,to)
+   
+
+   set dzoom($dzoomwin,axis) [GetDefault zoomaxis 0]
+   set dzoom($dzoomwin,hzoomtype) [GetDefault hzoomtype 0]
+
+   set dzoom($dzoomwin,time,factor) 2
+   set dzoom($dzoomwin,time,point) [Pixel2Time $id $setting($id,mark,x)]
+}
+
+
+
+proc DetailedZoomZoomit {id dzoomwin} {
+   global dzoom setting procWidth
+   UpdateDefaults [list zoomaxis $dzoom($dzoomwin,axis) \
+	 hzoomtype $dzoom($dzoomwin,hzoomtype)]
+
+   if {$dzoom($dzoomwin,axis)==0} {
+      # horizontal zoom
+      if {$dzoom($dzoomwin,hzoomtype)==0} {
+	 # factor zoom (easiest)
+	 set setting($id,mark,x) [Time2Pixel $id $dzoom($dzoomwin,time,point)]
+	 Zoom $id x $dzoom($dzoomwin,time,factor)
+      } else {
+	 GetVisibleRegion $id firstTime lastTime firstProc lastProc
+	 # puts "firsttime = $setting($id,firstTime)"
+	 set factor [expr {(($lastTime-$firstTime)/ \
+	       ($dzoom($dzoomwin,time,to) - \
+	       $dzoom($dzoomwin,time,from)))}]
+	 set newCenter [expr {($dzoom($dzoomwin,time,from) + \
+	       $dzoom($dzoomwin,time,to))/2.0}]
+	 set setting($id,mark,x) [Time2Pixel $id $newCenter]
+	 #puts "Zoom $id x $factor"
+	 Zoom $id x $factor
+	 GetVisibleRegion $id firstTime lastTime firstProc lastProc
+	 # puts "set currentCenter expr ($lastTime+$firstTime)/2.0"
+	 set currentCenter [expr ($lastTime+$firstTime)/2.0]
+	 #puts "MoveTime $id [expr $currentCenter-$newCenter] "
+	 MoveTime $id [expr $currentCenter-$newCenter]
+      }
+   } else {
+      set firstproc $dzoom($dzoomwin,process,from)
+      set lastproc $dzoom($dzoomwin,process,to)
+      if {$firstproc>$lastproc || $firstproc < 0 || \
+	    $lastproc > $setting($id,numProcs)-1} {
+	 InvalidProcRange $firstproc $lastproc
+      } else {
+	 set toppt [expr {$firstproc * $procWidth}]
+	 set bottompt [expr {($lastproc + 1) * $procWidth}]
+	 # set the point relative to the top that we want at the
+	 # new top of the visible region
+
+	 set scrollInfo [lindex [$setting($id,tlc) config -scrollregion] 4]
+	 set canvasleft   [lindex $scrollInfo 0]
+	 set canvastop    [lindex $scrollInfo 1]
+	 set canvasright  [lindex $scrollInfo 2]
+	 set canvasbottom [lindex $scrollInfo 3]
+	 set height [winfo height $setting($id,tlc)]
+
+	 set toppt [expr {$firstproc*1.0/$setting($id,numProcs) * \
+	       ($canvasbottom - $canvastop) + $canvastop}]
+	 set bottompt [expr {($lastproc+1)*1.0/$setting($id,numProcs) * \
+	       ($canvasbottom - $canvastop) + $canvastop}]
+	 # puts "top = $toppt\nbottom = $bottompt"
+
+	 set setting($id,mark,y) $toppt
+	 # set zoom point to the top
+
+	 set factor [expr {$height*1.0/($bottompt-$toppt)}]
+	 # puts "zoom factor = $factor"
+	 Zoom $id y $factor
+
+	 set offset [expr {-1.0*$toppt}]
+ 	 # puts "Moving $offset vertically"
+
+	 $setting($id,tlc) move all 0 $offset
+	 set scrollInfo [lindex [$setting($id,tlc) config -scrollregion] 4]
+	 set canvasleft   [lindex $scrollInfo 0]
+	 set canvastop    [lindex $scrollInfo 1]
+	 set canvasright  [lindex $scrollInfo 2]
+	 set canvasbottom [lindex $scrollInfo 3]
+	 $setting($id,tlc) config -scrollregion [list \
+	       $canvasleft [expr $canvastop+$offset] \
+	       $canvasright [expr $canvasbottom+$offset] ]
+
+	 $setting($id,pnc) move all 0 $offset
+	 set scrollInfo [lindex [$setting($id,pnc) config -scrollregion] 4]
+	 set canvasleft   [lindex $scrollInfo 0]
+	 set canvastop    [lindex $scrollInfo 1]
+	 set canvasright  [lindex $scrollInfo 2]
+	 set canvasbottom [lindex $scrollInfo 3]
+	 $setting($id,pnc) config -scrollregion [list \
+	       $canvasleft [expr $canvastop+$offset] \
+	       $canvasright [expr $canvasbottom+$offset] ]
+
+	 # move the canvases so that the point we want at the top
+	 # is in place
+      }
+   }
+
+   DetailedZoomCancel $id $dzoomwin
+}
+
+
+
+proc DetailedZoomCancel {id dzoomwin} {
+   global dzoom
+
+   UpdateDefaults [list zoomaxis $dzoom($dzoomwin,axis) \
+	 hzoomtype $dzoom($dzoomwin,hzoomtype)]
+   EraseArrayElements dzoom $dzoomwin
+   destroy $dzoomwin
+}
+
+
+proc MoveTime {id timeoffset} {
+   global setting
+
+   set scrollInfo [lindex [$setting($id,tlc) config -scrollregion] 4]
+
+   set canvasleft   [lindex $scrollInfo 0]
+   set canvastop    [lindex $scrollInfo 1]
+   set canvasright  [lindex $scrollInfo 2]
+   set canvasbottom [lindex $scrollInfo 3]
+
+   set pixeloffset [expr {($timeoffset*1000000.0)/($setting($id,lastTime)- \
+	 $setting($id,firstTime))*($canvasright-$canvasleft)}]
+
+   # puts "shifting $pixeloffset pixels"
+
+   # puts "$setting($id,tlc) move all $pixeloffset 0"
+   $setting($id,tlc) move all $pixeloffset 0
+   $setting($id,tlc) config -scrollregion [list \
+	 [expr $canvasleft+$pixeloffset] \
+	 $canvastop \
+	 [expr $canvasright+$pixeloffset] \
+	 $canvasbottom]
+}
+
+
+proc Zoom {id dir {factor 2.0}} {
+   # read in the direction to zoom in:  x, y or reset
+
+   global setting
+
+   if $setting($id,amzooming) return
+
+   set setting($id,amzooming) 1
+   foreach button $setting($id,buttons) {
+      $button configure -state disabled
+   }
+
+   set c $setting($id,tlc)
+   # time line canvas
+   set p $setting($id,pnc)
+   # proc num canvas
+
+   # get scroll region info
+   set scrollInfo [lindex [$c config -scrollregion] 4]
+   for {set i 0} {$i<4} {incr i} {
+      set [lindex {start(x) start(y) end(x) end(y)} $i] [lindex $scrollInfo $i]
+   }
+   # set coords of the viewable portion of the time line canvas
+
+   # puts "scrollregion: $start(x) $start(y) $end(x) $end(y)"
+
+   set width   [winfo width  $c]
+   set height  [winfo height $c]
+
+   if {$dir=="reset"} {
+      set pwidth  [winfo width  $p]
+      set pheight [winfo height $p]
+
+      $c move all [expr -$start(x)] [expr -$start(y)]
+      $p move all 0 [expr -$start(y)]
+      $c scale all 0 0 \
+	    [expr "($width +0.0)/($end(x)-$start(x))"] \
+	    [expr "($height+0.0)/($end(y)-$start(y))"]	    
+      $p scale all 0 0 1 \
+	    [expr "($height+0.0)/($end(y)-$start(y))"]	    
+      $c config -scrollregion [list 0 0 $width $height]
+      $p config -scrollregion [list 0 0 $pwidth $pheight]
+      # fix arrow disfiguration
+      foreach messageArrow [$c find withtag message] {
+	 eval $c coords $messageArrow [$c coords $messageArrow]
+      }
+      foreach button $setting($id,buttons) {
+	 $button configure -state normal
+      }
+      set setting($id,amzooming) 0
+      return
+   }
+
+   $c config -cursor watch
+   update
+   # update to get the cursor to change
+
+   # scroll timeline canvas
+   set mark $setting($id,mark,$dir)
+   # puts "zooming towards $setting($id,mark,x)"
+   $c scale all $setting($id,mark,x) $setting($id,mark,y) \
+	 [expr ("$dir"=="x")?$factor:1.0] \
+	 [expr ("$dir"=="y")?$factor:1.0]
+
+   # recalculate the region of the canvas that can be scrolled through
+   set start($dir) [expr $mark-$factor*($mark-$start($dir))]
+   set end($dir)   [expr $mark-$factor*($mark-$end($dir))]
+   $c config -scrollregion [list $start(x) $start(y) \
+	 $end(x) $end(y)]
+
+   # scale process numbers
+   set scrollInfo [lindex [$p config -scrollregion] 4]
+   set start(x) [lindex $scrollInfo 0]
+   set end(x)   [lindex $scrollInfo 2]
+   $p scale moveable 0 $setting($id,mark,y) 1 [expr ("$dir"=="y")?$factor:1.0]
+   $p config -scrollregion [list $start(x) $start(y) $end(x) $end(y)]
+
+   # fix arrow disfiguration
+   foreach messageArrow [$c find withtag message] {
+      eval $c coords $messageArrow [$c coords $messageArrow]
+   }
+
+   $c config -cursor top_left_arrow
+   foreach button $setting($id,buttons) {
+      $button configure -state normal
+   }
+   set setting($id,amzooming) 0
+}
+
+
+proc InvalidProcRange {firstproc lastproc} {
+   set w .[GetUniqueWindowID]
+
+   toplevel $w
+   wm title $w "Invalid Entry"
+   message $w.m -text  "Bad process range:\n$firstproc - $lastproc" \
+	 -justify center -aspect 400 -relief raised -borderwidth 2
+   button $w.b -text "Cancel" -command "destroy $w"
+   pack append $w $w.m {} $w.b {pady 10}
+   return
+}
+proc CreateLegend {id canvas givenWidth} {
+   global fg bg blackWhite bitmapdir setting
+
+   # margins
+   set marginVert 5
+   set marginHoriz 5
+   # dimensions of boxes with sample color or bitmap
+   set boxWidth 45
+   set boxHeight 15
+   set boxMiddle [expr $boxHeight/2]
+   # space between box and corresponding label
+   set spcBtwnBoxLbl 10
+   # space between label and the next box
+   set spcBtwnLblBox 20
+   # vertical spacing between rows of boxes&labels
+   set spcVert 5
+
+
+   # draw each of the color boxes and labels
+   set ycor 0
+   foreach stateName $setting($id,states,list) {
+      if {$blackWhite} {
+	 $canvas create rectangle 0 $ycor $boxWidth \
+	       [expr $ycor+$boxHeight]  -fill $fg \
+	       -outline $fg -tags [list legend sn_$stateName] \
+	       -stipple \
+	       @${bitmapdir}/$setting($id,states,$stateName,bitmap)
+      } else {
+	 $canvas create rectangle 0 $ycor $boxWidth \
+	       [expr $ycor+$boxHeight] -outline $fg \
+	       -fill $setting($id,states,$stateName,color) \
+	       -tags [list legend sn_$stateName]
+      }
+      $canvas create text [expr $boxWidth+$spcBtwnBoxLbl] \
+	    [expr $ycor+$boxMiddle]  -anchor w -text $stateName \
+	    -tags [list legend sn_$stateName] -fill $fg
+      #set y-coordinate of next box and label
+      set ycor [expr [lindex [$canvas bbox sn_$stateName] 3]+$spcVert]
+   }
+
+   bind $canvas <Button> "LegendButton $id $canvas %x %y"
+   return [ResizeLegend $id $canvas $givenWidth]
+}
+
+
+proc LegendButton {id canvas x y} {
+   global setting
+   $id config -cursor watch
+   update
+   set tags [$canvas gettags [$canvas find overlapping $x $y $x $y]]
+   set idx [lsearch $tags sn_*]
+   if $idx==-1 return
+   # if state not found
+
+   set stateName [string range [lindex $tags $idx] 3 end]
+   HistogramWindow $id .[GetUniqueWindowID] $stateName
+   $id config -cursor top_left_arrow
+}
+   
+set InResizeLegend 0
+proc ResizeLegend {id canvas givenWidth} {
+   global fg bg blackWhite setting InResizeLegend
+
+   if { $InResizeLegend != 0 } { return }
+   set InResizeLegend 1
+
+   set nstates [llength $setting($id,states,list)]
+
+   # these are all repeated in CreateLegend
+   # margins
+   set marginVert 5
+   set marginHoriz 5
+   # dimensions of boxes with sample color or bitmap
+   set boxWidth 45
+   set boxHeight 15
+   set boxMiddle [expr $boxHeight/2]
+   # space between box and corresponding label
+   set spcBtwnBoxLbl 10
+   # space between label and the next box
+   set spcBtwnLblBox 20
+   # vertical spacing between rows of boxes&labels
+   set spcVert 5
+
+   set AddToLine {
+      $canvas move sn_$stateName [expr $horiz-[lindex $bbox 0]] \
+	    [expr $vert-[lindex $bbox 1]]
+      if {$bheight>$maxHeight} {set maxHeight $bheight}
+      set horiz [expr $horiz+$bwidth+$spcBtwnLblBox]
+   }
+   set ResetLine {
+      set vert [expr $vert+$maxHeight]
+      set horiz $marginHoriz
+      set maxHeight 0
+   }
+
+   set width [expr $givenWidth-2*$marginHoriz]
+   # legendLines = list of {maxHeight {0 1 2...}}
+   set legendLines {}
+   set horiz $marginHoriz
+   set vert $marginVert
+   # maxHeight = tallest state in this line
+   set maxHeight 0
+   # thisLine = {0 1 2... (which states are in this line)}
+   set thisLine {}
+
+   foreach stateName $setting($id,states,list) {
+      # get width of current box and label
+      set bbox [$canvas bbox sn_$stateName]
+      set bwidth [expr [lindex $bbox 2]-[lindex $bbox 0]]
+      set bheight [expr [lindex $bbox 3]-[lindex $bbox 1]]
+      # puts "horiz = $horiz, bwidth+spc = [expr $bwidth+$spcBtwnLblBox]\
+	    width = $width"
+      if {$bwidth+$spcBtwnLblBox+$horiz <= $width} {
+	 # if this state fits, good
+	 eval $AddToLine
+      } elseif {$horiz==$marginHoriz} {
+	 # if this state is too long, but the only one on the line,
+	 # well, tough luck.
+	 eval $AddToLine
+	 eval $ResetLine
+      } else {
+	 # state is too long, go to next line
+	 eval $ResetLine
+	 eval $AddToLine
+      }
+   }
+
+   set height [expr $vert+$marginVert+$maxHeight]
+   $canvas configure -width $givenWidth -height $height
+
+   set InResizeLegend 0
+   return $vert
+}
+
+
+#
+# fileselect.tcl --
+# simple file selector.
+#
+# Mario Jorge Silva			          msilva@cs.Berkeley.EDU
+# University of California Berkeley                 Ph:    +1(510)642-8248
+# Computer Science Division, 571 Evans Hall         Fax:   +1(510)642-5775
+# Berkeley CA 94720                                 
+# 
+# Layout:
+#
+#  file:                  +----+
+#  ____________________   | OK |
+#                         +----+
+#
+#  +------------------+    Cancel
+#  | ..               |S
+#  | file1            |c
+#  | file2            |r
+#  |                  |b
+#  | filen            |a
+#  |                  |r
+#  +------------------+
+#  currrent-directory
+#
+# Copyright 1993 Regents of the University of California
+# Permission to use, copy, modify, and distribute this
+# software and its documentation for any purpose and without
+# fee is hereby granted, provided that this copyright
+# notice appears in all copies.  The University of California
+# makes no representations about the suitability of this
+# software for any purpose.  It is provided "as is" without
+# express or implied warranty.
+#
+
+
+# names starting with "fileselect" are reserved by this module
+# no other names used.
+
+# use the "option" command for further configuration
+
+option add *Listbox*font \
+    "-*-helvetica-medium-r-normal-*-12-*-*-*-p-*-iso8859-1" startupFile
+option add *Entry*font \
+    "-*-helvetica-medium-r-normal-*-12-*-*-*-p-*-iso8859-1" startupFile
+option add *Label*font \
+    "-*-helvetica-medium-r-normal-*-12-*-*-*-p-*-iso8859-1" startupFile
+
+
+# this is the default proc  called when "OK" is pressed
+# to indicate yours, give it as the first arg to "fileselect"
+
+proc fileselect.default.cmd {f} {
+  puts stderr "selected file $f"
+}
+
+
+# this is the default proc called when error is detected
+# indicate your own pro as an argument to fileselect
+
+proc fileselect.default.errorHandler {errorMessage} {
+    puts stdout "error: $errorMessage"
+    catch { cd ~ }
+}
+
+# this is the proc that creates the file selector box
+
+proc fileselect {
+    {cmd fileselect.default.cmd} 
+    {purpose "Open file:"} 
+    {w .fileSelectWindow} 
+    {errorHandler fileselect.default.errorHandler}} {
+    global tk_version
+
+    catch {destroy $w}
+
+    toplevel $w
+    grab $w
+    wm title $w "Select File"
+    global select_format
+
+    # path independent names for the widgets
+    global fileselect
+
+    set fileselect(entry) $w.file.eframe.entry
+    set fileselect(list) $w.file.sframe.list
+    set fileselect(scroll) $w.file.sframe.scroll
+    set fileselect(ok) $w.bframe.okframe.ok
+    set fileselect(cancel) $w.bframe.cancel
+    set fileselect(dirlabel) $w.file.dirlabel
+
+    # widgets
+    frame $w.file -bd 10 
+    frame $w.bframe -bd 10
+    pack append $w \
+        $w.bframe {right frame n} \
+        $w.file {left expand fill}
+
+    frame $w.file.eframe
+    frame $w.file.sframe
+    label $w.file.dirlabel -anchor e -width 24 -text [pwd] 
+
+    pack append $w.file \
+        $w.file.eframe {top frame w fillx} \
+	$w.file.sframe {top fill expand} \
+	$w.file.dirlabel {top frame w fillx}
+
+    set err [ catch { GetDefault logfiledirectory "." } curdir ]
+    #puts stdout "directory is $curdir"
+    if { $err == 0 } { 
+        set sts [ catch { cd $curdir } ]
+	if { $sts != 0 } then {
+	    $errorHandler "Directory $curdir does not exist"
+	}
+    }
+
+    label $w.file.eframe.pattern_lbl -anchor w -width 24 -text "Pattern:"
+    entry $w.file.eframe.pattern_entry -relief sunken 
+    $w.file.eframe.pattern_entry insert 0 \
+	  [GetDefault logfile_name_glob_pattern "*.log *.trf"]
+
+    label $w.file.eframe.label -anchor w -width 24 -text $purpose
+    entry $w.file.eframe.entry -relief sunken 
+    $w.file.eframe.entry insert 0 [ GetDefault logfile "" ]
+
+    pack append $w.file.eframe \
+		$w.file.eframe.pattern_lbl {top expand frame w} \
+                $w.file.eframe.pattern_entry {top fillx frame w} \
+		$w.file.eframe.label {top expand frame w} \
+                $w.file.eframe.entry {top fillx frame w} 
+
+
+    scrollbar $w.file.sframe.yscroll -relief sunken \
+	 -command "$w.file.sframe.list yview"
+    listbox $w.file.sframe.list -relief sunken \
+	-yscroll "$w.file.sframe.yscroll set" 
+
+    pack append $w.file.sframe \
+        $w.file.sframe.yscroll {right filly} \
+ 	$w.file.sframe.list {left expand fill} 
+
+    # buttons
+    frame $w.bframe.okframe -borderwidth 2 -relief sunken
+ 
+    button $w.bframe.okframe.ok -text OK -relief raised -padx 10 \
+        -command "fileselect.ok.cmd $w $cmd $errorHandler"
+
+    button $w.bframe.cancel -text cancel -relief raised -padx 10 \
+        -command "fileselect.cancel.cmd $w"
+
+  label $w.bframe.format -text "File format:"
+  set select_format($w) [GuessFormat ""]
+  radiobutton $w.bframe.alog -text "Alog" -variable select_format($w) \
+	-value alog
+  radiobutton $w.bframe.picl -text "Picl" -variable select_format($w) \
+	-value picl
+  if [string compare $select_format($w) picl] {
+     $w.bframe.alog select
+  } else {
+     $w.bframe.picl select
+  }
+
+    pack append $w.bframe.okframe $w.bframe.okframe.ok {padx 10 pady 10}
+
+    pack append $w.bframe $w.bframe.okframe {expand padx 20 pady 20}\
+                          $w.bframe.cancel {top} \
+			  $w.bframe.format {top pady 15 frame w} \
+			  $w.bframe.alog {top frame e} \
+			  $w.bframe.picl {top frame e}
+
+    # Fill the listbox with a list of the files in the directory (run
+    # the "/bin/ls" command to get that information).
+    # to not display the "." files, remove the -a option and fileselect
+    # will still work
+
+    foreach file [lsort [eval glob -nocomplain \
+	  [$w.file.eframe.pattern_entry get]]] {
+       $fileselect(list) insert end "$file [file size $file]"
+    }
+
+    $fileselect(list) insert end "../"
+    foreach directory [lsort [eval glob -nocomplain */]] {
+        $fileselect(list) insert end $directory
+    }
+    
+    update
+    wm minsize $w \
+	  [expr "[winfo reqwidth  $w.bframe] + [winfo reqwidth  $w.file]"] \
+	  [winfo reqheight $w.bframe]
+
+
+   # Set up bindings for the browser.
+    bind $fileselect(entry) <Return> {eval $fileselect(ok) invoke}
+    bind $fileselect(entry) <Control-c> {eval $fileselect(cancel) invoke}
+
+    bind $w <Control-c> {eval $fileselect(cancel) invoke}
+    bind $w <Return> {eval $fileselect(ok) invoke}
+
+
+    if { $tk_version >= 4.0} {
+	$fileselect(list) config -selectmode single
+        set selectstring "select set"
+	} else {
+        tk_listboxSingleSelect $fileselect(list)
+        set selectstring "select from"
+        }
+
+    if { $tk_version >= 4.0 } { 
+
+    bind $fileselect(list) <Button-1> [format {
+       # puts stderr "button 1 release"
+       %%W select set [%%W nearest %%y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%%W get [%%W nearest %%y]] 0]
+       set select_format(%s) [GuessFormat [$fileselect(entry) get] ]
+    } $w]
+
+    bind $fileselect(list) <Key> {
+       %W select set from [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+    }
+
+    bind $fileselect(list) <Double-ButtonPress-1> {
+       # puts stderr "double button 1"
+       %W select set [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+       $fileselect(ok) invoke
+    }
+
+    bind $fileselect(list) <Return> {
+       %W select set [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+       $fileselect(ok) invoke
+    }
+        } else {
+
+    bind $fileselect(list) <Button-1> [format {
+       # puts stderr "button 1 release"
+       %%W select from [%%W nearest %%y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%%W get [%%W nearest %%y]] 0]
+       set select_format(%s) [GuessFormat [$fileselect(entry) get] ]
+    } $w]
+
+    bind $fileselect(list) <Key> {
+       %W select from from [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+    }
+
+    bind $fileselect(list) <Double-ButtonPress-1> {
+       # puts stderr "double button 1"
+       %W select from [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+       $fileselect(ok) invoke
+    }
+
+    bind $fileselect(list) <Return> {
+       %W select from [%W nearest %y]
+       $fileselect(entry) delete 0 end
+       $fileselect(entry) insert 0 [lindex [%W get [%W nearest %y]] 0]
+       $fileselect(ok) invoke
+    }
+    }
+
+    # set kbd focus to entry widget
+
+    focus $fileselect(entry)
+
+}
+
+
+# auxiliary button procedures
+
+proc fileselect.cancel.cmd {w} {
+   # puts stderr "Cancel"
+   global select_format
+   UpdateDefaults [list logfile_name_glob_pattern \
+	 [$w.file.eframe.pattern_entry get]]
+   unset select_format($w)
+   destroy $w
+}
+
+proc fileselect.ok.cmd {w cmd errorHandler} {
+    global fileselect select_format
+
+    set selected [$fileselect(entry) get]
+
+    # some nasty file names may cause "file isdirectory" to return an error
+    set sts [catch { 
+	file isdirectory $selected
+    }  errorMessage ]
+
+    if { $sts != 0 } then {
+	$errorHandler $errorMessage
+	destroy $w
+	return
+
+    }
+
+    # clean the text entry and prepare the list
+    $fileselect(entry) delete 0 end
+    $fileselect(list) delete 0 end
+
+
+    if {[string length $selected] && [file isdirectory $selected] != 0} {
+       # Note that this cd means that the "default" file won't have the
+       # directory in it.
+       cd $selected
+       set dir [pwd]
+       $fileselect(dirlabel) configure -text $dir
+
+       foreach file [lsort [eval glob -nocomplain \
+	     [$w.file.eframe.pattern_entry get]]] {
+	  $fileselect(list) insert end "$file [file size $file]"
+       }
+
+       $fileselect(list) insert end "../"
+       foreach directory [lsort [glob -nocomplain */]] {
+	  $fileselect(list) insert end $directory
+       }
+       
+       return
+    }
+
+
+    UpdateDefaults [list logfile_name_glob_pattern \
+	  [$w.file.eframe.pattern_entry get] logfileformat $select_format($w) \
+	  logfile $selected logfiledirectory [ pwd ] ]
+
+    destroy $w
+    $cmd $selected $select_format($w)
+    unset select_format($w)
+}
+
+
+proc StartPctDone {id total} {
+   global pctDone pctDonefg pctDonebg setting
+
+   wm title $id "Reading $setting($id,logfilename)"
+   wm transient $id .
+
+   canvas $id.pctDone -height 50 -width 300 -relief raised
+   pack append $id $id.pctDone {fill expand}
+
+   set pctDone($id,total) $total
+   set pctDone($id,current) 0
+   set pctDone($id,doneRectx) 10
+
+   $id.pctDone create rectangle 0 0 300 50 -fill $pctDonebg
+   $id.pctDone create rectangle 10 10 290 40 -fill black
+   set pctDone($id,doneRect) [$id.pctDone create rectangle 10 10 10 40 -fill \
+	 $pctDonefg]
+   update
+}
+
+proc AddPctDone {id increase} {
+   global pctDone
+
+   set pctDone($id,current) [expr $pctDone($id,current)+$increase]
+   set newx  [expr {280*$pctDone($id,current)/ \
+	 $pctDone($id,total)+10}]
+   if $newx>$pctDone($id,doneRectx) {
+      set pctDone($id,doneRectx) $newx
+      $id.pctDone coords $pctDone($id,doneRect) 10 10 \
+	    $pctDone($id,doneRectx) 40
+      update
+   }
+}
+
+proc ClosePctDone {id} {
+   global pctDone
+
+   pack unpack $id.pctDone
+   destroy $id.pctDone
+   EraseArrayElements pctDone $id
+}
+#source padl.tcl
+
+SetGlobalVars
+ProcessCmdLineArgs
+SetColors
+OpenWin(main)
+
+

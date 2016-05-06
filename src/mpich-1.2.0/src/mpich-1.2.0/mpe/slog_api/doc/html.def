@@ -1,0 +1,71 @@
+#
+# This is a sample definition file for HTML output
+# 
+preamble         <BODY BGCOLOR="FFFFFF">%n
+postamble        </BODY>%n
+heading          %n<H%i>%1</H%i>%n
+section          %n<H%i>%1</H%i>%n
+#
+# This form of title lets you jump to the title.
+title            %n<TITLE>%1</TITLE>%n<A NAME="%1"><H1>%1</H1></A>%n
+end_par          %n<P>%n
+linebreak        <BR>
+line_break       <BR>
+blank	         \ 
+tt               %f<TT>%e="</TT>"
+rm               %f
+it               %f<EM>%e="</EM>"
+em               %f<EM>%e="</EM>"
+ss               %f<EM>%e="</EM>"
+brm              %f<B>%e="</B>"
+#
+# You can use <A HREF="%s1">Push here for picture</A> to make the images
+# external to the document
+image            <IMG SRC="%1">
+link             <A HREF="%1">%2</A>
+s_enum           <OL>
+e_enum           </OL>%n
+s_itemize        <UL>
+e_itemize        </UL>
+s_description    <DL>
+e_description    </DL>
+s_verbatim       <PRE><CODE>%n
+e_verbatim       </CODE></PRE>%n
+item_enum        <LI>
+item_itemize     <LI>
+item_description <DT>%1<DD>
+#
+# This is the NetScape form; it makes more sense than the attribute
+# form (add to each <P> a CENTER attribute).
+s_center <CENTER>
+e_center </CENTER>
+#
+# This is a first cut at supporting NetScape tables.
+# Still need something for table headings
+b_table %n<TABLE>%n
+e_table %n</TABLE>%n
+b_row   <TR>
+e_row   </TR>
+b_col   <TD>
+e_col   </TD>
+#
+# These are the definitions for doc2lt and doctext HTML output
+#
+# Doc2lt single line entry
+key        %n%p<CODE>%1</CODE>
+synopsis   %n<PRE><CODE>%1</CODE></PRE>
+definition %n<B>%1</B>%n
+section    %n<H2>%1</H2>%n
+s_synopsis %n<H2>Synopsis</H2>%n<PRE><CODE>%n
+e_synopsis %n</CODE></PRE>%n
+em_dash    
+eop        %n</BODY></HTML>%n
+bop        <HTML>%n
+s_arg      %n<DL><DT><B>
+s_defn     - 
+e_defn     %n</DL>%n
+e_arg      </B> 
+location   <P><B>Location:</B>%1<P>
+# Only do the actual title
+mantitle   <TITLE>%1</TITLE>%n<BODY BGCOLOR="FFFFFF">%n<A NAME="%1"><H1>%1</H1></A>%n
+

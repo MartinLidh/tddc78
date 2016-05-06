@@ -1,0 +1,294 @@
+#! /bin/sh
+exitstatus=1
+#
+if [ -z "$MPIR_HOME" ] ; then 
+    MPIR_HOME=/home/TDDB78/src/mpich-1.2.0
+fi
+if [ "$MPIR_HOME" = "#""MPIR_HOME""#" ] ; then
+    MPIR_HOME=`pwd`/..
+fi
+if [ "/home/TDDB78/src/mpich-1.2.0/bin" = "#""MPIRUN_BIN""#" ] ; then 
+    MPIRUN_HOME=$MPIR_HOME/bin
+else
+    MPIRUN_HOME=/home/TDDB78/src/mpich-1.2.0/bin
+fi
+if [ -z "$argsset" ] ; then
+   . $MPIRUN_HOME/mpirun.args
+   argsset=1
+fi
+#
+if [ -n "$MPI_P4SSPORT" ] ; then
+    if [ "$MPI_USEP4SSPORT" = "yes" -o "$MPI_USEP4SSPORT" = "YES" ] ; then
+        p4ssport=$MPI_P4SSPORT
+    fi
+fi
+# Make sure that the application is in the .p4apps file.  Note that 
+# progname is already an absolute path
+# The new server needs .server_apps
+if [ -n "$p4ssport" ] ; then
+    if [ -z "$HOME" ] ; then
+	echo "Cannot determine location of home directory (in HOME)"
+	exit 1
+    fi
+    # Old server
+    if [ -r $HOME/.p4apps ] ; then
+        if grep $progname $HOME/.p4apps > /dev/null 2>&1 ; then 
+	    :
+	else 
+	    echo "$progname" >> $HOME/.p4apps
+            chmod 600 $HOME/.p4apps
+	fi
+    else
+	echo "$progname" >> $HOME/.p4apps
+        chmod 600 $HOME/.p4apps
+    fi
+    # New server
+    if [ -r $HOME/.server_apps ] ; then
+        if grep $progname $HOME/.server_apps > /dev/null 2>&1 ; then
+            :
+	else
+	    echo "$progname" >> $HOME/.server_apps
+            chmod 600 $HOME/.server_apps
+	fi
+    else
+	echo "$progname" >> $HOME/.server_apps
+        chmod 600 $HOME/.server_apps
+    fi
+    cmdLineArgs="$cmdLineArgs -p4ssport $p4ssport"
+fi
+#
+# Construct the procgroup file.
+# If p4 was built with comm=shared, set MPI_MAX_CLUSTER_SIZE to 16 unless
+# it has already been set.
+if [ "" = "shared" ] ; then
+    if [ -z "$MPI_MAX_CLUSTER_SIZE" ] ; then
+        MPI_MAX_CLUSTER_SIZE=16
+    fi
+else
+    MPI_MAX_CLUSTER_SIZE=1
+fi
+. $MPIRUN_HOME/mpirun.pg
+# machinelist has the hosts
+# archuselist has the architectures
+# nprocuselist has the number of processors
+#
+# We use this form instead of "local 0" in-case the user is trying to
+# select a second network whose names are not those returned by
+# "hostname".  For example, a system with a DEC Gigiswitch, Myricom 
+# network, or IP over the IBM SP2 switch (HPS).
+prognamemain=$progname
+if [ -z "$p4pgfile"  ] ; then
+    p4pgfile="$PWD_TRIAL/PI$$"
+    echo "Test" > $p4pgfile
+    if [ ! -s $p4pgfile ] ; then
+	# May not be able to write there.  Try the user's home directory
+	p4pgfile=$HOME/PI$$
+    else
+	/bin/rm -rf $p4pgfile
+    fi
+    # cnt is the "index" into the list of machines
+    procNum=1
+#    archval=`echo $archuselist | cut -d' ' -f1`
+    nprocval=`echo $nprocuselist | cut -d' ' -f1`
+    # for the "local" entry, the number is the number of ADDITIONAL 
+    # processes.
+    if [ -z "$nprocval" ] ; then
+	# just in case...
+	nprocval=1
+    fi
+    nprocval=`expr $nprocval - 1`
+    archval=$archlocal
+    proginstance=`echo $progname | sed "s/%a/$archval/g"`
+    prognamemain=$proginstance
+    if [ $just_testing = 1 ] ; then
+       echo "Procgroup file:"
+       if [ $nolocal = 0 ] ; then
+	    if [ -z "$nproclocal" ] ; then
+	        nprocval=0
+	    else
+	        nprocval=`expr $nproclocal - 1`
+	    fi
+	    echo "$MPI_HOST $nprocval $proginstance"
+       else 
+	    echo "$machinehead $nprocval $proginstance"
+            procNum=2
+       fi
+    else
+       if [ $nolocal = 0 ] ; then
+	    if [ -z "$MPI_HOST" ] ; then
+		echo "No value for MPI_HOST!"
+	        echo "MPI_HOST is set either from your environment or by"
+		echo "processing for an MPI machine type of ch_p4, ch_tcp, "
+		echo "ch_nexus, or sgi_mp.  The machine type you used was $machine ."
+		echo "Use the -machine <machinename> argument to select a "
+		echo "specific machine type."
+	        exit 1
+	    fi
+	    if [ -z "$nproclocal" ] ; then
+	        nprocval=0
+	    else
+	        nprocval=`expr $nproclocal - 1`
+	    fi
+	    echo "$MPI_HOST $nprocval $proginstance" > $p4pgfile
+       else
+	    echo "$machinehead $nprocval $proginstance" > $p4pgfile
+            procNum=2
+       fi
+    fi
+    cnt=1
+    for machine in $machinelist ; do 
+	if [ $procNum = 2 ] ; then 
+	    procNum=1; cnt=`expr $cnt + 1`; continue ; 
+	fi
+	archval=`echo $archuselist | cut -d' ' -f$cnt`
+	nprocval=`echo $nprocuselist | cut -d' ' -f$cnt`
+	cnt=`expr $cnt + 1`
+	proginstance=`echo $progname | sed "s/%a/$archval/g"`
+	if [ $just_testing = 1 ] ; then
+	    echo $machine $nprocval $proginstance
+	else
+	    echo $machine $nprocval $proginstance >> $p4pgfile
+	fi
+    done
+
+    # make sure the procgroup file was written
+    if [ $just_testing = 0 -a \! -r "$p4pgfile" ] ; then
+        echo Failed to write "$p4pgfile".  Exiting.
+        exit 1
+    fi
+
+    if [ $just_testing = 0 -a $mpirun_verbose = 1 ] ; then
+      echo Created "$p4pgfile"
+    fi
+fi
+#
+# On nfs systems, it is possible that a recently created executable may 
+# not be visible yet to other systems, causing problems when you attempt
+# to start a job.  As a partial fix for this, we do a sync.  It would help,
+# of course, if NFS worked correctly.
+#
+/home/pelab/pkg/gnu/bin/sync > /dev/null 2>&1
+#
+#
+# get current directory (where mpirun is being executed) as proposed 
+# working directory for program, unless a working directory was explicitly
+# given as command line argument
+#
+if [ "$p4workdir" = "" ] ; then
+    p4workdir=$PWD_TRIAL
+fi
+#
+#
+# Handle debuggers
+#
+#startpgm="eval"
+startpgm="$prognamemain $cmdLineArgs -p4pg $p4pgfile -p4wd $p4workdir"
+# The following could use the -stdin filename from mpirun, though
+# it doesn't handle the problem of the created jobs.
+#if [ -n "$stdinfile" ] ; then
+# startpgm="$startpgm < $stdinfile"
+#fi
+if [ "$debugger" != "" ] ; then
+    if [ "$debugger" = "totalview" ] ; then
+        if [ "$TOTALVIEW" = "" ] ; then
+	   TOTALVIEW="totalview"
+        fi
+        startpgm="$TOTALVIEW $prognamemain -a $cmdLineArgs -p4pg $p4pgfile -p4wd $p4workdir -mpichtv"	        
+    else
+        dbgfile=$PWD_TRIAL/PId$$
+        echo "Test" > $dbgfile
+        if [ -s $dbgfile ] ; then
+	    /bin/rm -f $dbgfile
+        else
+            dbgfile=$HOME/PId$$
+        fi
+        # If gdb has an equivalent, the documentation is well hidden.
+        #  - .gdbinit - and the documentation IS well hidden.  Fortunately,
+        # the .gbdinit file is read; gdb provides the -nx (instead of -x)
+        # command if you don't want to read the default init file.
+        if [ "$debugger" = "dbx" -a -r $HOME/.dbxinit ] ; then
+	    cat $HOME/.dbxinit > $dbgfile
+# DEC dbx requires
+#    set stopall_on_step = 1
+# for proper behavior
+        fi
+        # Regretably, xxgdb does NOT provide this argument (even though it
+        # claims to).
+    #    if [ "$debugger" = "xxgdb" -a -r $HOME/.gdbinit ] ; then
+    #	cat $HOME/.gdbini > $dbgfile
+    #    fi
+        # handle USR1 pass for gdb; add an initial break 
+        if [ "$debugger" = "gdb" -o "$debugger" = "xxgdb" -o \
+	     "$debugger" = "ddd" ] ; then
+	    echo "handle SIGUSR1 nostop pass" >> $dbgfile
+	    echo "br MPI_Init" >> $dbgfile
+	    echo "set args $cmdLineArgs -p4pg $p4pgfile -p4wd $p4workdir" >> $dbgfile
+	    echo "run" >> $dbgfile
+        else 
+            echo "ignore USR1" >> $dbgfile
+            # This may not work, depending on when the symbol table is read.
+            # An alternative is to use the startup file to load the 
+            # program with "debug $prognamemain" ,followed with this, followed
+	    # with run command args.
+	    echo "debug $prognamemain" >> $dbgfile
+   	    echo "stop in MPI_Init" >> $dbgfile
+	    echo "run $cmdLineArgs -p4pg $p4pgfile -p4wd $p4workdir" >> $dbgfile
+        fi
+    #	cat >> $dbgfile <<.
+    ## Use this command to start your programm:
+    #run  $cmdLineArgs -p4pg $p4pgfile -p4wd $p4workdir
+    #.
+	    commandfile=`echo $commandfile | sed -e s@%f@$dbgfile@g`
+	    startpgm="$debugger $commandfile $prognamemain"
+    fi
+fi
+#
+# Pass to the program that the device is ch_p4
+#
+MPIRUN_DEVICE="ch_p4"
+export MPIRUN_DEVICE
+#
+# Build a suitable command for the whole thing
+#
+if [ $just_testing = 1 ] ; then
+  doitall="echo"
+else
+  # We need the eval to handle arguments containing blanks.
+  doitall="eval"
+fi
+#
+# Add rsh'ery if requested
+#
+if [ $nolocal = 1 ] ; then
+    if [ "$stdinfile" = "/dev/null" ] ; then
+        doitall="$doitall $rshcmd $machinehead"
+    else
+        doitall="$doitall $rshcmd -n $machinehead"
+    fi
+fi
+
+$doitall $startpgm
+exitstatus=$?
+
+#else
+#  if [ $nolocal = 1 ] ; then
+#    if [ "$debugger" != "" ] ; then
+#	  $rshcmd $machinehead $debugger $commandfile $prognamemain
+#    else
+#	  $rshcmd $machinehead $prognamemain $cmdLineArgs -p4pg "$p4pgfile"
+#    fi
+#  else
+#   if [ "$debugger" != "" ] ; then
+#	    $debugger $commandfile $prognamemain
+#    else
+#	    $prognamemain $cmdLineArgs -p4pg "$p4pgfile"
+#    fi
+#  fi # nolocal
+if [ $just_testing != 1 ] ; then
+  if [ $leavePGFile = 1 ] ; then
+	echo "P4 procgroup file is $p4pgfile."
+  else
+    /bin/rm "$p4pgfile"
+  fi
+fi #just testing
+exit $exitstatus

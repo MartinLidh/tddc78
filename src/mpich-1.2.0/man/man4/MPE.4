@@ -1,0 +1,393 @@
+.TH MPE 4 "1/25/1999" " " "MPE"
+.SH NAME
+MPE \-  MultiProcessing Environment 
+.SH DESCRIPTION
+The main benefit the MultiProcessing Environment library, 
+.I mpe
+, offers is a
+set of routines that will create logfiles from MPI programs which can be
+examined by 
+.I jumpshot
+or 
+.I upshot.
+These logfiles can be created manually by
+inserting calls to 
+.I mpe
+routines in your code, automatically by linking
+with the appropriate MPE libraries, or by combining the two methods.
+Currently, the 
+.I mpe
+library offers 3 profiling libraries.
+
+.PD 0
+.TP
+.B Tracing Library 
+- Trace all MPI calls.  Each MPI call is preceded by a line that 
+contains the rank in MPI_COMM_WORLD of the calling process, and
+followed by another line indicating that the call has completed.  
+Most send and receive routines also indicate the values of count, tag,
+and partner (destination for sends, source for receives).  Output 
+is to standard output.
+.PD 1
+
+.PD 0
+.TP
+.B Animation Library 
+- This is a simple form of real-time program animation and requires X 
+window routines.  
+.PD 1
+
+.PD 0
+.TP
+.B Logging Library 
+- This is the most useful profiling library and is the most widely 
+used.  Logfiles (files of timestamped events) are generated and can 
+be analyzed with graphical tools such as 
+.I jumpshot
+(preferrably) or 
+.I upshot.
+.PD 1
+
+.SH CONFIGURING THE MPE LIBRARY
+The 
+.I mpe
+library can be configured and installed as an extension of your
+current MPI implementation, or automatically during MPICH's configure and make
+process.  The only requirement is that you configure with a specific MPI
+implementation switch.  Currently, we have configured the 
+.I mpe
+library to
+work with MPICH, SGI's MPI, IBM's MPI, and CRAY's MPI (not thoroughly
+tested).  There are 3 types of configure options or switches.
+
+.br
+MPI implementation switch (mandatory)
+
+.br
+Generic configure flags (mandatory/optional)
+
+.br
+User option switches/flags (optional)
+
+.SH SPECIFIC MPI IMPLEMENTATION SWITCHES
+
+.PD 0
+.TP
+.B --with-mpich=dir           
+- Specifies the top-level directory where MPICH (version 1.0.13 or 
+later) was installed.
+.PD 1
+
+.PD 0
+.TP
+.B --with-mpichdev=subdir          
+- Specifies the subdirectory of which architecture\\device you wish to 
+use.
+.PD 1
+
+.PD 0
+.TP
+.B --with-sp                       
+- Specifies use of the native IBM POE\\MPI implementation.
+.PD 1
+
+.PD 0
+.TP
+.B --with-sgi                      
+- Specifies use of the native SGI MPI implementation.
+.PD 1
+
+.PD 0
+.TP
+.B --with-sgi64                    
+- Specifies use of the native SGI MPI implementation, forcing it to 
+compile in 64 bit mode.
+.PD 1
+
+.PD 0
+.TP
+.B --with-cray                     
+- Specifies use of the native Cray MPI implementation.
+.PD 1
+
+.SH GENERIC FLAGS
+.PD 0
+.TP
+.B -prefix=DIR                     
+- Specifies the destination install directory for the 
+.I mpeinstall
+script.  If configuring with MPICH, it must be the same install
+directory as the one given as an option to 
+.I mpich's
+configure or the
+.I mpiinstall
+script in the 
+.I mpich/util
+directory.  If omitted, and
+.I -prefix
+was given as an option to the 
+.I mpich
+configure, then this
+directory will be automatically configured.  The 
+.I mpeinstall
+script 
+installs into DIR only the required libraries and include files, and 
+a small subset of the examples. 
+.PD 1
+.PD 0
+.TP
+.B -libdir=DIR                     
+- Specifies the top-level directory where the 
+.I mpe
+libraries will be 
+installed.  If this directory does not exist, it will be created.
+This flag is mandatory when not using MPICH and irrelevant when using 
+MPICH (-libdir is replaced by -mpichdev).
+.PD 1
+
+.PD 0
+.TP
+.B -bindir=DIR                     
+- This flag is only relevant if you will be installing 
+.I jumpshot
+along 
+with the 
+.I mpe
+library.  This directory will be passed to 
+.I jumpshot's
+configure and will be where 
+.I jumpshot's
+executable 
+will be installed.  If configuring with MPICH, this is automatically
+configured for you.  If not, and this flag is omitted, this directory 
+will be 
+.I $libdir/../bin.
+If this directory does not exist, it will 
+be created.
+.PD 1
+
+.PD 0
+.TP
+.B --x-includes=DIR                
+- This is an optional flag which specifies that X include files are in 
+DIR.  If omitted, configure will attempt to locate them.
+.PD 1
+
+.PD 0
+.TP
+.B --x-libraries=DIR               
+- This is an optional flag which specifies that X library files are in 
+DIR.  If omitted, configure will attempt to locate them.
+.PD 1
+
+.SH USER OPTION SWITCHES
+
+.PD 0
+.TP
+.B --enable-echo                   
+- This switch will turn on strong echoing.  The default is enable=no.
+.PD 1
+
+.PD 0
+.TP
+.B --enable-mpe_graphics           
+- This switch will allow the 
+.I mpe
+graphics routines to be built.  If 
+disabled, then the 
+.I mpe
+routines that make use of X11 graphics 
+will not be built.  This is appropriate for systems that either do 
+not have the X11 include files or that do not support X11 graphics.  
+The default is enable=yes.
+.PD 1
+
+.PD 0
+.TP
+.B --enable-f77                    
+- This switch will allow the compilation of routines that require a 
+Fortran compiler.  If configuring with MPICH, the configure in the 
+top-level 
+.I mpich
+directory will choose the appropriate value for
+you.  However, it can be overridden.  The default is enable=yes.
+.PD 1
+
+.PD 0
+.TP
+.B --enable-jumpshot               
+- This switch will allow the configuration of the graphical tool 
+.I jumpshot.
+The default for this option is enable=yes.  If this 
+option is enabled and you are not configuring with MPICH, then you 
+will also need to supply the directory path where 
+.I jumpshot
+has 
+already been installed ( 
+.I --with-jumpshot_home
+).
+.PD 1
+
+.PD 0
+.TP
+.B --with-tcldir=TCL_DIR           
+- This switch specifies that 
+.I tcl
+is located in TCL_DIR.  This can only 
+be version 7 and TCL_DIR must have 
+.I lib/libtcl.a
+and 
+.I include/tcl.h.
+These files are only used for 
+.I nupshot.
+If this switch is omitted, 
+configure will attempt to locate these files.
+.PD 1
+
+.PD 0
+.TP
+.B --with-tkdir=TK_DIR             
+- This switch specifies that 
+.I tk
+is located in TK_DIR.  This can only 
+be version 3 if you want to use 
+.I nupshot
+and TK_DIR must have
+.I lib/libtcl.a
+and 
+.I include/tk.h.
+This may be the same as TCL_DIR.  
+If this switch is omitted, configure will attempt to locate these
+files.
+.PD 1
+
+.PD 0
+.TP
+.B --with-wishloc=WISHLOC          
+- This switch specifies the name of 
+.I tcl/tk
+wish executable.  If this 
+switch is omitted, configure will attempt to locate a version.  This 
+is used only for 
+.I nupshot
+and 
+.I upshot.
+.PD 1
+.br
+Note: Because 
+.I tcl
+and 
+.I tk
+keep changing in incompatible ways, we
+will soon be dropping support for any tool that uses 
+.I tcl/tk.
+The
+newest version of 
+.I upshot
+, 
+.I jumpshot
+, is written in Java.
+
+.PD 0
+.TP
+.B --with-jumpshot_home=JUMP_DIR   
+- This switch specifies the path of the top-level directory where 
+.I jumpshot
+is installed.  When configuring with MPICH, this option is 
+automaticaly configured by default.  However, it can be overridden 
+If not configuring with MPICH, then you need to specify JUMP_DIR in 
+order to configure 
+.I jumpshot
+along with the 
+.I mpe
+library.
+.PD 1
+
+.PD 0
+.TP
+.B --with-jumpshot_opts=JUMP_OPTS  
+- This switch allows you to pass specific options to 
+.I jumpshot's
+configure.  Unfortunately, because of the way 
+.I autoconf 2.12
+processes multiple arguments with 
+.I AC_ARG_WITH
+, only 1 option may be
+passed to 
+.I jumpshot's
+configure.  If more options are required, 
+then configure 
+.I jumpshot
+separately.  
+.PD 1
+
+.SH EXAMPLE MPE PROGRAMS
+As previously noted, the 
+.I mpe
+library is composed of 3 different profiling
+libraries.  Each MPI implementation requires a slightly different way in which
+to link with these libraries.  During configure, the link path and appropriate
+libraries are determined and assigned to variables.  These variables are
+substituted in the Makefile in the 
+.I mpe/contrib/test
+directory.  The
+following is a list of these variables.
+
+.br
+LOG_LIB   =  link path needed to link with the logging library
+
+.br
+TRACE_LIB =  link path needed to link with the tracing library
+
+.br
+ANIM_LIB  =  link path needed to link with the animation library
+
+In the  
+.I mpe/test
+directory there is a variable FLIB_PATH which is the link
+path needed to link fortran programs with the logging library.
+
+During make, a small C program 
+.I cpi
+(in the 
+.I mpe/contrib/test
+directory) will
+be linked with each of the above libraries.  In the output from Make, a
+message will be written regarding the success of each attempted link test.
+Also, in the 
+.I mpe/test
+directory a small Fortran program 
+.I fpi
+will be linked
+with logging library using FLIB_PATH.  The success of this link test will also
+be included in the Make output.  If the link tests were successful, then these
+library paths should be used for your programs as well.
+
+.SH ADDITIONAL INFORMATION
+To view a list of configure options, type 
+.I ./configure --help
+in the
+top-level 
+.I mpe
+directory.
+
+In the Installation Manual, there is a section on MPE which gives
+instructions and examples for each type of installation.
+
+The README in the top-level 
+.I mpe
+directory.
+
+In the Users Guide, there is additional information describing the MPE
+routines and the profiling libraries.
+
+The man pages included in the distribution has information regarding the MPE
+routines.  The command 
+.I mpich/bin/mpiman
+is a script that runs 
+.I xman
+on
+these man pages.
+
+.SH LOCATION
+/home/MPI/mansrc/mpepage

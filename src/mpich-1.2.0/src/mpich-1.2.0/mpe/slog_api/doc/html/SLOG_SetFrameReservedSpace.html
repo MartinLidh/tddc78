@@ -1,0 +1,43 @@
+<HTML>
+<TITLE>SLOG_SetFrameReservedSpace</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_SetFrameReservedSpace"><H1>SLOG_SetFrameReservedSpace</H1></A>
+Set the byte size of the frame's  reserved space for SLOG file 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_SetFrameReservedSpace( SLOG_STREAM  *slog,
+                                SLOG_uint32   reserved_bytesize )
+</CODE></PRE>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>reserved_bytesize </B> - unsigned integer to specify the reserved byte
+size of the frame.
+</DL>
+<P>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to SLOG_STREAM where interval records will be stored.
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+The routine is one of the methods provided to reserve frame space
+for the pseudo records in the 1st pass of the logfile.  Reservation
+of the frame space is only necessary if the completed interval records
+are arranged in increasing endtime order and there is no way that
+user can rearrange the call sequence of the start event to call
+SLOG_Irec_ReserveSpace().  When the completed interval records
+are arranged in increasing starttime order, there is no need
+to reserve space for the pseudo interval records, so this routine should
+NOT be called.  Also if user has knowledge of the start event of the
+interval record, like in an event based model where all start and end
+events are mixed and are arranged in increasing time order, one
+should call SLOG_Irec_ReserveSpace() instead of this routine
+to do frame space reservation.
+<P>
+<H2>Include File Needed </H2>
+slog_header.h
+<P>
+<P><B>Location:</B>../src/slog_header.c<P>
+</BODY></HTML>

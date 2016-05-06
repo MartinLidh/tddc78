@@ -1,0 +1,369 @@
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during Tk installation
+dnl	to configure the system for the local environment.
+[#! bin/sh
+progname="`echo $0 | sed 's:^\./\./:\./:'`"
+print_error() {
+    echo "*# $*" 2>&1 ;
+    }
+print_usage() {
+cat <<.
+Usage: ${progname} [-tcldir=TCLDIR] [-tkdir=TKDIR] [-opt=OPTFLAGS] 
+                   [-cc=C_COMPILER] [-cflags=CFLAGS]
+                   [-tclincdir=TCLINCDIR] [-tkincdir=TKINCDIR]
+
+where
+   TCLDIR       = Directory containing tcl.  Must have lib/libtcl.a.  Must
+                  have include/tcl.h unless TCLINCDIR specified.
+   TKDIR        = Directory containing tk 3.3 or later.  Must have lib/libtk.a.
+                  Must have include/tk.h unless TKINCDIR specified.  May
+                  be the same as TCLDIR.
+   TCLINCDIR    = Directory containing include/tcl.h .
+   TKINCDIR     = Directory containing include/tk.h .
+   OPTFLAGS     = Flags for compiling (e.g., -g or -O)
+   CFLAGS       = flags to give C compiler
+   C_COMPILER   = Name of C compiler
+.
+}
+
+
+TK_DIR=""
+TCL_DIR=""
+
+for arg
+do
+  case $arg in
+ 
+   -tkdir=* | --tkdir=*)
+      TK_DIR="`echo $arg|sed 's/-*tkdir=//'`"
+     ;;
+ 
+   -tcldir=* | --tcldir=*)
+      TCL_DIR="`echo $arg|sed 's/-*tcldir=//'`"
+     ;;
+
+   -tkincdir=* | --tkincdir=*)
+      TKINCDIR="`echo $arg|sed 's/-*tkincdir=//'`"
+     ;;
+ 
+   -tclincdir=* | --tclincdir=*)
+      TCLINCDIR="`echo $arg|sed 's/-*tclincdir=//'`"
+     ;;
+
+   -opt=* | --opt=*)
+      OPTFLAGS="`echo $arg|sed 's/-*opt=//'`"
+     ;;
+
+    -echo | --echo)
+      set -x
+      ;;
+ 
+    -cc=* | --cc=*)
+	CC=`echo $arg|sed 's/-*cc=//'`
+	USERCC=1
+	;;
+
+    -cflags=* | --cflags=*)
+       package="`echo $arg|sed 's/-*cflags=//'`"
+       USER_CFLAGS="$package"
+       CFLAGS="$CFLAGS $package" ;;
+
+     -automountfix=* | --automountfix=*)
+	AUTOMOUNTFIX="`echo $arg | sed 's/-*automountfix=//'`"
+	;;
+
+   # Standard configure args from here to the end
+     # For backward compatibility, also recognize exact --exec_prefix.
+     -exec-prefix=* | --exec_prefix=* | --exec-prefix=* | --exec-prefi=* | --exec-pref=* | --exec-pre=* | --exec-pr=* | --exec-p=* | --exec-=* | --exec=* | --exe=* | --ex=* | --e=*)
+	exec_prefix=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -exec-prefix | --exec_prefix | --exec-prefix | --exec-prefi | --exec-pref | --exec-pre | --exec-pr | --exec-p | --exec- | --exec | --exe | --ex | --e)
+	next_exec_prefix=yes ;;
+
+     -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
+	PREFIX=`echo $arg | sed 's/[-a-z_]*=//'` 
+	prefix=$PREFIX ;;
+     -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
+	next_prefix=yes ;;
+
+     -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=* | --s=*)
+	srcdir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -srcdir | --srcdir | --srcdi | --srcd | --src | --sr | --s)
+	next_srcdir=yes ;;
+
+     -datadir=* | --datadir=* )
+	datadir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+
+     -libdir=* | --libdir=* )
+	libdir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+
+     -bindir=* | --bindir=* )
+	bindir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+
+     -sbindir=* | --sbindir=* )
+	sbindir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+
+     -includedir=* | --includedir=* )
+	includedir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+
+      -u | -usage | --usage | --usag | --usa | --us | --u | -help | --help )
+	print_usage >& 2
+       exit 1 ;;
+
+     -v | -verbose | --verbose | --verbos | --verbo | --verb | --ver | --ve | --v)
+       verbose=yes ;;
+
+   *)
+      echo "Unrecognized argument $arg"
+      exit 1
+     ;;
+ esac
+done]
+
+AC_PREPARE(nupshot.c)
+
+# A problem.  Some systems use an NFS automounter.  This can generate
+# paths of the form /tmp_mnt/... . On SOME systems, that path is
+# not recognized, and you need to strip off the /tmp_mnt. On others, 
+# it IS recognized, so you need to leave it in.  Grumble.
+# The real problem is that OTHER nodes on the same NFS system may not
+# be able to find a directory based on a /tmp_mnt/... name.
+#
+# It is WRONG to use $PWD, since that is maintained only by the C shell,
+# and if we use it, we may find the 'wrong' directory.  To test this, we
+# try writing a file to the directory and then looking for it in the 
+# current directory
+#
+# First, find out where the real source is if this is a VPATH build
+if test -s nupshot.c ; then
+    tmpsrcdir=.
+else
+    # try to determine the source dir
+    tmpsrcdir=`echo $0 | sed -e 's%/configure%%' -e "s%^~/%$HOME/%"`
+    if test ! -s $tmpsrcdir/nupshot.c ; then
+        tmpsrcdir=""
+    fi
+fi
+PAC_FIXUP_SRCDIR
+
+if test "X$srcdir" != "X." -a -s $srcdir/nupshot.c ; then
+    NUPSHOT_TRIAL=$srcdir
+else
+    NUPSHOT_TRIAL=$PWD
+    if test "$NUPSHOT_TRIAL" != "" -a -d "$NUPSHOT_TRIAL" ; then 
+        if test -r $NUPSHOT_TRIAL/.foo ; then
+            /bin/rm -f $NUPSHOT_TRIAL/.foo
+            /bin/rm -f .foo
+        fi
+        if test -r $NUPSHOT_TRIAL/.foo -o -r .foo ; then
+	    NUPSHOT_TRIAL=
+        else
+	    echo "test" > $NUPSHOT_TRIAL/.foo
+	    if test ! -r .foo ; then
+	        NUPSHOT_TRIAL=
+	    fi
+	    /bin/rm -f $NUPSHOT_TRIAL/.foo
+        fi
+    fi
+fi
+if test "$NUPSHOT_TRIAL" = "" ; then
+    NUPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+fi
+#
+# First, test the PWD is sensible
+if test ! -r $NUPSHOT_TRIAL/Makefile.in ; then
+    # PWD must be messed up
+    NUPSHOT_TRIAL=`pwd`
+    if test ! -r $NUPSHOT_TRIAL/Makefile.in ; then
+	print_error "Cannot determine the root directory!" 
+        exit 1
+    fi
+    NUPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+    if test ! -d $NUPSHOT_TRIAL ; then 
+        print_error "Warning: your default path uses the automounter; this may"
+        print_error "cause some problems if you use other NFS-connected systems."
+        NUPSHOT_TRIAL=`pwd`
+    fi
+fi
+if test -z "$NUPSHOT_TRIAL" ; then
+    NUPSHOT_TRIAL=`pwd | sed -e 's%/tmp_mnt/%/%g'`
+    if test ! -d $NUPSHOT_TRIAL ; then 
+        print_error "Warning: your default path uses the automounter; this may"
+        print_error "cause some problems if you use other NFS-connected systems."
+        NUPSHOT_TRIAL=`pwd`
+    fi
+fi
+NUPSHOT_HOME=$NUPSHOT_TRIAL
+
+AC_SUBST(NUPSHOT_HOME)
+CC=${CC-cc}
+AC_SUBST(CC)
+AC_HAVE_HEADERS(unistd.h)
+
+# Make support for VPATH
+MAKE=${MAKE:-"make"}
+PAC_MAKE_VPATH
+
+#--------------------------------------------------------------------
+#	Include sys/select.h if it exists and if it supplies things
+#	that appear to be useful and aren't already in sys/types.h.
+#	This appears to be true only on the RS/6000 under AIX.  Some
+#	systems like OSF/1 have a sys/select.h that's of no use, and
+#	other systems like SCO UNIX have a sys/select.h that's
+#	pernicious.  If "fd_set" isn't defined anywhere then set a
+#	special flag.
+#--------------------------------------------------------------------
+
+echo checking for sys/select.h
+AC_COMPILE_CHECK(fd_set, [#include <sys/types.h>],
+	[fd_set readMask, writeMask;], ,
+	AC_HEADER_EGREP(fd_mask, sys/select.h, AC_DEFINE(HAVE_SYS_SELECT_H),
+		AC_DEFINE(NO_FD_SET)))
+
+#--------------------------------------------------------------------
+#	Supply a substitute for stdlib.h if it doesn't define strtol,
+#	strtoul, or strtod (which it doesn't in some versions of SunOS).
+#--------------------------------------------------------------------
+
+echo checking for proper stdlib.h
+AC_HEADER_EGREP(strtol, stdlib.h, tk_stdlib=1, tk_stdlib=0)
+AC_HEADER_EGREP(strtoul, stdlib.h, , tk_stdlib=0)
+AC_HEADER_EGREP(strtod, stdlib.h, , tk_stdlib=0)
+if test $tk_stdlib = 0; then
+    AC_DEFINE(NO_STDLIB_H)
+fi
+
+#--------------------------------------------------------------------
+#	Check for various typedefs and provide substitutes if
+#	they don't exist.
+#--------------------------------------------------------------------
+
+
+#--------------------------------------------------------------------
+#	Locate the X11 header files and the X11 library archive.  Try
+#	the ac_find_x macro first, but if it doesn't find the X stuff
+#	(e.g. because there's no xmkmf program) then check through
+#	a list of possible directories.
+#--------------------------------------------------------------------
+
+
+AC_PROGRAM_CHECK(tk_ok, xmkmf, 1, 0)
+if test $tk_ok = 1; then
+    AC_FIND_X
+fi
+if test "$XINCLUDE_DIR" != ""; then
+    x_includes="$XINCLUDE_DIR"
+fi
+if test "$x_includes" = /usr/include; then
+    # no special path needed
+    XINCLUDES=""
+elif test "$x_includes" != ""; then
+    XINCLUDES=" -I$x_includes"
+else
+    echo checking for X11 header files
+    # no special path needed
+    XINCLUDES=""
+    AC_TEST_CPP([#include <X11/Intrinsic.h>], , XINCLUDES="nope")
+    if test "$XINCLUDES" = nope; then
+        dirs="/usr/unsupported/include /usr/local/include /usr/X386/include /usr/include/X11R4 /usr/X11R5/include /usr/include/X11R5 /usr/openwin/include /usr/X11/include"
+        for i in $dirs ; do
+	    if test -r $i/X11/Intrinsic.h; then
+	        XINCLUDES=" -I$i"
+	    fi
+        done
+    fi
+fi
+if test "$XINCLUDES" = nope; then
+  echo "Warning:  couldn't find any X11 include files."
+  # no include files found
+  XINCLUDES=""
+fi
+AC_SUBST(XINCLUDES)
+
+if test "$XLIBRARY_DIR" != ""; then
+    x_libraries="$XLIBRARY_DIR"
+fi
+if test "$x_libraries" = /usr/lib; then
+    XLIBSW=-lX11
+elif test "$x_libraries" != ""; then
+    XLIBSW="-L$x_libraries -lX11"
+else
+    echo "checking for X11 library archive"
+    AC_HAVE_LIBRARY(X11, XLIBSW="-lX11", XLIBSW=nope)
+    if test "$XLIBSW" = nope; then
+	dirs="/usr/unsupported/lib /usr/local/lib /usr/X386/lib /usr/lib/X11R4 /usr/X11R5/lib /usr/lib/X11R5 /usr/openwin/lib /usr/X11/lib"
+	for i in $dirs ; do
+	    if test -r $i/libX11.a; then
+		XLIBSW="-L$i -lX11"
+	    fi
+	done
+    fi
+fi
+if test "$XLIBSW" = nope ; then
+    AC_HAVE_LIBRARY(Xwindow, XLIBSW=-lXwindow)
+fi
+if test "$XLIBSW" = nope ; then
+    echo "Warning:  couldn't find the X11 library archive.  Using -lX11."
+    XLIBSW=-lX11
+fi
+AC_SUBST(XLIBSW)
+
+#--------------------------------------------------------------------
+#	Check for the existence of various libraries.  The order here
+#	is important, so that then end up in the right order in the
+#	command line generated by Make.
+#--------------------------------------------------------------------
+
+AC_HAVE_LIBRARY(Xbsd, [LIBS="$LIBS -lXbsd"])
+AC_HAVE_LIBRARY(socket, [LIBS="$LIBS -lsocket"])
+AC_HAVE_LIBRARY(nsl, [LIBS="$LIBS -lnsl"])
+
+# Look for Tcl
+if test -z "$TCL_DIR" ; then
+   PAC_FIND_TCL
+fi
+if test -z "$TCL_DIR" ; then 
+    print_error "Could not find libraries for TCL (needed for Upshot)"
+    print_error "Please specify them with the -tcldir=path option."
+    print_error "Aborting build of nupshot"
+    exit 1
+fi
+if test -z "$TK_DIR" ; then 
+    print_error "Could not find libraries for TK (needed for Upshot)"
+    print_error "Please specify them with the -tkdir=path option."
+    print_error "Aborting build of nupshot"
+    exit 1
+fi
+PAC_TK_VERSION
+if test "$TK_VERSION" != 3.6 ; then
+    print_error "This version of nupshot requires tk 3.6  The version in"
+    print_error "$TK_DIR seems to be version $TK_VERSION."
+    print_error "Aborting build of nupshot"
+    exit 1
+fi
+#
+# Some damaged implementations of tk (SGI's is known to be one)
+# require an ADDITIONAL library, which may be in the TK lib directory OR
+# in the X directory.  This library is libXpm, it contains routines
+# like Xpm... which, as should be expected, are undocumented.
+# 
+if test -s $TK_DIR/lib/libXpm.a ; then
+    XPMLIB=-lXpm
+else
+    AC_HAVE_LIBRARY(Xpm, XPMLIB="-lXpm")
+fi
+if test -z "$TKINCDIR" -a -s $TK_DIR/include/tk.h ; then
+    TKINCDIR=$TK_DIR
+fi
+if test -z "$TCLINCDIR" -a -s $TCL_DIR/include/tcl.h ; then
+    TCLINCDIR=$TCL_DIR
+fi
+AC_SUBST(XPMLIB)
+AC_SUBST(TCL_DIR)
+AC_SUBST(TK_DIR)
+AC_SUBST(TCLINCDIR)
+AC_SUBST(TKINCDIR)
+
+AC_SUBST(USER_CFLAGS)
+AC_SUBST(OPTFLAGS)
+
+AC_OUTPUT(Makefile)

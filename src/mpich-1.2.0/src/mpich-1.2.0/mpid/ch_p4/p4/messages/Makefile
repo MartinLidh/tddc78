@@ -1,0 +1,89 @@
+# Generated automatically from Makefile.in by configure.
+P4ARCH = SUN_SOLARIS
+MAKE = make --no-print-directory
+CC = cc
+FC = f77
+CLINKER = cc
+FLINKER = f77
+RANLIB = true
+AR = ar ruv
+RM = /bin/rm
+MDEP_LIBS =  -lsocket -lnsl
+MDEP_CFLAGS = 
+MDEP_FFLAGS = 
+MDEP_LFLAGS = 
+P4_OBJ = $(P4_COMM_OBJ) $(P4_SOCK_OBJ) $(P4_SHMEM_OBJ)
+
+CFLAGS = -fast -I$(INCLUDEDIR) $(MDEP_CFLAGS) $(USER_CFLAGS)
+
+FFLAGS = -fast -I$(FORTLIBDIR) $(MDEP_FFLAGS)
+P4_HOME_DIR = ..
+INCLUDEDIR = $(P4_HOME_DIR)/include
+LIBDIR = $(P4_HOME_DIR)/lib
+
+LIBS = $(LIBDIR)/libp4.a $(MDEP_LIBS) 
+
+.SUFFIXES:	.o .c .f .h
+
+.c.o:$(P)
+	$(CC) $(CFLAGS) -c $*.c 
+
+.f.o:$(P)
+	$(FC) $(FFLAGS) -c $*.f 
+
+dummy:	default
+
+clean:
+	$(RM) -f *~ *.o *.bak tags TAGS core
+
+default:$(P)
+	$(MAKE) $(MFLAGS) sr_test sr1_test systest
+
+all:$(P)
+	$(MAKE) $(MFLAGS) sr_test systest 
+	$(MAKE) $(MFLAGS) sr_master sr_slave 
+	$(MAKE) $(MFLAGS) grid_master grid_slave
+
+sr_test:$(P) sr_test.o $(LIBDIR)/libp4.a 
+	$(CLINKER) $(CFLAGS) -o sr_test sr_test.o $(LIBS)
+
+sr1_test:$(P) sr1_test.o $(LIBDIR)/libp4.a 
+	$(CLINKER) $(CFLAGS) -o sr1_test sr1_test.o $(LIBS)
+
+systest:$(P) systest.o $(LIBDIR)/libp4.a 
+	$(CLINKER) $(CFLAGS) -o $@ systest.o $(LIBS)
+
+systest1:$(P) systest1.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o $@ systest1.o $(LIBS)
+
+fc_test:$(P) fc_test.o $(LIBDIR)/libp4.a 
+	$(CLINKER) $(CFLAGS) -o fc_test fc_test.o $(LIBS)
+
+fc_systest:$(P) fc_systest.o $(LIBDIR)/libp4.a 
+	$(CLINKER) $(CFLAGS) -o fc_systest fc_systest.o $(LIBS)
+
+grid_master:$(P) grid_master.o grid_slave.o grid_comm.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o grid_master grid_master.o grid_slave.o \
+	grid_comm.o $(LIBS)
+
+grid_slave:$(P) slave_main.o grid_slave.o grid_comm.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o grid_slave slave_main.o grid_slave.o \
+	grid_comm.o $(LIBS)
+
+vec_master:$(P) vec_master.o vec_slave.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o vec_master vec_master.o vec_slave.o \
+	$(LIBS)
+
+vec_slave:$(P) slave_main.o vec_slave.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o vec_slave slave_main.o vec_slave.o $(LIBS)
+
+sr_master:$(P) sr_master.o sr_slave.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o sr_master sr_master.o sr_slave.o $(LIBS)
+
+sr_slave:$(P) slave_main.o sr_slave.o $(LIBDIR)/libp4.a
+	$(CLINKER) $(CFLAGS) -o sr_slave slave_main.o sr_slave.o $(LIBS)
+
+realclean: clean
+	$(RM) -f sr_test sr1_test systest systest1 grid_master grid_slave \
+	vec_master vec_slave sr_master sr_slave Makefile alogfile.p* \
+	fc_test fc_systest

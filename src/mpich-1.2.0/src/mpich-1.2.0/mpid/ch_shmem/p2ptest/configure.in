@@ -1,0 +1,256 @@
+dnl This is an autoconf script.
+dnl To rebuild the `configure' script from this, execute the command
+dnl 	autoconf
+dnl in the directory containing this script.  You must have autoconf
+dnl version 1.4 or later.
+dnl
+dnl The following text appears in the resulting `configure' script,
+dnl explaining how to rebuild it.
+[#!/bin/sh
+# Guess values for system-dependent variables and create Makefiles.
+# Generated automatically using autoconf.
+# Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+CONFIGURE_ARGS="$*"
+if test -n "$CONFIGURE_ARGS" ; then
+    echo "Configuring with args $CONFIGURE_ARGS"
+fi
+progname="`echo $0 | sed 's:^\./\./:\./:'`"
+usage_msg="
+Usage: ${progname} -p4arch=ARCH_TYPE [-alog={on,off}] [-sysv_ipc={on,off}]
+                   [-vendor_ipc={on,off}] [-dprintfl={on,off}]
+                   [-listener_pathname="\<pathname\>"]
+"
+for arg
+do
+case $arg in
+  -p4arch=*)
+     p4arch=`echo $arg|sed 's/-p4arch=//'`
+     eval "p4arch_`echo $p4arch`=1"
+     echo Setting p4arch to $p4arch
+     ;;
+  -p4echo=*)
+     p4echo=`echo $arg|sed 's/-p4echo=//'`
+     echo $p4echo
+     ;;
+  -alog=*)
+     p4alog=`echo $arg|sed 's/-alog=//'`
+     echo Setting p4alog to $p4alog
+     ;;
+  -sysv_ipc=*)
+     p4sysv_ipc=`echo $arg|sed 's/-sysv_ipc=//'`
+     echo Setting p4sysv_ipc to $p4sysv_ipc
+     ;;
+  -vendor_ipc=*)
+     p4vendor_ipc=`echo $arg|sed 's/-vendor_ipc=//'`
+     echo Setting p4vendor_ipc to $p4vendor_ipc
+     ;;
+  -dprintfl=*)
+     p4dprintfl=`echo $arg|sed 's/-dprintfl=//'`
+     echo Setting p4dprintfl to $p4dprintfl
+     ;;
+  -listener_pathname=*)
+     p4listener_pathname=`echo $arg|sed 's/-listener_pathname=//'`
+     echo Setting p4listener_pathname to $p4listener_pathname
+     ;;
+  -u | -usage)
+     (echo "${usage_msg}") >& 2
+     exit 1
+     ;;
+   *)
+     echo "Invalid p4 configure option $arg"
+     (echo "${usage_msg}") >& 2
+     ;;
+esac
+done
+P4ARCH="unknown"
+MAKE=make
+CC=cc
+FC=f77
+CLINKER=cc
+FLINKER=f77
+RANLIB=ranlib
+AR="ar lruv"
+RM=/bin/rm
+MDEP_LIBS=
+MDEP_CFLAGS=
+MDEP_FFLAGS=
+MDEP_LFLAGS=
+P4_OBJ="\$(P4_COMM_OBJ) \$(P4_SOCK_OBJ) \$(P4_SHMEM_OBJ)"
+P4_CONFIGURED_TIME="`date`"
+DEFINE_ALOG="#undef ALOG_TRACE"
+DEFINE_SYSV_IPC="#undef SYSV_IPC"
+DEFINE_VENDOR_IPC="#undef VENDOR_IPC"
+DEFINE_P4_DPRINTFL="#define P4_DPRINTFL"
+LISTENER_PATHNAME=""
+]
+AC_PREPARE()
+dnl check for valid architecture
+dnl grep $p4arch MACHINES > /dev/null 2>&1
+dnl if test $? != 0 ; then
+dnl echo Invalid arch $p4arch
+dnl exit
+dnl fi
+dnl Now substitute the variables
+dnl						Sun running SunOS
+if test -n "$p4arch_SUN"; then
+P4ARCH=SUN
+fi
+dnl						486 running FreeBSD
+if test -n "$p4arch_FREEBSD"; then
+P4ARCH=FREEBSD
+fi
+dnl						486 running NetBSD
+if test -n "$p4arch_NETBSD"; then
+P4ARCH=NETBSD
+fi
+dnl						486 running Linux
+if test -n "$p4arch_LINUX"; then
+P4ARCH=LINUX
+fi
+dnl						Sun running Solaris
+if test -n "$p4arch_SUN_SOLARIS"; then
+P4ARCH=SUN_SOLARIS
+AR="ar ruv"
+MDEP_LIBS="-lsocket -lnsl  -lthread"
+dnl #MDEP_LIBS = /usr/ucblib/libucb.a -lsocket -lnsl  # for fortran
+fi
+dnl						HP workstation
+if test -n "$p4arch_HP"; then
+P4ARCH=HP
+RANLIB=true
+MDEP_LIBS="-lV3 -lU77"
+dnl -lV3 is for sighold, etc.
+MDEP_FFLAGS=+U77
+fi
+dnl						DEC Alpha workstation
+if test -n "$p4arch_ALPHA"; then
+P4ARCH=ALPHA
+fi
+dnl						DEC 5000 workstation
+if test -n "$p4arch_DEC5000"; then
+P4ARCH=DEC5000
+fi
+dnl						RS6000 workstation
+if test -n "$p4arch_RS6000"; then
+P4ARCH=RS6000
+FC=xlf
+FLINKER=xlf
+RANLIB=true
+MDEP_LIBS=-lbsd
+MDEP_CFLAGS=-D_ALL_SOURCE
+fi
+dnl						SP using TCP
+if test -n "$p4arch_SP1"; then
+P4ARCH=SP1
+FC=xlf
+FLINKER=xlf
+RANLIB=true
+MDEP_LIBS=-lbsd
+fi
+dnl						SP with MPL
+if test -n "$p4arch_SP1_EUI"; then
+P4ARCH=SP1_EUI
+FC=mpxlf
+CC=mpcc
+FLINKER=xlf
+CLINKER=mpcc
+RANLIB=true
+MDEP_LIBS=-lbsd
+MDEP_CFLAGS = -I/usr/lpp/poe/include
+fi
+dnl						SP with EUIH (obsolete)
+if test -n "$p4arch_SP1_EUI"; then
+P4ARCH=SP1_EUIH
+FC=xlf
+CC=cc
+FLINKER="xlf -bimport:/usr/lpp/euih/eui/eui.exp"
+CLINKER="xlc -bimport:/usr/lpp/euih/eui/eui.exp -e main"
+RANLIB=true
+MDEP_LIBS=-lbsd
+MDEP_CFLAGS=-D_ALL_SOURCE
+fi
+dnl						SGI workstations
+if test -n "$p4arch_SGI"; then
+P4ARCH=SGI
+RANLIB=true
+MDEP_LIBS=-lsun
+MDEP_CFLAGS=-cckr
+fi
+dnl						SGI multiprocessors, like Onyx
+if test -n "$p4arch_SGI_MP"; then
+P4ARCH=SGI_MP
+RANLIB=true
+MDEP_LIBS=-lsun
+MDEP_CFLAGS=-cckr
+fi
+dnl						SGI Challenge Series
+if test -n "$p4arch_SGI_CH"; then
+P4ARCH=SGI_CH
+RANLIB=true
+MDEP_CFLAGS="-cckr -64 -mips3 -non_shared -woff 1552,1174"
+MDEP_FFLAGS="-cckr -64 -mips3 -non_shared -woff 1552,1174"
+fi
+dnl						SGI Power Challenge Series
+if test -n "$p4arch_SGI_CH64"; then
+P4ARCH=SGI_CH64
+RANLIB=true
+MDEP_CFLAGS="-cckr -64 -mips4 -non_shared -woff 1552,1174"
+MDEP_FFLAGS="-cckr -64 -mips4 -non_shared -woff 1552,1174"
+fi
+dnl dump copy of MDEP_CFLAGS into file for other system to pick up
+/bin/rm -f mpdepcflags
+echo $MDEP_CFLAGS > mdepcflags
+dnl evaluate variables for lib/p4_config.h
+if test "$p4alog" = "on"; then
+DEFINE_ALOG="#define ALOG_TRACE"
+fi
+if test "$p4sysv_ipc" = "on"; then
+DEFINE_SYSV_IPC="#define SYSV_IPC"
+fi
+if test "$p4vendor_ipc" = "on"; then
+DEFINE_VENDOR_IPC="#define VENDOR_IPC"
+fi
+if test "$p4dprintfl" = "off"; then
+DEFINE_P4_DPRINTFL="#undef P4_DPRINTFL"
+fi
+if test -n "$p4listener_pathname"; then
+LISTENER_PATHNAME="$p4listener_pathname"
+fi
+dnl Variables used by Makefile.in's:
+AC_SUBST(P4ARCH)dnl
+AC_SUBST(MAKE)dnl
+AC_SUBST(CC)dnl
+AC_SUBST(FC)dnl
+AC_SUBST(CLINKER)dnl
+AC_SUBST(FLINKER)dnl
+AC_SUBST(AR)dnl
+AC_SUBST(RANLIB)dnl
+AC_SUBST(RM)dnl
+AC_SUBST(P4_OBJ)dnl
+AC_SUBST(MDEP_LIBS)dnl
+AC_SUBST(MDEP_CFLAGS)dnl
+AC_SUBST(MDEP_FFLAGS)dnl
+AC_SUBST(MDEP_LFLAGS)dnl
+AC_SUBST(P4_CONFIGURED_TIME)dnl
+AC_SUBST(DEFINE_ALOG)dnl
+AC_SUBST(DEFINE_SYSV_IPC)dnl
+AC_SUBST(DEFINE_VENDOR_IPC)dnl
+AC_SUBST(DEFINE_P4_DPRINTFL)dnl
+AC_SUBST(LISTENER_PATHNAME)dnl
+AC_OUTPUT(Makefile)
+
+

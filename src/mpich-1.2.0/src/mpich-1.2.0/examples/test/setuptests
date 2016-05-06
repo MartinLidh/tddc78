@@ -1,0 +1,48 @@
+#! /bin/sh
+#
+# This script can be used in lieu of the MPICH configure to setup the
+# MPICH testsuite.  
+#
+MAKE=make
+HAS_FORTRAN=1
+MPIR_HOME=/home/MPI/mpich
+MPICC=/home/MPI/mpich/lib/sun4/ch_p4/mpicc
+MPIF77=/home/MPI/mpich/lib/sun4/ch_p4/mpif77
+MPICPLUSPLUS=/home/MPI/mpich/lib/sun4/ch_p4/mpiCC
+OPTFLAGS=
+#
+for arg in $@ ; do
+    case $arg in 
+	-help|-u|-usage|-h)
+	   echo "Setup MPICH test suite.  This script allows you to choose"
+	   echo "any particularly MPI implementation"
+	   exit 0 
+	   ;;
+        -echo)
+	   set -x
+	   ;;
+	*) echo "Unrecognized argument $arg"
+	   exit 1
+	   ;;
+    esac
+done
+#
+for file in Makefile.in */Makefile.in */runtests.in ; do
+    # Get the directory.  Not all systems have dirname
+    dir=`echo $file|sed 's%/[^/][^/]*$%%'`
+    if test "$dir" = "$file" ; then
+	dir=.
+    fi
+    fname=`basename $file .in`
+    echo creating $dir/$fname
+    rm -f $dir/$fname
+    sed -e "
+s%@MAKE@%$MAKE%g
+s%@HAS_FORTRAN@%$HAS_FORTRAN%g
+s%@MPIR_HOME@%$MPIR_HOME%g
+s%@MPICC@%$MPICC%g
+s%@MPIF77@%$MPIF77%g
+s%@MPICPLUSPLUS@%$MPICPLUSPLUS%g
+s%@OPTFLAGS@%$OPTFLAGS%g" $file > $dir/$fname
+done
+exit 0

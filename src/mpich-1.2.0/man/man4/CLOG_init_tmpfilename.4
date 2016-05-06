@@ -1,0 +1,12 @@
+.TH CLOG_init_tmpfilename 4 "11/29/1999" " " "MPE"
+.SH NAME
+CLOG_init_tmpfilename \-  initializes the temporary logfile name to "/tmp/temp_clogXXXXXX" (XXXXXX = process id) so as to keep it unique of anyother file. 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+
+void CLOG_init_tmpfilename( void )
+.fi
+.SH LOCATION
+clog.c

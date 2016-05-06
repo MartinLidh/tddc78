@@ -1,0 +1,9 @@
+*** Tests of error handling ***
+*** Error Handling ***
+    Three error messages (from two errors) are expected
+which should both show an error class of 8
+(first) 8 : Invalid group: Null group
+(errhandler) 8 : Invalid group: Null group
+(second) 8 : Invalid group: Null group
+All processes completed test
+*** Tests of error handling ***

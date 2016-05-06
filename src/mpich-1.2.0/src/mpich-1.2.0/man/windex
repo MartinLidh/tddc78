@@ -1,0 +1,229 @@
+CLOG_Finalize	CLOG_Finalize (4)   -  Finalize  CLOG logging 
+CLOG_Init	CLOG_Init (4)	-  Initialize for CLOG logging 
+CLOG_Output	CLOG_Output (4) -  output a block of the log. The byte ordering, if needed, will be performed in this function using the conversion routines got from Petsc. 
+CLOG_commtype	CLOG_commtype (4)   -  print communicator creation event type 
+CLOG_cput	CLOG_cput (4)	-  move a log record from one of the input buffers to the output 
+CLOG_csync	CLOG_csync (4)	-  synchronize clocks for adjusting times in merge 
+CLOG_get_new_event		CLOG_get_new_event (4)	-  obtain unused event id 
+CLOG_get_new_state		CLOG_get_new_state (4)	-  obtain unused state id 
+CLOG_init_buffers		CLOG_init_buffers (4)	-  initialize necessary buffers for clog logging. 
+CLOG_init_tmpfilename		CLOG_init_tmpfilename (4)   -  initializes the temporary logfile name to "/tmp/temp_clogXXXXXX" (XXXXXX = process id) so as to keep it unique of anyother file. 
+CLOG_mergelogs	CLOG_mergelogs (4)  -  merge individual logfiles into one via messages 
+CLOG_mergend	CLOG_mergend (4)    -  finish log processing 
+CLOG_msgtype	CLOG_msgtype (4)    -  print communication event type 
+CLOG_newbuff	CLOG_newbuff (4)    -  get and initialize new block of buffer 
+CLOG_procbuf	CLOG_procbuf (4)    -  postprocess a buffer of log records before merging 
+CLOG_reclen	CLOG_reclen (4) -  get length (in doubles) of log record by type 
+CLOG_rectype	CLOG_rectype (4)    -  print log record type 
+CLOG_reinit_buff		CLOG_reinit_buff (4)	-  reads CLOG_BLOCKS from temporary logfile into memory. 
+CLOG_temp_log	CLOG_temp_log (4)   -  dump buffers into temporary log file. 
+CLOG_treesetup	CLOG_treesetup (4)  -  locally determine parent and children in binary tree 
+Constants	Constants (3)	-  Meaning of MPI .I s defined constants 
+Jumpshot	Jumpshot (1)	-  Graphical Visualization Tool for Parallel Programs	
+MPE		MPE (4) 	-  MultiProcessing Environment 
+MPE_Add_RGB_color		MPE_Add_RGB_color (4)	-  Adds a color to the colormap given its RGB values 
+MPE_CaptureFile MPE_CaptureFile (4) -  Sets the base filename used to capture output from updates 
+MPE_Close_graphics		MPE_Close_graphics (4)	-  Closes a X11 graphics device 
+MPE_Comm_global_rank		MPE_Comm_global_rank (4)    -  Returns the rank in MPI_COMM_WORLD for a given (communicator,rank) pair 
+MPE_Counter_create		MPE_Counter_create (4)	-  create and initialize shared counter (process) 
+MPE_Counter_free		MPE_Counter_free (4)	-  free communicators associated with counter 
+MPE_Counter_nxtval		MPE_Counter_nxtval (4)	-  obtain next value from shared counter, and update 
+MPE_Decomp1d	MPE_Decomp1d (4)    -  Compute a balanced decomposition of a 1-D array 
+MPE_Describe_event		MPE_Describe_event (4)	-  Create log record describing an event type 
+MPE_Describe_state		MPE_Describe_state (4)	-  Create log record describing a state 
+MPE_Draw_circle MPE_Draw_circle (4) -  Draws a circle 
+MPE_Draw_line	MPE_Draw_line (4)   -  Draws a line on an X11 display 
+MPE_Draw_logic	MPE_Draw_logic (4)  -  Sets logical operation for laying down new pixels 
+MPE_Draw_point	MPE_Draw_point (4)  -  Draws a point on an X Windows display  
+MPE_Draw_points MPE_Draw_points (4) -  Draws points on an X Windows display  
+MPE_Draw_string MPE_Draw_string (4) -  Draw a text string 
+MPE_Fill_circle MPE_Fill_circle (4) -  Fills a circle 
+MPE_Fill_rectangle		MPE_Fill_rectangle (4)	-  Draws a filled rectangle on an X11 display  
+MPE_Finish_log	MPE_Finish_log (4)  -  Send log to master, who writes it out 
+MPE_GetTags	MPE_GetTags (4) -  Returns tags that can be used in communication with a  communicator 
+MPE_Get_mouse_press		MPE_Get_mouse_press (4) -  Waits for mouse button press 
+MPE_IO_Stdout_to_file		MPE_IO_Stdout_to_file (4)   -  Re-direct stdout to a file 
+MPE_Iget_mouse_press		MPE_Iget_mouse_press (4)    -  Checks for mouse button press 
+MPE_Init_log	MPE_Init_log (4)    -  Initialize for logging 
+MPE_Initialized_logging 	MPE_Initialized_logging (4) -  Indicate whether MPE_Init_log or MPE_Finish_log have been called. 
+MPE_Line_thickness		MPE_Line_thickness (4)	-  Sets thickness of lines 
+MPE_Log_event	MPE_Log_event (4)   -  Logs an event 
+MPE_Log_get_event_number	MPE_Log_get_event_number (4)	-  Gets an unused event number 
+MPE_Log_receive MPE_Log_receive (4) -  log the sending of a message 
+MPE_Log_send	MPE_Log_send (4)    -  Logs the sending of a message 
+MPE_Make_color_array		MPE_Make_color_array (4)    -  Makes an array of color indices 
+MPE_Num_colors	MPE_Num_colors (4)  -  Gets the number of available colors 
+MPE_Open_graphics		MPE_Open_graphics (4)	-  (collectively) opens an X Windows display 
+MPE_Print_datatype_pack_action	MPE_Print_datatype_pack_action (4)  -  Prints the operations performed in an  pack of a datatype 
+MPE_Print_datatype_unpack_action    MPE_Print_datatype_unpack_action (4)    -  Prints the operations performed in an  unpack of a datatype 
+MPE_ReturnTags	MPE_ReturnTags (4)  -  Returns tags allocated with MPE_GetTags. 
+MPE_Seq_begin	MPE_Seq_begin (4)   -  Begins a sequential section of code.   
+MPE_Seq_end	MPE_Seq_end (4) -  Ends a sequential section of code. 
+MPE_Start_log	MPE_Start_log (4)   -  Begin logging of events 
+MPE_Stop_log	MPE_Stop_log (4)    -  Stop logging events 
+MPE_TagsEnd	MPE_TagsEnd (4) -  Returns the private keyval.	 
+MPE_Update	MPE_Update (4)	-  Updates an X11 display 
+MPI		MPI (1) 	-  Introduction to the Message-Passing Interface 
+MPI_Abort	MPI_Abort (3)	-  Terminates MPI execution environment 
+MPI_Address	MPI_Address (3) -  Gets the address of a location in memory   
+MPI_Allgather	MPI_Allgather (3)   -  Gathers data from all tasks and distribute it to all  
+MPI_Allgatherv	MPI_Allgatherv (3)  -  Gathers data from all tasks and deliver it to all 
+MPI_Allreduce	MPI_Allreduce (3)   -  Combines values from all processes and distribute the result back to all processes 
+MPI_Alltoall	MPI_Alltoall (3)    -  Sends data from all to all processes 
+MPI_Alltoallv	MPI_Alltoallv (3)   -  Sends data from all to all processes, with a displacement 
+MPI_Attr_delete MPI_Attr_delete (3) -  Deletes attribute value associated with a key 
+MPI_Attr_get	MPI_Attr_get (3)    -  Retrieves attribute value by key 
+MPI_Attr_put	MPI_Attr_put (3)    -  Stores attribute value associated with a key 
+MPI_Barrier	MPI_Barrier (3) -  Blocks until all process have reached this routine. 
+MPI_Bcast	MPI_Bcast (3)	-  Broadcasts a message from the process with rank "root" to all other processes of the group.	
+MPI_Bsend	MPI_Bsend (3)	-  Basic send with user-specified buffering 
+MPI_Bsend_init	MPI_Bsend_init (3)  -  Builds a handle for a buffered send 
+MPI_Buffer_attach		MPI_Buffer_attach (3)	-  Attaches a user-defined buffer for sending 
+MPI_Buffer_detach		MPI_Buffer_detach (3)	-  Removes an existing buffer (for use in MPI_Bsend etc) 
+MPI_Cancel	MPI_Cancel (3)	-  Cancels a communication request 
+MPI_Cart_coords MPI_Cart_coords (3) -  Determines process coords in cartesian topology given rank in group 
+MPI_Cart_create MPI_Cart_create (3) -  Makes a new communicator to which topology information has been attached 
+MPI_Cart_get	MPI_Cart_get (3)    -  Retrieves Cartesian topology information associated with a  communicator 
+MPI_Cart_map	MPI_Cart_map (3)    -  Maps process to Cartesian topology information  
+MPI_Cart_rank	MPI_Cart_rank (3)   -  Determines process rank in communicator given Cartesian location 
+MPI_Cart_shift	MPI_Cart_shift (3)  -  Returns the shifted source and destination ranks, given a  shift direction and amount 
+MPI_Cart_sub	MPI_Cart_sub (3)    -  Partitions a communicator into subgroups which  form lower-dimensional cartesian subgrids 
+MPI_Cartdim_get MPI_Cartdim_get (3) -  Retrieves Cartesian topology information associated with a  communicator 
+MPI_Comm_compare		MPI_Comm_compare (3)	-  Compares two communicators 
+MPI_Comm_create MPI_Comm_create (3) -  Creates a new communicator 
+MPI_Comm_dup	MPI_Comm_dup (3)    -  Duplicates an existing communicator with all its cached information 
+MPI_Comm_free	MPI_Comm_free (3)   -  Marks the communicator object for deallocation 
+MPI_Comm_group	MPI_Comm_group (3)  -  Accesses the group associated with given communicator 
+MPI_Comm_rank	MPI_Comm_rank (3)   -  Determines the rank of the calling process in the communicator 
+MPI_Comm_remote_group		MPI_Comm_remote_group (3)   -  Accesses the remote group associated with  the given inter-communicator 
+MPI_Comm_remote_size		MPI_Comm_remote_size (3)    -  Determines the size of the remote group	associated with an inter-communictor 
+MPI_Comm_size	MPI_Comm_size (3)   -  Determines the size of the group associated with a communictor 
+MPI_Comm_split	MPI_Comm_split (3)  -  Creates new communicators based on colors and keys 
+MPI_Comm_test_inter		MPI_Comm_test_inter (3) -  Tests to see if a comm is an inter-communicator 
+MPI_Dims_create MPI_Dims_create (3) -  Creates a division of processors in a cartesian grid 
+MPI_Errhandler_create		MPI_Errhandler_create (3)   -  Creates an MPI-style errorhandler 
+MPI_Errhandler_free		MPI_Errhandler_free (3) -  Frees an MPI-style errorhandler 
+MPI_Errhandler_get		MPI_Errhandler_get (3)	-  Gets the error handler for a communicator 
+MPI_Errhandler_set		MPI_Errhandler_set (3)	-  Sets the error handler for a communicator 
+MPI_Error_class MPI_Error_class (3) -  Converts an error code into an error class 
+MPI_Error_string		MPI_Error_string (3)	-  Return a string for a given error code 
+MPI_Finalize	MPI_Finalize (3)    -  Terminates MPI execution environment 
+MPI_Finalized	MPI_Finalized (3)   -  Indicates whether  .I MPI_Finalize has been called. 
+MPI_Gather	MPI_Gather (3)	-  Gathers together values from a group of processes 
+MPI_Gatherv	MPI_Gatherv (3) -  Gathers into specified locations from all processes in a group 
+MPI_Get_count	MPI_Get_count (3)   -  Gets the number of "top level" elements 
+MPI_Get_elements		MPI_Get_elements (3)	-  Returns the number of basic elements in a datatype 
+MPI_Get_processor_name		MPI_Get_processor_name (3)  -  Gets the name of the processor 
+MPI_Get_version MPI_Get_version (3) -  Gets the version of MPI 
+MPI_Graph_create		MPI_Graph_create (3)	-  Makes a new communicator to which topology information has been attached 
+MPI_Graph_get	MPI_Graph_get (3)   -  Retrieves graph topology information associated with a  communicator 
+MPI_Graph_map	MPI_Graph_map (3)   -  Maps process to graph topology information 
+MPI_Graph_neighbors		MPI_Graph_neighbors (3) -  Returns the neighbors of a node associated  with a graph topology 
+MPI_Graph_neighbors_count	MPI_Graph_neighbors_count (3)	-  Returns the number of neighbors of a node associated with a graph topology 
+MPI_Graphdims_get		MPI_Graphdims_get (3)	-  Retrieves graph topology information associated with a  communicator 
+MPI_Group_compare		MPI_Group_compare (3)	-  Compares two groups 
+MPI_Group_difference		MPI_Group_difference (3)    -  Makes a group from the difference of two groups 
+MPI_Group_excl	MPI_Group_excl (3)  -  Produces a group by reordering an existing group and taking only unlisted members 
+MPI_Group_free	MPI_Group_free (3)  -  Frees a group 
+MPI_Group_incl	MPI_Group_incl (3)  -  Produces a group by reordering an existing group and taking only listed members 
+MPI_Group_intersection		MPI_Group_intersection (3)  -  Produces a group as the intersection of two existing groups 
+MPI_Group_range_excl		MPI_Group_range_excl (3)    -  Produces a group by excluding ranges of processes from an existing group 
+MPI_Group_range_incl		MPI_Group_range_incl (3)    -  Creates a new group from ranges of ranks in an  existing group 
+MPI_Group_rank	MPI_Group_rank (3)  -  Returns the rank of this process in the given group 
+MPI_Group_size	MPI_Group_size (3)  -  Returns the size of a group 
+MPI_Group_translate_ranks	MPI_Group_translate_ranks (3)	-  Translates the ranks of processes in one group to  those in another group 
+MPI_Group_union MPI_Group_union (3) -  Produces a group by combining two groups 
+MPI_Ibsend	MPI_Ibsend (3)	-  Starts a nonblocking buffered send 
+MPI_Info_c2f	MPI_Info_c2f (3)    -  Translates a C info handle to a Fortran info handle 
+MPI_Info_create MPI_Info_create (3) -  Creates a new info object 
+MPI_Info_delete MPI_Info_delete (3) -  Deletes a (key,value) pair from info 
+MPI_Info_dup	MPI_Info_dup (3)    -  Returns a duplicate of the info object 
+MPI_Info_f2c	MPI_Info_f2c (3)    -  Translates a Fortran info handle to a C info handle 
+MPI_Info_free	MPI_Info_free (3)   -  Frees an info object 
+MPI_Info_get	MPI_Info_get (3)    -  Retrieves the value associated with a key 
+MPI_Info_get_nkeys		MPI_Info_get_nkeys (3)	-  Returns the number of currently defined keys in info 
+MPI_Info_get_nthkey		MPI_Info_get_nthkey (3) -  Returns the nth defined key in info 
+MPI_Info_get_valuelen		MPI_Info_get_valuelen (3)   -  Retrieves the length of the value associated with a key 
+MPI_Info_set	MPI_Info_set (3)    -  Adds a (key,value) pair to info 
+MPI_Init	MPI_Init (3)	-  Initialize the MPI execution environment 
+MPI_Init_thread MPI_Init_thread (3) -  Initialize the MPI execution environment 
+MPI_Initialized MPI_Initialized (3) -  Indicates whether  .I MPI_Init has been called. 
+MPI_Int2handle	MPI_Int2handle (3)  -  Convert an integer (Fortran) MPI handle to a C handle 
+MPI_Intercomm_create		MPI_Intercomm_create (3)    -  Creates an intercommuncator from two intracommunicators 
+MPI_Intercomm_merge		MPI_Intercomm_merge (3) -  Creates an intracommuncator from an intercommunicator 
+MPI_Iprobe	MPI_Iprobe (3)	-  Nonblocking test for a message 
+MPI_Irecv	MPI_Irecv (3)	-  Begins a nonblocking receive 
+MPI_Irsend	MPI_Irsend (3)	-  Starts a nonblocking ready send 
+MPI_Isend	MPI_Isend (3)	-  Begins a nonblocking send 
+MPI_Issend	MPI_Issend (3)	-  Starts a nonblocking synchronous send 
+MPI_Keyval_create		MPI_Keyval_create (3)	-  Generates a new attribute key 
+MPI_Keyval_free MPI_Keyval_free (3) -  Frees attribute key for communicator cache attribute 
+MPI_Op_create	MPI_Op_create (3)   -  Creates a user-defined combination function handle 
+MPI_Op_free	MPI_Op_free (3) -  Frees a user-defined combination function handle 
+MPI_Pack	MPI_Pack (3)	-  Packs a datatype into contiguous memory 
+MPI_Pack_size	MPI_Pack_size (3)   -  Returns the upper bound on the amount of space needed to pack a message 
+MPI_Pcontrol	MPI_Pcontrol (3)    -  Controls profiling 
+MPI_Probe	MPI_Probe (3)	-  Blocking test for a message 
+MPI_Recv	MPI_Recv (3)	-  Basic receive 
+MPI_Recv_init	MPI_Recv_init (3)   -  Builds a handle for a receive 
+MPI_Reduce	MPI_Reduce (3)	-  Reduces values on all processes to a single value 
+MPI_Reduce_scatter		MPI_Reduce_scatter (3)	-  Combines values and scatters the results 
+MPI_Request_c2f MPI_Request_c2f (3) -  Convert a C request to a Fortran request 
+MPI_Request_free		MPI_Request_free (3)	-  Frees a communication request object 
+MPI_Rsend	MPI_Rsend (3)	-  Basic ready send  
+MPI_Rsend_init	MPI_Rsend_init (3)  -  Builds a handle for a ready send 
+MPI_Scan	MPI_Scan (3)	-  Computes the scan (partial reductions) of data on a collection of processes 
+MPI_Scatter	MPI_Scatter (3) -  Sends data from one task to all other tasks in a group 
+MPI_Scatterv	MPI_Scatterv (3)    -  Scatters a buffer in parts to all tasks in a group 
+MPI_Send	MPI_Send (3)	-  Performs a basic send 
+MPI_Send_init	MPI_Send_init (3)   -  Builds a handle for a standard send 
+MPI_Sendrecv	MPI_Sendrecv (3)    -  Sends and receives a message 
+MPI_Sendrecv_replace		MPI_Sendrecv_replace (3)    -  Sends and receives using a single buffer 
+MPI_Ssend	MPI_Ssend (3)	-  Basic synchronous send 
+MPI_Ssend_init	MPI_Ssend_init (3)  -  Builds a handle for a synchronous send 
+MPI_Start	MPI_Start (3)	-  Initiates a communication with a persistent request handle 
+MPI_Startall	MPI_Startall (3)    -  Starts a collection of requests	
+MPI_Status_c2f	MPI_Status_c2f (3)  -  Convert a C status to a Fortran status 
+MPI_Status_f2c	MPI_Status_f2c (3)  -  Convert a Fortran status to a C status 
+MPI_Status_set_cancelled	MPI_Status_set_cancelled (3)	-  Set the opaque part of an MPI_Status so that MPI_Test_cancelled will return flag 
+MPI_Status_set_elements 	MPI_Status_set_elements (3) -  Set the opaque part of an MPI_Status so that MPI_Get_elements will return count. 
+MPI_Test	MPI_Test (3)	-  Tests for the completion of a send or receive 
+MPI_Test_cancelled		MPI_Test_cancelled (3)	-  Tests to see if a request was cancelled 
+MPI_Testall	MPI_Testall (3) -  Tests for the completion of all previously initiated communications 
+MPI_Testany	MPI_Testany (3) -  Tests for completion of any previdously initiated  communication 
+MPI_Testsome	MPI_Testsome (3)    -  Tests for some given communications to complete 
+MPI_Topo_test	MPI_Topo_test (3)   -  Determines the type of topology (if any) associated with a  communicator 
+MPI_Type_commit MPI_Type_commit (3) -  Commits the datatype 
+MPI_Type_contiguous		MPI_Type_contiguous (3) -  Creates a contiguous datatype 
+MPI_Type_create_darray		MPI_Type_create_darray (3)  -  Creates a datatype corresponding to a distributed, multidimensional array 
+MPI_Type_create_indexed_block	MPI_Type_create_indexed_block (3)   -  Creates an indexed datatype with constant sized blocks 
+MPI_Type_create_subarray	MPI_Type_create_subarray (3)	-  Creates a datatype describing a subarray of a multidimensional array 
+MPI_Type_extent MPI_Type_extent (3) -  Returns the extent of a datatype 
+MPI_Type_free	MPI_Type_free (3)   -  Frees the datatype 
+MPI_Type_get_contents		MPI_Type_get_contents (3)   -  Retrieves the actual arguments used in the creation call for a datatype 
+MPI_Type_get_envelope		MPI_Type_get_envelope (3)   -  Returns information on the number and type of input arguments used in the call that created datatype 
+MPI_Type_hindexed		MPI_Type_hindexed (3)	-  Creates an indexed datatype with offsets in bytes 
+MPI_Type_hvector		MPI_Type_hvector (3)	-  Creates a vector (strided) datatype with offset in bytes 
+MPI_Type_indexed		MPI_Type_indexed (3)	-  Creates an indexed datatype 
+MPI_Type_lb	MPI_Type_lb (3) -  Returns the lower-bound of a datatype 
+MPI_Type_size	MPI_Type_size (3)   -  Return the number of bytes occupied by entries in the datatype 
+MPI_Type_struct MPI_Type_struct (3) -  Creates a struct datatype 
+MPI_Type_ub	MPI_Type_ub (3) -  Returns the upper bound of a datatype 
+MPI_Type_vector MPI_Type_vector (3) -  Creates a vector (strided) datatype 
+MPI_Unpack	MPI_Unpack (3)	-  Unpack a datatype into contiguous memory 
+MPI_Wait	MPI_Wait (3)	-  Waits for an MPI send or receive to complete 
+MPI_Waitall	MPI_Waitall (3) -  Waits for all given communications to complete 
+MPI_Waitany	MPI_Waitany (3) -  Waits for any specified send or receive to complete 
+MPI_Waitsome	MPI_Waitsome (3)    -  Waits for some given communications to complete 
+MPI_Wtick	MPI_Wtick (3)	-  Returns the resolution of MPI_Wtime 
+MPI_Wtime	MPI_Wtime (3)	-  Returns an elapsed time on the calling processor 
+chp4_servs	chp4_servs (1)	-  Starts the P4 secure servers on machines known to MPICH 
+cleanipcs	cleanipcs (1)	-  Removes System V IPCs held by the user 
+mpiCC		mpiCC (1)	-  Compiles and links MPI programs written in C++ 
+mpicc		mpicc (1)	-  Compiles and links MPI programs written in C 
+mpif77		mpif77 (1)	-  Compiles and links MPI programs written in Fortran 77 
+mpif90		mpif90 (1)	-  Compiles and links MPI programs written in Fortran 90 
+mpiman		mpiman (1)	-  Starts reader for MPI man pages in Unix man or Web HTML format 
+mpireconfig	mpireconfig (1) -  Constucts makefiles from template files 
+mpirun		mpirun (1)	-  Run mpi programs 
+tstmachines	tstmachines (1) -  Tests the availability of remote machines for runing MPI programs 

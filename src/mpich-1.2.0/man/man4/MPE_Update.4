@@ -1,0 +1,25 @@
+.TH MPE_Update 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_Update \-  Updates an X11 display 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+int MPE_Update( handle )
+MPE_XGraph handle;
+.fi
+.SH INPUT PARAMETER
+.PD 0
+.TP
+.B handle 
+- MPE graphics handle.
+.PD 1
+
+.SH NOTE
+Only after an 
+.I MPE_Update
+can you count on seeing the results of MPE
+drawing routines.  This is caused by the buffering of graphics requests
+for improved performance.
+.SH LOCATION
+mpe_graphics.c

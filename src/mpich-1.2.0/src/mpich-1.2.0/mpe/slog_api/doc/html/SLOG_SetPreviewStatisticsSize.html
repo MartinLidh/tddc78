@@ -1,0 +1,45 @@
+<HTML>
+<TITLE>SLOG_SetPreviewStatisticsSize</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_SetPreviewStatisticsSize"><H1>SLOG_SetPreviewStatisticsSize</H1></A>
+Set/Override the default number of bins  of the statistics array. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_SetPreviewStatisticsSize(       SLOG_STREAM      *slog,
+                                   const SLOG_uint32      stat_bin_size )
+</CODE></PRE>
+<H2>Unmodified Input parameter</H2>
+<DL><DT><B>stat_bin_size </B> - the number of bin of the statistics array.
+</DL>
+<P>
+<H2>Modified Input parameter </H2>
+<DL><DT><B>slog </B> - pointer to the SLOG_STREAM where interval records are stored.
+</DL>
+<P>
+<H2>Modified Output parameter </H2>
+<DL><DT><B>returned value </B> - integer return status code.
+</DL>
+<P>
+<H2>Include file need</H2>
+slog_pstat.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_pstat.c<P>
+</BODY></HTML>

@@ -1,0 +1,10 @@
+#ifndef SUN_SOLARIS
+#define SUN_SOLARIS
+#endif
+#define P4_CONFIGURED_TIME "Wed Mar 15 13:33:48 MET 2000"
+#define P4_MACHINE_TYPE "SUN_SOLARIS"
+#undef ALOG_TRACE
+#undef SYSV_IPC
+#undef VENDOR_IPC
+#define P4_DPRINTFL
+#define LISTENER_PATHNAME ""

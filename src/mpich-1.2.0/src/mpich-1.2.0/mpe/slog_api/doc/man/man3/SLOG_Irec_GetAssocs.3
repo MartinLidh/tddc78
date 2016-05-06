@@ -1,0 +1,54 @@
+.TH SLOG_Irec_GetAssocs 3 "8/11/1999" " " "SLOG_API"
+.SH NAME
+SLOG_Irec_GetAssocs \-  Retrieve the association array of the interval record. 
+.SH SYNOPSIS
+.nf
+int SLOG_Irec_GetAssocs( const SLOG_intvlrec_t  *intvlrec,
+                         const SLOG_N_assocs_t   size_assocs,
+                               SLOG_assoc_t     *assocs )
+.fi
+.SH UNMODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B intvlrec 
+- pointer to the internal Interval record to be retrieved.
+.PD 1
+.PD 0
+.TP
+.B size_assocs 
+- Number of elements available for the input association array.
+.PD 1
+
+.SH MODIFIED INTPUT VARIABLES 
+.PD 0
+.TP
+.B assocs 
+- association array, array of file pointers to the associated
+interval records of the specified interval record.
+It is assumed the input array, assocs[], is big enough
+to hold the association array of the interval record.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- N_assocs : Number of elements in the association array
+returned.  If the input size, size_assocs, is smaller
+than the actual number of elements of the association
+array, the return value will be SLOG_EOF and only the
+first size_assocs elements will be returned.
+.PD 1
+
+.SH USAGE NOTES ON THIS SUBROUTINE 
+The subroutine gets the association array of the specified Internal
+Interval Record.  This subroutine is meant to be called once for
+each interval record.  Calling multiple times for the same interval
+record returns the same results.  If the return value, N_assocs,
+is equal to zero.  It means there is no associated record.
+
+.SH INCLUDE FILE NEEDED 
+slog.h
+
+.SH LOCATION
+../src/slog_irec_read.c

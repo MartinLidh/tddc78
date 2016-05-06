@@ -1,0 +1,9 @@
+
+1, Move procVector & dprocVector up from all bottom layer to the
+   ViewFrameChooser layer
+
+2, create a class for procVector and dprocVector( good idea ? )
+
+3, Change procID to groupID.  proc is considered as a "StatesGroup"
+
+4, Change JProcess to StatesGroup

@@ -1,0 +1,51 @@
+.TH SLOG_SetPreviewName 3 "6/23/1999" " " "SLOG_API"
+.SH NAME
+SLOG_SetPreviewName \-  Set the filename of the to be copied Preview file and Copy the file's content to the SLOG file 
+.SH SYNOPSIS
+.nf
+int SLOG_SetPreviewName( SLOG_STREAM *slog, const char *pview_filename )
+.fi
+.SH UNMODIFIED INPUT PARAMETER
+.PD 0
+.TP
+.B pview_filename 
+- pointer to the characters of the Preview's filename.
+.PD 1
+
+.SH MODIFIED INPUT PARAMETER 
+.PD 0
+.TP
+.B slog 
+- pointer to the SLOG_STREAM where interval records are stored.
+.PD 1
+
+.SH MODIFIED OUTPUT PARAMETER 
+.PD 0
+.TP
+.B returned value 
+- integer return status code.
+.PD 1
+
+.SH INCLUDE FILE NEED
+slog_preview.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_preview.c

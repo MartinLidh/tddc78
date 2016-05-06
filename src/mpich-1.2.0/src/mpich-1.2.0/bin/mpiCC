@@ -1,0 +1,247 @@
+#! /bin/sh
+DoLink=1
+DoCompile=0
+show_compile=0
+show_link=0
+MPILOG=
+CCFLAGS="  -DUSE_STDARG  -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DUSE_STDARG=1 -DMALLOC_RET_VOID=1"
+Show=eval
+allargs=
+compileargs=
+linkargs=
+linkobjs=
+gettinglinkarg=0
+HasDashC=0
+UsesPmpi=0
+proflib=-lpmpich
+proflibfullname=/home/TDDB78/src/mpich-1.2.0/lib/libpmpich.a
+cpplib=-lmpich++
+cpplibfullname=/home/TDDB78/src/mpich-1.2.0/lib/libmpich++.a
+CXXFLAGS="-I/home/TDDB78/src/mpich-1.2.0/MPI-2-C++/src -I/home/TDDB78/src/mpich-1.2.0/MPI-2-C++"
+LDFLAGS="-L/home/TDDB78/src/mpich-1.2.0/MPI-2-C++/src"
+CCCBASE="CC"
+CCC="${MPICH_CCC-$CCCBASE}"
+CCLINKERBASE="CC"
+CCLINKER="${MPICH_CCLINKER-$CCLINKERBASE}"
+if [ -z "CC" -o -z "CC" ] ; then
+    echo "No C++ compiler and linker specified when MPICH configured."
+    exit 1
+fi
+for arg in "$@" ; do
+#    echo procssing arg $arg
+    # Special processing for -o name
+    if [ $gettinglinkarg = 1 ] ; then
+	linkargs="$linkargs $arg"
+	gettinglinkarg=0
+	outputfilename="$arg"
+	continue
+    fi
+    case "$arg" in 
+	-c)
+	# If -c is NOT specified, then we need to perform a link step.
+	allargs="$allargs $arg"
+	compileargs="$compileargs $arg"
+        # If -o was set, then we need to move the output file option
+        # to the compile line (note that this is non-standard, and should
+        # not be used in portable codes)
+        if [ $DoLink = 1 -a -n "$outputfilename" ] ; then
+	    compileargs="$compileargs -o $outputfilename"
+        fi
+	DoLink=0
+	HasDashC=1
+	;;
+        -o)
+	# Need to link
+	allargs="$allargs $arg"
+        if [ $HasDashC = 1 ] ; then
+            # Some BUT NOT ALL compilers support -o with -c.  Allow
+            # the user to make use of the feature, IF IT EXISTS.
+            compileargs="$compileargs $arg"	
+        else
+	    linkargs="$linkargs $arg"
+	    # Still need to add the target of the -o
+	    gettinglinkarg=1
+	    DoLink=1
+        fi
+	;;
+	-mpilog)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+		MPILOG="-llmpi -lmpe"
+	else
+	    echo "-mpilog requires the MPE libraries"
+	fi
+	;;
+	-mpitrace)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+   	    MPILOG=-ltmpi
+	else
+	    echo "-mpitrace requires the MPE libraries"
+	fi
+	;;
+	-mpianim)
+	if [ $UsesPmpi = 1 ] ; then
+	    echo "Only one of -mpilog, -mpitrace, or -mpianim may be used."
+	    exit 1
+	else
+	    UsesPmpi=1
+        fi
+	if [ 0 = 0 ] ; then
+	    MPILOG="-lampi -lmpe"
+	else
+	    echo "-mpianim requires the MPE libraries"
+	fi
+	;;
+	-echo)
+	set -x
+	;;
+	-CC=*)
+	CCC=`echo A$arg | sed -e 's/A-CC=//g'`
+	CCLINKER="$CC"
+	;;
+	-compile_info)
+	show_compile=1
+	DoLink=0
+	Show=echo
+	;;
+	-link_info)
+	show_link=1
+	Show=echo
+	;;
+	-v)
+	verbose=1
+	compileargs="$compileargs -v"
+	linkargs="$linkargs -v"
+	;;
+	-show)
+	Show=echo
+	;;
+	-l*)
+	# This SHOULD be the -l<lib> argument.  Only for the linker
+	linkargs="$linkargs $arg"
+	allargs="$allargs $arg"
+	;;
+	-help)
+	echo "This is a program to compile or link C++ MPI programs"
+	echo "In addition, the following special options are supported"
+	echo "    -mpilog    - Build version that generate MPE log files"
+	echo "    -mpitrace  - Build version that generates traces"
+	echo "    -mpianim   - Build version that generates real-time"
+	echo "                 animation"
+	echo "    -CC=pgm    - Change the program to use to compile and link"
+        echo "                 MPI programs.  WARNING! The program that you"
+        echo "                 choose MUST be compatible with the MPICH "
+        echo "                 libraries.  If you have trouble, you should"
+        echo "                 reconfigure and rebuild MPICH, selecting"
+        echo "                 this compiler."
+	echo "    -show      - Show the commands that would be used without"
+	echo "                 runnning them"
+	echo "    -compile_info - Show how to compile a program"
+	echo "    -link_info - Show how to link a program"
+	echo "    -help      - Give this help"
+	echo "    -echo      - Show exactly what this program is doing."
+	echo "                 This option should normally not be used."
+	echo "This should be used just like the usual C++ compiler"
+	echo "For example,"
+	echo "   $0 -c foo.C "
+	echo "and"
+	echo "   $0 -o foo foo.o"
+	echo "Combining compilation and linking in a single command"
+	echo "   $0 -o foo foo.C"
+	echo "may not work on some systems, and is not recommended."
+	exit 1
+	;;
+	# Unrecognized args.  Because we do an eval, we need to
+	# carefully quote any args that contain quotes.
+        *\"*) 
+	qarg="'"$arg"'"
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *\'*) 
+	qarg='\"'"$arg"'\"'
+	allargs="$allargs $qarg"
+	compileargs="$compileargs $qarg"
+	linkargs="$linkargs $qarg"
+	;;
+        *) allargs="$allargs $arg"
+	if [ -s "$arg" ] ; then
+	    ext=`expr "$arg" : '.*\(\..*\)'`
+	    if [ "$ext" = ".C" -o "$ext" = ".cxx" -o "$ext" = ".cpp" -o \
+		 "$ext" = ".cc" -o "$ext" = ".c" -o "$ext" = ".CC" ] ; then
+	        DoCompile=1
+	        compileargs="$compileargs $arg"
+	        fname=`basename $arg $ext`
+	        linkobjs="$linkobjs $fname.o"
+	    elif [ "$ext" = ".o" ] ; then
+		if [ $HasDashC = 1 ] ; then
+	            compileargs="$compileargs $arg"
+                else
+	            DoLink=1
+	            linkobjs="$linkobjs $arg"
+                fi
+	    else
+	        compileargs="$compileargs $arg"
+	        linkargs="$linkargs $arg"
+	    fi
+	else
+            compileargs="$compileargs $arg"
+	    linkargs="$linkargs $arg"
+	fi
+	;;
+    esac
+done
+#
+status=0
+if [ $DoCompile = 1 -o $show_compile = 1 ] ; then 
+    if [ $HasDashC != 1 ] ; then
+        compileargs="-c $compileargs"
+    fi
+    # note the use of HAVE_MPI_CPP to cause the mpi++.h file to be 
+    # included from mpi.h
+    $Show $CCC $CCFLAGS  -I/home/TDDB78/src/mpich-1.2.0/include -DHAVE_MPI_CPP $CXXFLAGS $compileargs
+
+    status=$?
+    if [ $status != 0 ] ; then 
+	exit $status
+    fi
+fi
+if [ $DoLink = 1 -o $show_link = 1 ] ; then
+    # If the profiling library doesn't exist, or MPICH_NO_PROF environment
+    # variable is set, skip the profiling library.
+    if [ -n "$MPICH_NO_PROF" -o ! -s "$proflibfullname" ] ; then
+        proflib=""
+    fi
+    # IRIX complains if we include a library twice.  In the case of a
+    # library using weak symbols, we don't need the proflib.  Just
+    # in case we do, there is an enviroment variable that
+    # can be used to override this test.
+    if [ "1" = "1" -a "$MPICH_INCLUDE_PROFLIB" != yes ] ; then
+        proflib=""
+    fi
+    # If the C++ library doesn't exist, skip it
+    # This may be needed because the C++ build wants to build executables
+    # before the libraries are built.
+    if [ ! -s "$cpplibfullname" ] ; then
+        cpplib=""
+    fi
+    if [ -n "$MPILOG" ] ; then
+        $Show $CCLINKER   -DUSE_STDARG  -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DUSE_STDARG=1 -DMALLOC_RET_VOID=1  -L/home/TDDB78/src/mpich-1.2.0/lib  $linkobjs $linkargs $LDFLAGS $cpplib $MPILOG $proflib -lmpich $proflib  -lsocket -lnsl -lnsl -laio
+    else
+        $Show $CCLINKER   -DUSE_STDARG  -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DUSE_STDARG=1 -DMALLOC_RET_VOID=1  -L/home/TDDB78/src/mpich-1.2.0/lib  $linkobjs $linkargs $LDFLAGS $cpplib $proflib -lmpich $proflib  -lsocket -lnsl -lnsl -laio
+    fi
+    status=$?
+fi
+exit $status

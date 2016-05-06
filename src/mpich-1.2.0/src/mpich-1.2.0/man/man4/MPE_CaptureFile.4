@@ -1,0 +1,38 @@
+.TH MPE_CaptureFile 4 "5/15/1999" " " "MPE"
+.SH NAME
+MPE_CaptureFile \-  Sets the base filename used to capture output from updates 
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+#include "mpe.h"
+int MPE_CaptureFile( handle, fname, freq )
+MPE_XGraph handle;
+char       *fname;
+int        freq;
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B handle 
+- MPE graphics handle
+.PD 1
+.PD 0
+.TP
+.B fname  
+- base file name (see below)
+.PD 1
+.PD 0
+.TP
+.B freq   
+- Frequency of updates
+.PD 1
+
+.SH NOTES
+The output is written in xwd format to 
+.I fname%d
+, where 
+.I %d
+is the number
+of the file (starting from zero).
+.SH LOCATION
+mpe_graphics.c

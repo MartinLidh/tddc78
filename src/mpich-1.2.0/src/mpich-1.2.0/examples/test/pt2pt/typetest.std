@@ -1,0 +1,10 @@
+**** Checking the type routines ****
+All processes completed test
+[typetest]: Test 'Complex Type Round Trip Test' Passed.
+[typetest]: Test 'Compatible Complex Type Round Trip Test' Passed.
+[typetest]: Test 'Padded Structure Type Round Trip Test' Passed.
+[typetest]: Test 'Type Free test' Passed.
+For test suite 'typetest':
+Of 4 attempted tests, 4 passed, 0 failed.
+[typetest]: Test 'Type Free test' Passed.
+**** Checking the type routines ****

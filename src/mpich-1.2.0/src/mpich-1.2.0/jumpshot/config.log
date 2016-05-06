@@ -1,0 +1,8 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:642: checking host system type
+configure:847: checking gnumake
+configure:873: checking BSD 4.4 make
+configure:897: checking OSF V3 make
+configure:921: checking for virtual path format

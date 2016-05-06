@@ -1,0 +1,7 @@
+**** Testing large messages ****
+Blocking sends: 128 512 2048 8192 32768 131072 524288
+Unexpected recvs: 128 512 2048 8192 32768 131072 524288
+Synchronous sends: 128 512 2048 8192 32768 131072 524288
+Expected recvs and Rsend: 128 512 2048 8192 32768 131072 524288
+No errors
+**** Testing large messages ****

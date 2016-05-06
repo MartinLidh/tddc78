@@ -1,0 +1,45 @@
+.TH SLOG_RDEF_Open 3 "8/12/1999" " " "SLOG_API"
+.SH NAME
+SLOG_RDEF_Open \-  Creates the SLOG Record Definition Table,  SLOG_recdefs_table_t, needed to write the to the disk. 
+.SH SYNOPSIS
+.nf
+int SLOG_RDEF_Open( SLOG_STREAM  *slog )
+.fi
+.SH MODIFIED INPUT VARIABLES 
+.PD 0
+.TP
+.B slog 
+- pointer to the SLOG_STREAM where SLOG Record Definition Table is
+located.
+.PD 1
+
+.SH MODIFIED OUTPUT VARIABLES 
+.PD 0
+.TP
+.B returned value 
+- integer return status.
+.PD 1
+
+.SH INCLUDE FILE NEEDED 
+slog_recdefs.h
+
+
+.SH NOTES ON SLOG RETURN STATUS CODE 
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+
+SLOG_SUCCESS is returned when no error is encountered.
+
+SLOG_FAIL is returned when error is encounted.
+
+SLOG_EOF is returned when End of file is encounted.
+
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+.br
+
+
+.SH LOCATION
+../src/slog_recdefs.c

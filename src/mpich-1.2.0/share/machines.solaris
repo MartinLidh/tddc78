@@ -1,0 +1,8 @@
+# Change this file to contain the machines that you want to use
+# to run MPI jobs on.  The format is one host name per line, with either
+#    hostname
+# or 
+#    hostname:n
+# where n is the number of processors in an SMP.  The hostname should
+# be the same as the result from the command "hostname"
+ent4000.ida.liu.se:12

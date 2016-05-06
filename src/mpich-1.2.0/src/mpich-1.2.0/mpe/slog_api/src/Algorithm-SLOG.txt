@@ -1,0 +1,132 @@
+
+irec = interval record
+
+Define 4 sectors in each frame, they are basically double linked lists.
+
+_cur_( current sector )        : irec's timestamps are bounded by 
+                                 the frame's 2 time limits.
+ - frame's starttime <= irec's starttime <= irec's endtime <= frame's endtime
+   --------------------------------------------------------------------------
+
+_inc_( incoming sector )       : irec's starttime is earlier than 
+                                 the frame's startime.
+ - irec's starttime < frame's starttime <= irec's endtime <= frame's endtime
+                      ------------------------------------------------------
+
+_pas_( passing through sector ): irec's timestamps are outside the
+                                 frame's 2 time limits.
+ - irec's starttime < frame's starttime <= frame's endtime < irec's endtime
+                      ------------------------------------
+
+_out_( outgoing sector )       : irec's endtime is later than the
+                                 frame's endtime.
+ - frame's starttime <= irec's starttime <= frame's endtime < irec's endtime
+   --------------------------------------------------------
+
+
+Under this construction,
+    current frame's _out_ may NOT be equal to next frame's _inc_
+    'cause some of irec in current frame's _out_ may be in next frame _pas_
+    and    some of irec in current frame's _pas_ may be in next frame _inc_
+
+
+
+Assumption: Each input irec given to SLOG API has at least part of its 
+duration overlapped with the duration of the frame where the irec is located.  
+i.e.  There will be no irec whose starttime and endtime are totally out of 
+the time range of the frame where the irec sits.
+
+Limitation: Since this algorithm does NOT move the irec across different
+frames.  This is the reason that we have the assumption mentioned above.
+
+
+Create an extra sector, internal data structure, called _tmp_ sector.
+
+1st Pass( Forward in time ):
+
+    initialize _cur_, _inc_, _pas_, _out_, _tmp_ to Empty sectors.
+
+    for every irec given to SLOG API, do
+        store it in current frame's _cur_
+        if the frame is filled up,
+            set the frame's endtime   = last irec's endtime.
+            if this is the 1st frame
+                set the frame's starttime = earliest irec's starttime
+                ( 1st frame's starttime may need to be reset in the 2nd Pass )
+            else
+                set the frame's starttime = previous frame's endtime
+            endif
+
+            for all irec in _tmp_( i.e. previous frame's _pas_ & _out_ ), do
+                ( for the 1st frame, this does nothing, 'cause _tmp_ is empty )
+                distribute irec in _tmp_ into _inc_ and _pas_
+                if ( irec's endtime <= frame's endtime )
+                    move irec from _tmp_ to _inc_
+                else
+                    move irec from _tmp_ to _pas_
+                endif
+            enddo
+
+            for all irec in _cur_, do
+                if ( irec's endtime <= frame's endtime )
+                    if ( irec's starttime < frame's starttime )
+                        move irec to _inc_
+                    endif
+                    leave irec in _cur_
+                else
+                    if ( irec's starttime < frame's starttime )
+                        move irec to _pas_
+                    else
+                        move irec to _out_
+                    endif
+                endif
+                ( for the 1st frame, _inc_ & _pas_ should be empty )
+            enddo
+
+            if ( _tmp_ is NOT empty ) error
+            copy _pas_ & _out_ to next frame's _tmp_
+
+            dump the current frame content to the disk
+            ( for the 1st frame, only _cur_ & _out_ are non-empty )
+            cleanup _cur_, _inc_, _pas_, _out_.
+        endif
+    enddo
+
+    for last frame in the logfile( done by SLOG_CloseOutputStream() )
+    Set frame's endtime = latest endtime of all irec in _tmp_ & _cur_.
+    move all irec in _tmp_ to _inc_
+    ( for the last frame, there are only non-empty _inc_ and _cur_ sectors).
+
+
+2nd Pass( Backward in time ):
+
+    initialize _cur_, _inc_, _pas_, _out_, _tmp_ to Empty sectors.
+
+    for each frame retrieved starting from the end of the logfile, do
+        fill up _cur_, _inc_, _pas_, _out_ as it was stored in the logfile.
+        if ( this is the 1st frame )
+            set the frame's starttime = earliest irec's starttime
+                                        of all in _tmp_, _out_, _inc_
+        endif
+
+        for irec in _tmp_( i.e. next frame's _pas_ & _inc_ ), do
+            ( for the 1st end frame, _tmp_ is empty, this does nothing )
+            if ( irec's starttime >= current frame's starttime )
+                if ( irec is NOT in _out_ )
+                    move irec from _tmp_ to _out_
+                else
+                    rm irec from _tmp_
+                endif
+            else
+                if ( irec is NOT in _pas_ )
+                    move irec from _tmp_ to _pas_
+                else
+                    rm irec from _tmp_
+                endif
+            endif
+        enddo
+
+        if ( _tmp_ is NOT empty ) error
+        copy _pas_ & _inc_ to next frame's _tmp_
+        cleanup _cur_, _inc_, _pas_, _out_.
+    enddo

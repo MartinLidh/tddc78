@@ -1,0 +1,142 @@
+#include "confdefs.h"
+
+#include <sys/socketvar.h>
+int main() { exit(0); }
+int t() { main(); }
+"/usr/include/sys/socketvar.h", line 166: syntax error before or at: mblk_t
+"/usr/include/sys/socketvar.h", line 166: cannot recover from previous errors
+cc: acomp failed for conftest.c
+${CC-cc} $CFLAGS conftest.c -o conftest $LIBS >>config.log 2>&1
+#include "confdefs.h"
+
+#include <stdio.h>
+#include <stdarg.h>
+int func( int a, ... ){
+int b;
+va_list ap;
+va_start( ap, a );
+b = va_arg(ap, int);
+printf( "%d-%d\n", a, b );
+va_end(ap);
+fflush(stdout);
+return 0;
+}
+int main() { func( 1, 2 ); return 0;}
+#include "confdefs.h"
+#include <ctype.h>
+int main() { exit(0); }
+int t() { 
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_sigsetmask) || defined (__stub___sigsetmask)
+choke me
+#else
+/* Override any gcc2 internal prototype to avoid an error.  */
+extern char sigsetmask(); sigsetmask();
+#endif
+ }
+Undefined			first referenced
+ symbol  			    in file
+sigsetmask                          conftest.o
+ld: fatal: Symbol referencing errors. No output written to conftest
+#include "confdefs.h"
+#include <ctype.h>
+int main() { exit(0); }
+int t() { 
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_sigblock) || defined (__stub___sigblock)
+choke me
+#else
+/* Override any gcc2 internal prototype to avoid an error.  */
+extern char sigblock(); sigblock();
+#endif
+ }
+Undefined			first referenced
+ symbol  			    in file
+sigblock                            conftest.o
+ld: fatal: Symbol referencing errors. No output written to conftest
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+int main() { exit(0); }
+int t() { 
+union semun arg;arg.val=0; }
+"conftest.c", line 7: incomplete struct/union/enum semun: arg
+"conftest.c", line 7: improper member use: val
+"conftest.c", line 7: assignment type mismatch:
+	array[2] of long "=" int
+cc: acomp failed for conftest.c
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+int main() { exit(0); }
+int t() { 
+union semun arg;arg.val=0; }
+"conftest.c", line 7: incomplete struct/union/enum semun: arg
+"conftest.c", line 7: improper member use: val
+"conftest.c", line 7: assignment type mismatch:
+	array[2] of long "=" int
+cc: acomp failed for conftest.c
+${CC-cc} $CFLAGS conftest.c -o conftest $LIBS >>config.log 2>&1
+#include "confdefs.h"
+
+#include <stdio.h>
+#ifdef FREEBSD
+#include <sys/ioctl_compat.h>
+#else
+#include <sys/ioctl.h>
+#endif
+static struct sgttyb orig_tty;
+int main() { struct sgttyb tty_new;
+    ioctl(0, TIOCGETP, &orig_tty);
+    tty_new = orig_tty;
+    tty_new.sg_flags &= ~(ECHO);
+    ioctl(0, TIOCSETP, &tty_new);
+    return 0;}
+"conftest.c", line 10: incomplete struct/union/enum sgttyb: tty_new
+"conftest.c", line 11: undefined symbol: TIOCGETP
+"conftest.c", line 12: unknown operand size: op "="
+"conftest.c", line 13: undefined struct/union member: sg_flags
+"conftest.c", line 13: undefined symbol: ECHO
+"conftest.c", line 14: undefined symbol: TIOCSETP
+"conftest.c", line 9: incomplete struct/union/enum sgttyb: orig_tty
+cc: acomp failed for conftest.c
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+int main() { exit(0); }
+int t() { socklen_t dummy; int rc, skt; void *ssz;
+rc = getsockopt(skt,SOL_SOCKET,SO_SNDBUF,ssz,&dummy); }
+"conftest.c", line 5: undefined symbol: socklen_t
+"conftest.c", line 5: syntax error before or at: dummy
+"conftest.c", line 6: undefined symbol: rc
+"conftest.c", line 6: undefined symbol: skt
+"conftest.c", line 6: undefined symbol: ssz
+"conftest.c", line 6: undefined symbol: dummy
+"conftest.c", line 6: warning: improper pointer/integer combination: arg #4
+cc: acomp failed for conftest.c
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+int try(void){size_t dummy; int rc, skt; void *ssz;
+rc = getsockopt(skt,SOL_SOCKET,SO_SNDBUF,ssz,&dummy);
+return rc;}
+"conftest.c", line 5: warning: argument #5 is incompatible with prototype:
+	prototype: pointer to int : "/usr/include/sys/socket.h", line 338
+	argument : pointer to uint
+#include "confdefs.h"
+#include <rpc/xdr.h>
+
+int try(void){
+u_int l, ms, el; xdrproc_t elproc; XDR *xdrs; int rc; char **arrp;
+rc = xdr_array(xdrs,arrp,&l,ms,el,elproc);
+return rc;}
+"/usr/include/rpc/xdr.h", line 96: syntax error before or at: bool_t
+"/usr/include/rpc/xdr.h", line 96: function cannot return function or array
+"/usr/include/rpc/xdr.h", line 96: cannot recover from previous errors
+cc: acomp failed for conftest.c

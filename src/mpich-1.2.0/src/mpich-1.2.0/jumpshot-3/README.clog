@@ -1,0 +1,314 @@
+***********************************
+* Last revised: September 5, 1998 *
+***********************************
+
+Jumpshot - Graphical Visualization Tool for Parallel Programs
+=============================================================
+
+This distribution contains byte code and scripts for running jumpshot, source
+code for modifying Jumpshot and JVMs for Windows & Solaris. Jumpshot is a 
+Graphical visualization Tool written using JDK 1.1.6.
+
+Java version compatibility: Jumpshot has been tested on 
+1) JVMs from 1.1.2 to 1.1.6 + Swing 1.0.3 on Windows & Unix(Solaris/Irix/Aix)
+2) JVMs from 1.1.2 to 1.1.6 + Swing 1.1beta on Windows & Unix(Solaris/Irix/Aix)
+3) JVM 1.2beta4 on Windows and Solaris
+
+Jumpshot can be used in 3 ways:
+1) As an application on your machine
+2) As an applet using a web browser or appletviewer
+3) If you choose you can modify the source code given
+
+==============================================================================
+
+******************************
+* Jumpshot as an application *
+******************************
+Deploying jumpshot as an application means installing jumpshot on your machine.
+On untarring and unzipping the distribution file jumpshot.tar.gz the following
+structure will be created.
+
+                              jumpshot
+   ______________________________|___________________________
+  |       |                        |               |         |
+ README  lib                     swing            src      build
+          |_______js_classes.jar   |____swing.jar            |
+          |.....................              _______________|___           
+          |_______data                       |            |      | 
+                                          windows      solaris unix
+                                             |            |      |
+                                            bin          bin    bin
+                                             |            |      |
+                                         jumpshot.bat   jumpshot |___jumpshot
+                                                                 |___jumpshot12
+
+Depending upon the kind of distribution file you obtained windows/solaris/unix
+directories may or may not be present in build.
+
+Jumpshot needs a platform specific JVM (Java Virtual Machine) to work. We 
+provide JVMs for windows and solaris only. For other flavors of unix like Irix,
+Aix and Linux we expect a JVM to be present. 
+
+JVM can be referred to as jre or java as the case may be.
+
+Usually a JVM is packaged in two ways:
+ 1. As part of Java Runtime environment (JRE), which only consists of a JVM
+    and the core or system object code. This is the bare minimum required to 
+    run java applications. We distribute this for Windows and Solaris
+ 2. As part of Java Development Kit (JDK), which consists of a JVM, system or 
+    core object code and other files needed to compile and develop java code.
+    JDK can be thought of as a superset of JRE.
+
+********************
+* RUNNING JUMPSHOT *
+********************
+To make operating jumpshot simple we have provided scripts for windows and unix
+environments in different directories. solaris has been separated from unix
+because we provide a JVM for it and cannot do so for all falvors of unix. The
+script to run jumpshot (jumpshot or jumpshot.bat) is located in the bin 
+directory.
+
+Windows
+-------
+1. execute windows\bin\jumpshot.bat. 
+2. If jre (JVM) has not been installed on your machine the script will not 
+   work. You can install jre on your machine by either downloading one from 
+   http://www.java.sun.com/products or using the one that we provide: 
+   build\windows\jre116-win32.exe
+
+Unix (Solaris/Aix/Irix/Linux/....)
+----
+1. Make sure that a JVM is present on the machine
+2. Set JAVA_HOME accordingly. The script looks for the JVM (jre) in 
+   JAVA_HOME/bin and core classes in JAVA_HOME/lib/rt.jar or 
+   JAVA_HOME/lib/classes.zip or JAVA_HOME/classes.
+   e.g: set JAVA_HOME=/sandbox/jdk1.1.6 or set JAVA_HOME=/sandbox/jre1.1.6
+3. execute build/unix/bin/jumpshot
+4. If JAVA_HOME has not been set script will not work.
+
+   Solaris
+   -------
+   If you are using a solaris machine then you do not need to have a JVM on
+   your machine since we provide it. All you need to do is to execute    
+   build/solaris/bin/jumpshot. If JAVA_HOME is not set the script will 
+   use the JVM present in build/solaris/Solaris_JRE_1.1.6_03.
+
+*****************
+* Special Cases *
+*****************
+1. Jumpshot will not work unless the JVM is called with correct options. In
+   some cases scripts may not do their job.
+
+   - Make sure that a JVM is installed on your machine. Refer to its directory
+     as JAVA_HOME. If you have a JDK installed in /usr/local then your 
+     JAVA_HOME will become /usr/local/jdk1.1.6 or if you have a JRE installed
+     in /usr/local then JAVA_HOME will become /usr/local/jre1.1.6. You can 
+     download a JVM from http://www.java.sun.com/products
+     e.g: If you are using c shell: 
+          setenv JAVA_HOME /usr/local/jre1.1.6
+ 
+   - Make sure that CLASSPATH environment variable has been correctly set 
+     to point to the object code. Refer to the directory where jumpshot has
+     been installed as JUMPSHOT_HOME.
+     object code for jumpshot is in lib/js_classes.jar and swing/swing.jar
+     object code for core or system classes is usually in JAVA_HOME/classes
+     or JAVA_HOME/lib/classes.zip or JAVA_HOME/lib/rt.jar
+     e.g: If you are using c shell:
+          setenv CLASSPATH ${JAVA_HOME}/lib/rt.jar
+          setenv CLASSPATH ${CLASSPATH}:${JUMPSHOT_HOME}/swing/swing.jar
+          setenv CLASSPATH ${CLASSPATH}:${JUMPSHOT_HOME}/lib/js_classes.jar
+
+   - JVM, jre or java, can be found in JAVA_HOME/bin. Now run jumpshot.
+     e.g: If you are using c shell: 
+          ${JAVA_HOME}/bin/jre jumpshot or 
+          ${JAVA_HOME}/bin/jre -classpath ${CLASSPATH} jumpshot
+
+2. If you want to use a JVM 1.2 or higher on unix (Solaris/Aix/...) use script 
+   build/unix/bin/jumpshot12
+
+==============================================================================
+
+***************************************************
+* Configuring your browser to run Jumpshot applet *
+***************************************************
+To run JDK 1.1 & swing based applets like Jumpshot a plugin is provided by 
+Sun. This is available for browsers:
+	 Netscape
+         Internet Explorer
+running on Microsoft Windows and Sun Solaris.
+
+1. Download plugin for your platform from 
+	 http://www.java.sun.com/products/plugin/
+2. Follow instructions to install plugin.
+
+3. Go to applet's URL. 
+   [example URL: http://www.server/~pat/jumpshot/lib/jumpshot.html]
+
+***********************************
+* Deploying Jumpshot as an applet *
+***********************************
+To function as an applet only jumpshot/lib directory is required. This 
+directory needs to be web accessible. Usually this is done by placing it in 
+public_html in user's root directory. So if a user Pat's directory is 
+/home/users/pat then, lib directory will have to be in
+
+home
+ |____users
+        |___pat
+             |____public_html <--------------------- Accessible to the web
+                      |______jumpshot
+                                |______lib                          
+                                        |___jumpshot.html           
+                                        |___js_classes.jar          
+                                        |___......
+                                        |___logfiles
+
+The applet file is jumpshot.html and its url will be: 
+			http://www.server/~pat/jumpshot/lib/jumpshot.html
+
+1. Move jumpshot/lib to a web accessible region.
+2. Due to security restrictions, an applet can usually only read files from the
+   server on which it originates. It could read files from client's machine or
+   even another server, however, that will involve signing the applet and doing
+   some other things. Jumpshot as of now only reads files found in logfiles 
+   directory inside lib.
+3. Copy files that you want the applet to be able to access to lib/logfiles 
+   directory.Make sure to add the file name to 'lib/logfiles/logfiles.info' 
+   file which keeps a list of all logfiles in the directory. This is needed
+   because some servers do not permit seeing the contents of a directory. So,
+   to get a list of logfiles available, jumpshot applet reads logfiles.info 
+   file.
+4. When you run Jumpshot it will open up a window. You can select a logfile
+   to view by using Select Logfile option.
+
+HTML code of Jumpshot applet
+----------------------------
+Given below is the HTML code for a jumpshot applet.
+
+<APPLET 
+ CODE = jumpshot.class ARCHIVE = js_classes.jar WIDTH = 100 HEIGHT = 100>
+<PARAM NAME = "logfiledir" VALUE ="logfiles">
+<PARAM NAME = "logfileinfo" VALUE ="logfiles.info">
+</APPLET>
+
+If you want Jumpshot to open up with a logfile without requiring user to select
+a logfile, include parameter "logfile" in code above.
+
+<APPLET 
+ CODE = jumpshot.class ARCHIVE = js_classes.jar WIDTH = 100 HEIGHT = 100>
+<PARAM NAME = "logfiledir" VALUE ="logfiles">
+<PARAM NAME = "logfileinfo" VALUE ="logfiles.info">
+<PARAM NAME = "logfile" VALUE = "simple.clog">
+</APPLET>
+
+This means that file simple.clog has to be present in lib/logfiles directory.
+
+Modifying jumpshot.html to use Java plugin
+------------------------------------------
+HTML code given above will work as it is, provided that the web browser or 
+appletviewer is (Java 1.1 & swing) or (Java 1.2) compatible. Such browsers do 
+not exist at this time. Only Java 1.0.2 enabled browsers are present. Browsers
+can however run applets using Java 1.1&swing or 1.2 using plugin mentioned 
+above. To make use of this plugin jumpshot.html has to be modified.
+
+jumpshot.html        -----> HTML Converter -----> jumpshot.html 
+(1.1 & Swing or 1.2)                              (Uses plugin to run applet
+                                                   on 1.0.2 enabled browsers)
+
+The modification is performed by a HTML Converter provided by Sun. This 
+converter takes HTML code and adds scripts and other commands, so that the 
+plugin can be used. jumpshot.html included in this distribution is a converted
+html file. That is the reason you see a number of additional lines above the
+HTML code.
+
+Only reasons you may want to modify jumpshot.html is to change values of 
+parameters or add a "logfile" parameter.
+1. You could make this change in the existing converted jumpshot.html by
+   searching for the parameter name and making the change. To add a new 
+   "logfile" parameter you could see where all other paramters exist and add on
+   this parameter there.
+2. You could rewrite jumpshot.html with only HTML code given above as if it was
+   for Java 1.1 enabled browsers. You could then use a HTML Converter to
+   get the converted file. HTML Converter can be obtained from
+   
+   http://www.java.sun.com/products/plugin/converter.html
+
+Calling jumpshot applet from any homepage
+-----------------------------------------
+1. You can make a link to jumpshot.html following which Jumpshot applet will 
+   run.
+2. You can include HTML Code for Jumpshot applet given before in your html file
+   This will work on Java 1.1 enabled browsers. 
+   Since such browsers are not present  you will have to take your html file 
+   and use a HTML Converter to get a Java 1.0.2 compatible html file.
+
+==============================================================================
+
+**********************************
+* Modifying jumpshot source code *
+**********************************
+If you desire you can modify jumpshot source code that is provided in 
+src/code directory. directory src has a similar structure as lib. This has been
+done so that you can make changes to the code and compile and run jumpshot from
+src directory without intefering with the default version of jumpshot.
+
+                                src
+                                 |
+       __________________________|______________________________ 
+      |              |             |            |               |
+     code           data          images     jumpshot.doc   js_classes
+                                                             
+
+jumpshot.doc: This file contains some information on working of Jumpshot.
+
+js_classes: This is the directory that should be used to contain object code.
+            (*.class)
+
+Information on compiling and running java programs can be obtained from books
+or web sites. A java tutorial can be found at
+           http://java.sun.com/docs/books/tutorial/index.html
+
+Example of setting up environment to compile and run (c shell):
+---------------------------------------------------------------
+1. You will need JDK (Java Development Kit) to compile. Get JDK and make  
+   JAVA_HOME point to it:
+        setenv JAVA_HOME /usr/local/jdk1.1.6
+2. Make CLASSPATH point to object code:
+        setenv CLASSPATH ${JAVA_HOME}/lib/classes.zip
+        setenv CLASSPATH ${CLASSPATH}:${JUMPSHOT_HOME}/swing/swing.jar
+        setenv CLASSPATH ${CLASSPATH}:${JUMPSHOT_HOME}/src/js_classes
+3. Put ${JAVA_HOME}/bin directory in your path so that executables 
+   javac/java/jre can be found:
+        set path=(${JAVA_HOME}/bin $path)
+4. To compile cd into the directory where source code is and type:
+        javac -d ../js_classes *.java
+5. To run type:
+        java jumpshot or jre jumpshot
+        
+Default version of jumpshot resides in lib directory. If you want your modified
+version of jumpshot to be the default you need to:
+	1. make a jar file of the new object code in src/js_classes
+           cd to src/js_classes
+           jar -cvf js_classes.jar *.class
+        2. Copy js_classes.jar so that it overwrites lib/js_classes.jar
+
+If you are using JDK 1.1 then you will need swing classes for compilation. 
+These can be found in swing/swing.jar.
+==============================================================================
+
+***************************
+Known Bugs and other issues
+***************************
+1. If Process States region is torn away from Display Window it forms its own
+   window. Now if Display Window is closed Process States window will not 
+   close. To close it you will have to click on the close icon present on the
+   window (provided by windows manager). This happens due to a bug in JToolBar,
+   which is an object in java.
+2. When jumpshot is run as an application we can specify the maximum amount of
+   memory it can use. If its memory usage exceeds this amount any future memory
+   allocations will result in memory exceptions. By default we set maximum
+   memory usage to be 500 Megabytes. If however, jumpshot needs more memory
+   than this, you can make appropriate changes in the script.
+
+=============================================================================
+If you have questions/comments send mail at mpi-maint@mcs.anl.gov

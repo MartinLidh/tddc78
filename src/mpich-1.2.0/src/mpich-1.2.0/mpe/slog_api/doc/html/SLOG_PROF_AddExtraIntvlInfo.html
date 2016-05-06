@@ -1,0 +1,105 @@
+<HTML>
+<TITLE>SLOG_PROF_AddExtraIntvlInfo</TITLE>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="SLOG_PROF_AddExtraIntvlInfo"><H1>SLOG_PROF_AddExtraIntvlInfo</H1></A>
+Add one display description of an interval to the reserved space of the SLOG Display Profile table. 
+<H2>Synopsis</H2>
+<PRE><CODE>
+int SLOG_PROF_AddExtraIntvlInfo(       SLOG_STREAM      *slog,
+                                 const SLOG_intvltype_t  intvltype,
+                                 const char *            classtype,
+                                 const char *            label,
+                                 const char *            color )
+</CODE></PRE>
+<H2>Modified Input Variables </H2>
+<DL><DT><B>slog </B> - pointer to the SLOG_STREAM where SLOG Display Profile Table is
+located.
+</DL>
+<P>
+<H2>Unmodified Input Variables </H2>
+<DL><DT><B>intvltype </B> - index to the interval type.
+</DL>
+<DL><DT><B>classtype </B> - character string for the classtype of the interval
+</DL>
+<DL><DT><B>label     </B> - character string for the label of the interval
+</DL>
+<DL><DT><B>color     </B> - character string for the color of the interval
+</DL>
+<P>
+<H2>Modified Output Variables </H2>
+<DL><DT><B>returned value </B> - integer return status.
+</DL>
+<P>
+<H2>Usage Notes on this subroutine </H2>
+all the input characters strings, classtype, label and color are
+allowed to contain alphanumeric, underscore, blank and tab characters.
+But tab characters, if exist, in the string are all converted to
+blanks for ease of management.
+<P>
+<P>
+Notes on the Addition of Extra Interval Description.
+This note is to clarify the usage of SLOG_PROF_XXX() routines
+especially while the user wants to add extra interval description
+to the logfile when the process of addition of interval records
+to the logfile has been started, for instance if one needs to
+add user marker interval records.
+<P>
+Also, the term interval descriptor refers to an entry in
+the Display Profile, so is the term interval information,
+abbrev. as _IntvlInfo_.  These 3 terms are used interchangably.
+<P>
+Under normal circumstances, the Display Profile table is created
+by first opening the section of the logfile for storing the table
+using SLOG_PROF_Open().  Then add the interval description using
+SLOG_PROF_AddIntvlInfo() and close the table section by
+SLOG_PROF_Close().
+<P>
+In the case that the logfile involves interval records whose
+interval type are NOT known until the process of inserting
+of the interval records to the logfile has been started, one
+should open the SLOG_PROF_Open().  Then add the known record
+definitions using SLOG_PROF_AddIntvlInfo().  However, one should
+NOT call SLOG_PROF_Close() to close the table section.  Instead,
+SLOG_PROF_SetExtraNumOfIntvlInfos() should be called to set
+the extra number of interval description entries needed( the
+number can be greater than what one actually needs ).  Then
+when user encounters a new interval record type,
+SLOG_PROF_AddExtraIntvlInfo() can then be called to add the new
+interval record type to the Display Profile table.  This
+mechanism is very similar to that of Record Definition Table.
+Except for Record Definition Table, the above procedure has to
+be done before adding the interval record to the logfile using
+SLOG_Irec_ToOutputStream() which does NOT allow interval
+record of with unknown interval type to the Record Definition
+table.  For Display Profile, the same procedure is implmented
+to simplify the interface for user to store interval description
+information to the logfile, the interval description information
+is NOT important till logfile needs to be displayed graphically.
+<P>
+<BR>
+<P>
+<P>
+<P>
+<H2>Include file needed </H2>
+slog_profile.h
+<P>
+<P>
+<H2>Notes on SLOG return status code </H2>
+There are 5 allowed SLOG returned status codes.  They include
+SLOG_SUCCESS, SLOG_FAIL and SLOG_EOF.  Their actual values
+are defined in slog.h
+<P>
+SLOG_SUCCESS is returned when no error is encountered.
+<P>
+SLOG_FAIL is returned when error is encounted.
+<P>
+SLOG_EOF is returned when End of file is encounted.
+<P>
+There are also SLOG_TRUE and SLOG_FALSE which are sued as boolean
+values, in particular they are used in boolean functions which
+are usually named as IsXXXXX(), AreXXXXX() and HasXXXXX().
+<BR>
+<P>
+<P>
+<P><B>Location:</B>../src/slog_profile.c<P>
+</BODY></HTML>

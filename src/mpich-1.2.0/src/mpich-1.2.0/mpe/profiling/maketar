@@ -1,0 +1,43 @@
+#! /bin/sh
+#
+# Make a tar file of the Upshot/Nupshot code, removing the RCS files etc.
+#
+set -x
+#
+# Use tar to copy to /tmp
+if [ ! -d /tmp/profilingcopy ] ; then
+    mkdir /tmp/profilingcopy
+fi
+cd /tmp/profilingcopy
+tar cf - -C /home/MPI/mpich profiling | tar xf -
+#
+# Update a few files
+#rm /tmp/profilingcopy/profiling/requests.h
+#cp /home/MPI/mpich/profiling/lib/requests.h /tmp/profilingcopy/profiling
+rm /tmp/profilingcopy/profiling/point.h
+#cp /home/MPI/mpich/profiling/lib/point.h /tmp/profilingcopy/profiling
+cp /home/MPI/mpich/include/mpiprof.h /tmp/profilingcopy/profiling
+cp /home/MPI/mpich/util/tarch /tmp/profilingcopy/profiling
+chmod a+x /tmp/profilingcopy/profiling
+#
+# Remove the RCS files, old executables, and debris
+cd /tmp/profilingcopy/profiling
+find . \( -name 'RCS' -o -name '*.o' -o -name '#*#' -o \
+              -name '*~' -o -name 'mputil.mp*' -o -name Makefile -o \
+	      -name makefile -o -name 'PI*' \) -print | \
+	sed 's%^%/bin/rm -rf %g' | sh
+#
+# Remove all but a few logfiles
+/bin/rm -f upshot/logfiles/*
+cp /home/MPI/mpich/profiling/upshot/logfiles/fft.trf upshot/logfiles
+cp /home/MPI/mpich/profiling/upshot/logfiles/sam_hyp.16.log upshot/logfiles
+cp /home/MPI/mpich/profiling/upshot/logfiles/states.c upshot/logfiles
+cp /home/MPI/mpich/profiling/Makefile .
+/bin/rm -f upshot/bin/upshot
+/bin/rm -rf nupshot/samples
+#
+# rebuild the tar file
+cd /tmp/profilingcopy
+tar cf - profiling | gzip > /tmp/profiling.tar.gz
+/bin/rm -rf /tmp/profilingcopy &
+echo "tar file in /tmp/profiling.tar.gz"

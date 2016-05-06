@@ -1,0 +1,46 @@
+#! /bin/sh
+# courtesy of Jarek Nieplocha, to clean ipc's
+# Modified by Bill Gropp to apply only to calling user
+ipccmd=ipcrm
+for arg in "$@" ; do
+   case $arg in
+	-help|-u|-us*|-h)
+	echo "cleanipcs [-show] [-echo]"
+	exit 1
+	;;
+	-echo)
+	set -x
+	;;
+	-show)
+	ipccmd="echo ipcrm"
+	;;
+	*)
+	if [ -n "$arg" ] ; then
+  	    echo "Unrecognized argument $arg"
+	    exit 1
+	fi
+	;;
+   esac
+done
+#
+# LINUX uses an incompatible form of the ipcrm command!  Try to detect this
+UseLinux=0
+statvalue=`ipcrm`
+if [ $? != 0 ] ; then 
+    if [ "$statvalue" = 'usage: ipcrm [shm | msg | sem] id' ] ; then
+        UseLinux=1
+    fi
+fi
+if [ $UseLinux = 0 ] ; then
+    $ipccmd `ipcs | awk '{if ((($1 == "m") || ($1 == "s")) && ($5 == "'$LOGNAME'")) print sprintf("-%s %s",$1,$2) }'`
+else
+    #
+    # For LINUX, we need this instead:
+    ipcs -m | gawk '{if ($3 == name) printf("%s %s\n", comm, $2)}' name=$LOGNAME comm="$ipccmd shm " | sh > /dev/null
+    ipcs -s | gawk '{if ($3 == name) printf("%s %s\n", comm, $2)}' name=$LOGNAME comm="$ipccmd sem " | sh > /dev/null
+fi
+#
+# mpirun could call this for systems that use SYSV shared memory features,
+# just to keep them friendly.
+
+

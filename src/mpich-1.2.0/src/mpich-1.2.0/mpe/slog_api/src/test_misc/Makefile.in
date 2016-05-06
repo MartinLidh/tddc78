@@ -1,0 +1,39 @@
+#  (C) 1993 by Argonne National Laboratory and Mississipi State University.
+#      All rights reserved.  See COPYRIGHT in top-level directory.
+#
+
+##### User configurable options #####
+
+CC           = @CC@
+CLINKER      = $(CC)
+AR           = @AR@ cr
+RANLIB       = @RANLIB@
+MAKE         = @MAKE@
+OPTFLAGS     = @OPTFLAGS@
+SLOG_CFLAGS  = @CFLAGS@
+MPICH        = @MPICH@
+
+### End User configurable options ###
+SHELL = /bin/sh
+
+@VPATH@
+
+CFLAGS =  $(SLOG_CFLAGS) $(OPTFLAGS) $(INCLUDE_DIR) 
+
+MAIN_SRC   = ts_filelen.c ts_filemode.c
+MAIN_OBJ   = $(MAIN_SRC:.c=.o)
+MAIN_EXE   = $(MAIN_OBJ:.o=)
+
+
+.SUFFIXES:	.c .o
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< 
+
+.o:
+	$(CC) $(CFLAGS) -o $@ $< 
+
+all:	$(MAIN_OBJ) $(MAIN_EXE)
+
+clean:
+	/bin/rm -f core *~ PI* $(AUX_OBJ) $(MAIN_OBJ) $(MAIN_EXE)

@@ -1,0 +1,98 @@
+# Generated automatically from Makefile.in by configure.
+# -*- makefile -*-
+#
+# Copyright 1997-1999, University of Notre Dame.
+# Authors: Jeremy G. Siek, Michael P. McNally, Jeffery M. Squyres,
+#          Andrew Lumsdaine
+
+# This file is part of the Notre Dame C++ bindings for MPI
+
+# You should have received a copy of the License Agreement for the
+# Notre Dame C++ bindings for MPI along with the software;  see the
+# file LICENSE.  If not, contact Office of Research, University of Notre
+# Dame, Notre Dame, IN  46556.
+
+# Permission to modify the code and to distribute modified code is
+# granted, provided the text of this NOTICE is retained, a notice that
+# the code was modified is included with the above COPYRIGHT NOTICE and
+# with the COPYRIGHT NOTICE in the LICENSE file, and that the LICENSE
+# file is distributed with the modified code.
+
+# LICENSOR MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.
+# By way of example, but not limitation, Licensor MAKES NO
+# REPRESENTATIONS OR WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY
+# PARTICULAR PURPOSE OR THAT THE USE OF THE LICENSED SOFTWARE COMPONENTS
+# OR DOCUMENTATION WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS
+# OR OTHER RIGHTS.
+#
+# test examples for mpi++
+
+#
+#
+
+SHELL		= /usr/bin/sh
+CXX		= /home/TDDB78/src/mpich-1.2.0/bin/mpiCC
+TEMPLATE_REP	= SunWS_cache  
+
+# The ../.. includes the configuration file for VPATH builds
+# When the C++ interface is installed, this path should be not be necessary.
+CXXFLAGS	= -O -I../..
+LDFLAGS		= -O
+
+srcdir=/home/TDDB78/src/mpich-1.2.0/MPI-2-C++/contrib/examples
+top_srcdir=/home/TDDB78/src/mpich-1.2.0/MPI-2-C++
+VPATH=.:$(srcdir)
+
+#
+# General compilation rule
+#
+
+.SUFFIXES: .cc .o
+
+.cc.o:
+	$(CXX) -c $(CXXFLAGS) $<
+
+#
+# Build rules
+#
+
+PROGS		= hello_world ring topology user_bcast chapter_10_mpi2 pi
+
+all: $(PROGS)
+
+hello_world:  hello_world.o
+	$(CXX) hello_world.o -o hello_world $(LDFLAGS)
+
+pi: pi.o
+	$(CXX) pi.o -o pi $(LDFLAGS) -lm
+
+ring:  ring.o
+	$(CXX) ring.o -o ring $(LDFLAGS)
+
+topology:  topology.o
+	$(CXX) topology.o  -o topology $(LDFLAGS)
+
+user_bcast:  user_bcast.o
+	$(CXX) user_bcast.o  -o user_bcast $(LDFLAGS)
+
+chapter_10_mpi2:  chapter_10_mpi2.o
+	$(CXX) chapter_10_mpi2.o  -o chapter_10_mpi2 $(LDFLAGS)
+
+#
+# clean
+# On some weird Unix's, rm -f will complain if there are no files to 
+# delete...
+#
+
+#
+# The Solaris C++ compiler creates a directory containing miscellaneous
+# data.  The action is not documented in the Solaris CC man pages
+clean:
+	@ touch bogus
+	rm -rf *.o *~ *% core $(PROGS) bogus $(TEMPLATE_REP) SunWS_cache
+
+distclean: clean
+	@ touch bogus
+	rm -f Makefile bogus
+
+
