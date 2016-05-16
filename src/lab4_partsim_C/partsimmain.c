@@ -9,13 +9,12 @@
 #include <math.h>
 
 #define T_STEP 1
-#define ITERATIONS 1000
-#define INIT_P 1000
+
 
 
 int main(int argc, char* argv[]){
 
-  int me, np,i,workload,work2, bufsize;
+  int me, np,i,workload,work2, bufsize,ITERATIONS,INIT_P;
   List list;
   cord_t box;
   long double pressure=0;
@@ -28,8 +27,15 @@ int main(int argc, char* argv[]){
   particle_t recvBuff[MAX_NO_PARTICLES];
   int recvUp, recvDown;
   int upCount, downCount;
-  
-  
+  if(argc!=3)
+    {
+      printf("invalid number of args");
+      return;
+    }
+
+
+  sscanf(argv[1], "%d", &ITERATIONS);
+  sscanf(argv[2], "%d", &INIT_P);
 
   MPI_Comm com = MPI_COMM_WORLD;
   MPI_Init( &argc, &argv );
@@ -133,6 +139,7 @@ int main(int argc, char* argv[]){
 	feuler(&(node->particle.pcord),T_STEP);
 	wall_c = wall_collide(&(node->particle.pcord), box);
 	if(node->particle.pcord.y < workload*me && me != 0){
+	  printf("upcount %d, me: %d\n",upCount,me);
 	  sendUp[upCount++] = RemoveNode(node, &list)->particle;
 	}else if(node->particle.pcord.y > workload*me+workload && me != np-1){
 	  sendDown[downCount++] = RemoveNode(node, &list)->particle;
