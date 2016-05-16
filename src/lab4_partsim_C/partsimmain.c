@@ -139,7 +139,6 @@ int main(int argc, char* argv[]){
 	feuler(&(node->particle.pcord),T_STEP);
 	wall_c = wall_collide(&(node->particle.pcord), box);
 	if(node->particle.pcord.y < workload*me && me != 0){
-	  printf("upcount %d, me: %d\n",upCount,me);
 	  sendUp[upCount++] = RemoveNode(node, &list)->particle;
 	}else if(node->particle.pcord.y > workload*me+workload && me != np-1){
 	  sendDown[downCount++] = RemoveNode(node, &list)->particle;
@@ -150,7 +149,8 @@ int main(int argc, char* argv[]){
     }
     
     //send and recive particles
-    
+    printf("upcount %d, me: %d\n",upCount,me);
+    printf("downcount %d, me: %d\n",downCount,me);
     if(me != 0){
       MPI_Ibsend(&upCount, 1, MPI_INT ,me-1,1,com, &sendReqs);
       MPI_Ibsend(sendUp, upCount, MPI_PART,me-1,2,com, &sendReqs);

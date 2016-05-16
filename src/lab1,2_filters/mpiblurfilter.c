@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
   if(argc!=4)
     {
       printf("invalid number of args");
-      return;
+      return -1;
     }
     
   int xpix, ypix, me, np, maxpix, workload, work2, i, recvcount,over, under, bufsize,radius;
