@@ -162,6 +162,7 @@ int main(int argc, char* argv[]){
       MPI_Ibsend(&downCount, 1, MPI_INT ,me+1,3,com, &sendReqs);
       MPI_Ibsend(sendDown, downCount, MPI_PART,me+1,4,com, &sendReqs );
     }
+    
     if(me != 0){
       MPI_Recv(&recvUp, 1, MPI_INT, me-1,3,com,MPI_STATUS_IGNORE);
       MPI_Recv(recvBuff,recvUp,MPI_PART,me-1,4,com,MPI_STATUS_IGNORE);
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]){
     if(me!= np-1){
       MPI_Recv(&recvDown, 1, MPI_INT, me+1,1,com,MPI_STATUS_IGNORE);
       MPI_Recv(&recvBuff[recvUp],recvDown,MPI_PART,me+1,2,com,MPI_STATUS_IGNORE);
-      }
+    }
     for(i=0;  i < (recvUp+recvDown); i++){
       Node n = {.particle = recvBuff[i]};
       InsertAtTail(&n,&list);
