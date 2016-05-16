@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
 
   sscanf(argv[1], "%d", &ITERATIONS);
   sscanf(argv[2], "%d", &INIT_P);
-
+  printf("iterationsa and init %d    %d \n",ITERATIONS, INIT_P);
   
 
   MPI_Comm com = MPI_COMM_WORLD;
