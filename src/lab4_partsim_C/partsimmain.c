@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
   particle_t sendDown[MAX_NO_PARTICLES];
   particle_t recvBuff[MAX_NO_PARTICLES];
   int recvUp, recvDown;
-  int upCount, downCount;
+  int upCount=0, downCount=0;
   if(argc!=3)
     {
       printf("invalid number of args");
@@ -36,6 +36,8 @@ int main(int argc, char* argv[]){
 
   sscanf(argv[1], "%d", &ITERATIONS);
   sscanf(argv[2], "%d", &INIT_P);
+
+  
 
   MPI_Comm com = MPI_COMM_WORLD;
   MPI_Init( &argc, &argv );
