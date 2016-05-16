@@ -30,7 +30,7 @@ int main(int argc, char* argv[]){
   if(argc!=3)
     {
       printf("invalid number of args");
-      return;
+      return 1;
     }
 
 
@@ -151,8 +151,6 @@ int main(int argc, char* argv[]){
     }
     
     //send and recive particles
-    printf("upcount %d, me: %d\n",upCount,me);
-    printf("downcount %d, me: %d\n",downCount,me);
     if(me != 0){
       MPI_Ibsend(&upCount, 1, MPI_INT ,me-1,1,com, &sendReqs);
       MPI_Ibsend(sendUp, upCount, MPI_PART,me-1,2,com, &sendReqs);
