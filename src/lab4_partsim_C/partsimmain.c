@@ -173,6 +173,8 @@ int main(int argc, char* argv[]){
     }
     upCount=0;
     downCount=0;
+    recvDown= 0;
+    recvUp=0;
     time_s++;
   }
 
