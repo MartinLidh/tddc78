@@ -72,8 +72,8 @@ int main(int argc, char* argv[]){
   }
     
     
-  Node * buf = (Node *)malloc(((MAX_NO_PARTICLES)*np)*sizeof(Node));
-  bufsize = (MAX_NO_PARTICLES)*np)*sizeof(Node) + 2 * MPI_BSEND_OVERHEAD;
+  Node * buf = (Node *)malloc((MAX_NO_PARTICLES*np)*sizeof(Node));
+  bufsize = (MAX_NO_PARTICLES*np)*sizeof(Node) + 2 * MPI_BSEND_OVERHEAD;
   MPI_Buffer_attach(buf, bufsize);
  
   MPI_Bcast(&box,1,MPI_CORD,0,com);
