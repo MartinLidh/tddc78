@@ -151,6 +151,7 @@ int main(int argc, char* argv[]){
     }
     
     //send and recive particles
+    //hejejfnjafndjf
     if(me != 0){
       MPI_Ibsend(&upCount, 1, MPI_INT ,me-1,1,com, &sendReqs);
       MPI_Ibsend(sendUp, upCount, MPI_PART,me-1,2,com, &sendReqs);
