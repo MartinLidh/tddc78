@@ -177,7 +177,7 @@ int main(int argc, char* argv[]){
     recvUp=0;
     time_s++;
   }
-
+  printf("lolodmasmkdaksdmask");
   MPI_Reduce(&pressure,&tot_pressure,1,MPI_LONG_DOUBLE,MPI_SUM,0,com);
   if(me==0)
     {
